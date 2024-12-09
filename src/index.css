@@ -1,0 +1,94 @@
+/* Variables de color y fuentes basadas en el manual de identidad */
+/* Importa Delius-Regular desde Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Delius&display=swap");
+
+/* Importa Montserrat desde Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap");
+
+:root {
+  --primary-color: #ee7723; /* Naranja principal */
+  --secondary-color: #00983a; /* Verde secundario */
+  --text-color: #2a2a2a; /* Color de texto principal */
+  --background-color: #f5f5f5; /* Fondo claro */
+  /* Asigna Delius-regular como la fuente principal */
+  --font-family-primary: "Delius";
+  /* Asigna Montserrat como la fuente secundaria */
+  --font-family-secondary: "Montserrat", sans-serif;
+}
+
+/* Estilos básicos */
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+
+  background-image: url("assets//don_kampo_bg.jpg"); /* Cambia 'background.jpg' por el nombre de tu imagen */
+  background-size: cover; /* Esto asegura que la imagen cubra todo el fondo sin distorsión */
+  background-position: center; /* Centra la imagen */
+  background-repeat: no-repeat; /* Evita que la imagen se repita */
+  background-attachment: fixed; /* Fija la imagen en su lugar mientras se desplaza el contenido */
+  color: var(--text-color);
+}
+
+/* Títulos para seguir la paleta de color */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-secondary);
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.modal-text {
+  font-family: var(--font-family-secondary);
+}
+
+/* Botones */
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-family: var(--font-family-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Enlaces */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--secondary-color);
+  text-decoration: underline;
+}
+
+/* Tarjetas de productos */
+.product-card {
+  border: 1px solid #ddd;
+  padding: 20px;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-card h3 {
+  font-family: var(--font-family-secondary);
+  color: var(--primary-color);
+}
+
+.product-card p {
+  color: var(--text-color);
+}
+
+/* Estilos adicionales según necesidad */

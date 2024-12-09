@@ -1,0 +1,114 @@
+.footer {
+  background-color: #ee7723; /* Color corporativo */
+  color: white;
+  padding: 40px 20px;
+  text-align: center;
+  max-height: 80%;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-title {
+  color: #00983a; /* Color secundario */
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+/* Flexbox para centrar las categorías */
+.category-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap; /* Para que sea responsivo */
+  gap: 40px; /* Espaciado uniforme */
+  margin-top: 20px;
+}
+
+.category-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.category-link:hover {
+  transform: scale(1.05);
+}
+
+.category-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover; /* Mantiene proporciones */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 8px;
+}
+
+.category-title {
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+}
+
+.footer-bottom {
+  margin-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 20px;
+  font-size: 0.9rem;
+}
+
+.footer-bottom a {
+  color: #00983a;
+  text-decoration: none;
+}
+
+.footer-bottom a:hover {
+  text-decoration: underline;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .category-image {
+    width: 100px;
+    height: 100px;
+  }
+
+  .category-title {
+    font-size: 0.9rem;
+  }
+
+  .category-container {
+    gap: 20px;
+  }
+}
+
+.contact-info {
+  margin-top: 20px;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.contact-info p {
+  margin: 5px 0;
+}
+
+.contact-link {
+  color: white;
+  text-decoration: none;
+  margin: 5px 0;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.contact-link:hover {
+  color: #00983a;
+  transform: scale(1.05);
+}

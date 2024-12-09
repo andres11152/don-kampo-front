@@ -1,0 +1,72 @@
+.create-product-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 2%;
+    margin-bottom: 4%;
+  }
+  .ExcelCarga {
+    justify-content: flex-end;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    width: 100%; 
+    display: block; 
+  }
+  .create-product-header {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #ff6600;
+  }
+  
+  .form-column {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .ant-form-item {
+    width: 100%;
+  }
+  
+  .upload-button {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .submit-button {
+    background-color: #00983a;
+    border-color: #00983a;
+  }
+  
+  .submit-button:hover {
+    background-color: #ee7723;
+    border-color: #ee7723;
+  }
+  
+  .table-container {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .table-title {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 20px;
+    color: #333;
+  }
+  .form-quantity{
+    margin-top: 10px;
+  }
+
+  nav, footer {
+    position: relative;
+    z-index: 10;  /* Asegúrate de que los valores de z-index sean mayores que los del resto del contenido */
+  }
+  
+  
