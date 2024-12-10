@@ -14,9 +14,9 @@ import {
   DatePicker,
   Badge,
 } from "antd";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import Header from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "./UserProfile.css";
@@ -397,7 +397,7 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="user-profile-container">
         {view === "welcome" && renderWelcome()}
         {view === "profile" && renderProfile()}

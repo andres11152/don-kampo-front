@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { Card, Button, message, Select, Input, Pagination, Modal } from "antd";
 import axios from "axios";
 import { useCart } from "../../pages/products/CartContext";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import Header from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import "./Products.css";
 
 const { Option } = Select;
@@ -15,11 +15,16 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("Todas");
-  const [searchQuery, setSearchQuery] = useState("");
+
+  // Obtener el parámetro de búsqueda de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchQueryFromUrl = urlParams.get("search") || "";
+
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [selectedVariations, setSelectedVariations] = useState({});
   const [quantities, setQuantities] = useState({});
   const [isVisible, setIsModalVisible] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);
+  const [currentProduct, setCurrentProduct] = useState(null);  
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -73,16 +78,32 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  
+  const filterProducts = useCallback(
+    (category, query) => {
+      const filtered = products.filter((product) => {
+        const matchesCategory = category === "Todas" || product.category === category;
+        const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
+        return matchesCategory && matchesSearch;
+      });
+      setFilteredProducts(filtered);
+      setCurrentPage(1); // Reiniciar a la primera página
+    },
+    [products] // Dependencia de la lista de productos
+  );
 
   useEffect(() => {
     // Obtener el parámetro de búsqueda de la URL
     const urlParams = new URLSearchParams(window.location.search);
+    
     const searchQueryFromUrl = urlParams.get("search") || "";
+    const idQueryFromUrl = urlParams.get("id") || null;
+    
+    idQueryFromUrl && 
+      openModal(products.filter(product => product.product_id == idQueryFromUrl)[0])
+    
     setSearchQuery(searchQueryFromUrl);
     filterProducts(selectedCategory, searchQueryFromUrl);
-  }, [selectedCategory]);
-  
+  }, [selectedCategory, filterProducts]);
 
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
@@ -92,33 +113,15 @@ const Products = () => {
   const handleSearchChange = (event) => {
     const query = event.target.value;
     setSearchQuery(query);
-    if (query) {
-      window.location.href = `/products?search=${query}`;
-    }
   };
   
-  
+  const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const normalizeString = (str) =>
-    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-  const filterProducts = (category, query) => {
-    const filtered = products.filter((product) => {
-      const matchesCategory = category === "Todas" || product.category === category;
-      const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
-      return matchesCategory && matchesSearch;
-    });
-    setFilteredProducts(filtered);
-    setCurrentPage(1); // Reiniciar a la primera página
-  };
-  
-
-  useEffect(() => {
+  useEffect(() => {    
     filterProducts(selectedCategory, searchQuery);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, filterProducts]);
 
-  const getBase64Image = (photoUrl) =>
-    photoUrl || `${process.env.PUBLIC_URL}/images/icon.png`;
+  const getBase64Image = (photoUrl) => photoUrl || `${import.meta.env.PUBLIC_URL}/images/icon.png`;
 
   const getPriceByUserType = (variation) => {
     let price;
@@ -210,11 +213,10 @@ const Products = () => {
   
     setIsModalVisible(false); // Cerrar el modal después de añadir al carrito
   };
-  
-  
 
   const openModal = (product) => {
     setCurrentProduct(product);
+    
     setIsModalVisible(true);
   };
 
@@ -222,6 +224,7 @@ const Products = () => {
     setIsModalVisible(false);
     setCurrentProduct(null);
   };
+
   const handleInputChange = (productId, value) => {
     const newValue = Math.max(1, parseInt(value) || 1); // Asegurarse de que el valor sea mínimo 1
     setQuantities((prev) => ({
@@ -232,7 +235,7 @@ const Products = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="filters-container">
         <Select
           placeholder="Filtrar por categoría"
@@ -313,7 +316,7 @@ const Products = () => {
           footer={null}
           width={400}
         >
-          <img
+          <img  
             alt={currentProduct.name}
             src={getBase64Image(currentProduct.photo_url)}
             style={{ width: "100%", height: "300px", objectFit: "cover" }}

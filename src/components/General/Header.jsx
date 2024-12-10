@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Menu, Drawer, Button, Badge, Input } from "antd";
+import { Menu, Drawer, Button, Badge } from "antd";
 import {
   HomeOutlined,
   AppstoreOutlined,
@@ -8,18 +8,16 @@ import {
   MenuOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
-  SearchOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/products/CartContext"; // Importa el hook de contexto de carrito
-import "./Navbar.css";
+import "./General.css";
 
-const { Header } = Layout;
-
-const Navbar = () => {
+const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  localStorage.setItem("selectedKey", localStorage.getItem('selectedKey' || ''));
   // Obtener el cartValue y cartCount desde el contexto del carrito
   const { cartValue, cartCount } = useCart();
 
@@ -29,7 +27,7 @@ const Navbar = () => {
   const isAdmin = isLoggedIn && loginData.user.user_type === "admin"; // Verifica si el usuario es admin
 
   // Estado para la ruta seleccionada y para el drawer en pantallas pequeñas
-  const [selectedKey, setSelectedKey] = useState("");
+  const [selectedKey, setSelectedKey] = useState(localStorage.getItem('selectedKey'));
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -78,9 +76,9 @@ const Navbar = () => {
   }, [location.pathname]);
 
   // Función para manejar el clic en el menú y cambiar la ruta
-  const handleMenuClick = (key, route) => {
+  const handleMenuClick = key => {
+    localStorage.setItem("selectedKey", key);    
     setSelectedKey(key);
-    navigate(route);
     setDrawerVisible(false); // Cierra el Drawer si se selecciona un elemento
   };
 
@@ -91,150 +89,68 @@ const Navbar = () => {
     handleMenuClick("login", "/login");
   };
 
- 
-
   return (
-    <Header className="navbar">
-      <div className="navbar-left">
-        {/* Logo */}
-        <div className="logo" onClick={() => handleMenuClick("home", "/")}>
-          <img
-            src="/images/1.png"
-            alt="Don Kampo Logo"
-            style={{ height: "88px" }}
-          />
-        </div>
+    <header className="header">
+      <div>
+        <a href="/">
+          <img src="/images/1.png" alt="Don Kampo Logo"/>
+        </a>
 
-        
-      </div>
-
-      {/* Carrito */}
-      <div
-        className="cart-icon"
-        style={{ display: "flex", alignItems: "center" }}
-        onClick={() => handleMenuClick("cart", "/cart")}
-      >
-        <Badge
-          count={
-            cartValue > 99999
-              ? `${(cartValue / 1000).toFixed(1)}K`
-              : `$${cartValue.toLocaleString()}`
-          }
-          offset={[10, 0]}
-          style={{
-            backgroundColor: "#52c41a",
-            fontSize: "14px",
-            padding: "0 8px",
-          }}
+        <div
+          className="cart-icon"
+          style={{ display: "flex", alignItems: "center" }}
+          onClick={() => handleMenuClick("cart", "/cart")}
         >
-          <ShoppingCartOutlined
-            style={{ fontSize: "24px", color: "white", cursor: "pointer" }}
-          />
-        </Badge>
+          <Badge
+            count={
+              cartValue > 99999
+                ? `${(cartValue / 1000).toFixed(1)}K`
+                : `$${cartValue.toLocaleString()}`
+            }
+            offset={[10, 0]}
+            style={{
+              backgroundColor: "#52c41a",
+              fontSize: "14px",
+              padding: "0 8px",
+            }}
+          >
+            <ShoppingCartOutlined
+              style={{ fontSize: "24px", color: "white", cursor: "pointer" }}
+            />
+          </Badge>
+        </div>
       </div>
 
       {/* Menú para pantallas grandes */}
-      <div className="menu-desktop">
-        <Menu
-          theme="light"
-          mode="horizontal"
-          selectedKeys={[selectedKey]}
-          className="menu"
-        >
-          <Menu.Item
-            key="home"
-            icon={<HomeOutlined />}
-            onClick={() => handleMenuClick("home", "/")}
-          >
-            Inicio
-          </Menu.Item>
-          <Button
-            type="secondary"
-            className="cosechas-button"
-            onClick={() => navigate("/products?category=Cosecha")}
-            style={{
-              marginLeft: "0px",
-              backgroundColor: "#00983A",
-              borderColor: "#FF914D",
-              color: "#fff",
-              marginTop: "17px",
-            }}
-          >
-            Cosechas
-          </Button>
-          <Menu.Item
-            key="products"
-            icon={<AppstoreOutlined />}
-            onClick={() => handleMenuClick("products", "/products")}
-          >
-            Productos
-          </Menu.Item>
-
-          {isLoggedIn ? (
+      <nav>
+        <ul>
+          <li>
+            <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
+          </li>
+          <li className="cosechas">
+            <a href="/products?category=Cosecha">Cosechas</a>
+          </li>
+          <li>
+            <a className={`${selectedKey === 'Productos' ? 'selected' : ''}`} href="/products" onClick={() => handleMenuClick('Productos')}><i className="fa-solid fa-grip" />Productos</a>
+          </li>
+          { isLoggedIn ? 
             <>
-              {isAdmin && (
-                <Menu.Item
-                  key="createproduct"
-                  icon={<PlusOutlined />}
-                  onClick={() =>
-                    handleMenuClick("createproduct", "/createproduct")
-                  }
-                >
-                  Agregar Productos
-                </Menu.Item>
-              )}
-              {isAdmin && (
-                <Menu.Item
-                  key="manageproducts"
-                  icon={<AppstoreOutlined />}
-                  onClick={() =>
-                    handleMenuClick("manageproducts", "/manageproducts")
-                  }
-                >
-                  Gestionar Productos
-                </Menu.Item>
-              )}
-              <Menu.Item
-                key="profile"
-                icon={<UserOutlined />}
-                onClick={() => handleMenuClick("profile", "/profile")}
-              >
-                {loginData.user.user_name}
-              </Menu.Item>
-              <Menu.Item
-                key="logout"
-                icon={<LogoutOutlined />}
-                onClick={handleLogout}
-              >
-                Cerrar Sesión
-              </Menu.Item>
+              { isAdmin && <li><a className={`${selectedKey === 'Agregar' ? 'selected' : ''}`} href="/createproduct" onClick={() => handleMenuClick('Agregar')}><i className="fa-solid fa-plus" /> Agregar Productos</a></li> }
+              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageproducts" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestionar Productos</a></li> }
+              <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {loginData.user.user_name} </a></li>
+              <li><a onClick={handleLogout}><i className="fa-solid fa-right-from-bracket" /> Cerrar Sesion </a></li>
             </>
-          ) : (
+          :   
             <>
-              <Menu.Item
-                key="login"
-                onClick={() => handleMenuClick("login", "/login")}
-              >
-                Iniciar Sesión
-              </Menu.Item>
-              <Menu.Item
-                key="register"
-                onClick={() => handleMenuClick("register", "/register")}
-              >
-                Registrarse
-              </Menu.Item>
+              <li><a className={`${selectedKey === 'Login' ? 'selected' : ''}`} href="/login" onClick={() => handleMenuClick('Login')}><i className="fa-solid fa-user" /> Iniciar Sesion </a></li>
+              <li><a className={`${selectedKey === 'Register' ? 'selected' : ''}`} href="/register" onClick={() => handleMenuClick('Register')}><i className="fa-regular fa-circle-user" /> Registrarse </a></li>
             </>
-          )}
-        </Menu>
-      </div>
+          }
+        </ul>
+      </nav>
 
       {/* Ícono de menú para pantallas pequeñas */}
-      <Button
-        className="menu-mobile-button"
-        type="text"
-        icon={<MenuOutlined />}
-        onClick={() => setDrawerVisible(true)}
-      />
+      <button onClick={() => setDrawerVisible(true)}> <i className="fa-solid fa-bars" /></button>
 
       {/* Drawer para menú en pantallas pequeñas */}
       <Drawer
@@ -307,8 +223,8 @@ const Navbar = () => {
           )}
         </Menu>
       </Drawer>
-    </Header>
+    </header>
   );
 };
 
-export default Navbar;
+export default Header;

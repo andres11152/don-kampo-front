@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { Form, Input, Button, Modal, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import CustomFooter from "../../components/footer/Footer";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import CustomFooter from "../../components/General/Footer";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import "./Login.css";
-import Navbar from "../../components/navbar/Navbar";
+import Header from "../../components/General/Header";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ const Login = () => {
   const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
 
-  const onFinish = async (values) => {
+  const onFinish = async (values) => {   
     const { email, user_password } = values;
 
     setLoading(true);
@@ -27,7 +27,6 @@ const Login = () => {
         { email, user_password },
         { withCredentials: true } // Permite enviar cookies si el backend lo requiere
       );
-    
       // Guarda los datos de inicio de sesión en localStorage
       localStorage.setItem("loginData", JSON.stringify(response.data));
       message.success(response.data.message);
@@ -116,7 +115,7 @@ const Login = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="login-container">
         <h2>Inicio de Sesión</h2>
         <Form name="login_form" onFinish={onFinish} layout="vertical">

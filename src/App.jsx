@@ -18,7 +18,6 @@ import ManageProducts from "./pages/deleteProduct/deleteProduct.jsx";
 import Home from "./pages/home/Home.jsx";
 
 import { CartProvider } from "./pages/products/CartContext.jsx";
-import "./App.css";
 
 const App = () => {
   const [userType, setUserType] = useState(null);
@@ -52,69 +51,65 @@ const App = () => {
 
   return (
     <Router>
-      <div id="root">
-        <CartProvider>
-          <div className="main-content">
-            <Routes>
-              {/* Rutas públicas */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
+      <CartProvider>
+        <Routes>
+          {/* Rutas públicas */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
 
-              {/* Rutas protegidas para usuarios admin */}
-              <Route
-                path="/createproduct"
-                element={
-                  userType === "admin" ? (
-                    <CreateProduct />
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
-              <Route
-                path="/manageproducts"
-                element={
-                  userType === "admin" ? (
-                    <ManageProducts />
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
+          {/* Rutas protegidas para usuarios admin */}
+          <Route
+            path="/createproduct"
+            element={
+              userType === "admin" ? (
+                <CreateProduct />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/manageproducts"
+            element={
+              userType === "admin" ? (
+                <ManageProducts />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
 
-              {/* Ruta protegida para crear órdenes */}
-              <Route
-                path="/createorder"
-                element={
-                  userType ? (
-                    <CreateOrder />
-                  ) : (
-                    <Navigate to="/login" replace />
-                  )
-                }
-              />
+          {/* Ruta protegida para crear órdenes */}
+          <Route
+            path="/createorder"
+            element={
+              userType ? (
+                <CreateOrder />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
 
-              {/* Ruta para el perfil del usuario */}
-              <Route
-                path="/profile"
-                element={
-                  userType === "admin" ? (
-                    <AdminProfile />
-                  ) : userType ? (
-                    <Profile />
-                  ) : (
-                    <Navigate to="/login" replace />
-                  )
-                }
-              />
-            </Routes>
-          </div>
-        </CartProvider>
-      </div>
+          {/* Ruta para el perfil del usuario */}
+          <Route
+            path="/profile"
+            element={
+              userType === "admin" ? (
+                <AdminProfile />
+              ) : userType ? (
+                <Profile />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+        </Routes>
+      </CartProvider>
     </Router>
   );
 };

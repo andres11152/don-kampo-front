@@ -13,12 +13,11 @@ import {
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import Header from "../../components/General/Header";
+import Footer from "../../components/General/Footer";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import InstallPrompt from "../install/InstallPrompt";
 import "./Home.css";
-
 
 const { Title, Paragraph } = Typography;
 
@@ -66,18 +65,15 @@ const userTypeCarouselItems = {
 const Home = () => {
   const carouselRef = useRef(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [userType, setUserType] = useState(null);
+  const [userType, setUserType] = useState('hogar');
+  // const [userType, setUserType] = useState(JSON.parse(localStorage.getItem("loginData")).user.user_type);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const navigate = useNavigate();
+  const navigate = useNavigate();  
+  
+  const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
 
-  const handleCategoryClick = (category) => {
-    navigate(`/products?category=${encodeURIComponent(category)}`);
-  };
-
-  const handleSearch = (value) => {
-    navigate(`/products?search=${encodeURIComponent(value)}`);
-  };
+  const handleSearch = value => navigate(`/products?search=${encodeURIComponent(value)}`);
 
   const fetchProducts = async (query) => {
     try {
@@ -91,7 +87,7 @@ const Home = () => {
         const filteredProducts = response.data.filter((product) =>
           product.name.toLowerCase().includes(query.toLowerCase())
         );
-  
+        
         setSearchResults(filteredProducts);
         console.log("Productos encontrados:", filteredProducts);
       } else {
@@ -101,87 +97,94 @@ const Home = () => {
       message.error("Error al cargar los productos.");
       console.error("Error al obtener productos:", error);
     }
-  };
-  
-  
+  };  
 
-  const handleSearchChange = (value) => {
+  const handleSearchChange = value => {
     setSearchValue(value);
-    if (value) {
-      fetchProducts(value);
-    } else {
-      setSearchResults([]);
-    }
-  };
+    value ? fetchProducts(value) : setSearchResults([])
+  }
 
-  const handleSelect = (value) => {
-    const selectedProduct = searchResults.find(
-      (product) => product.title === value
-    );
-    if (selectedProduct) {
-      navigate(selectedProduct.link);
-    }
+  const handleSelect = value => {
+    const selectedProduct = searchResults.find( product => product.name === value );
+    console.log(selectedProduct);
+    
+    selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
 
   useEffect(() => {
     const modalShown = localStorage.getItem("modalShown");
-    if (!modalShown) {
-      setIsModalVisible(true);
-    }
+    !modalShown && setIsModalVisible(true);
   }, []);
 
   useEffect(() => {
-    if (userType) {
+    userType && 
       localStorage.setItem("modalShown", "true");
       localStorage.setItem("userType", userType);
       setIsModalVisible(false);
-    }
   }, [userType]);
 
-  const handleNext = () => {
-    carouselRef.current.next();
-  };
+  const handleNext = () => carouselRef.current.next();
+  const handlePrev = () => carouselRef.current.prev();
 
-  const handlePrev = () => {
-    carouselRef.current.prev();
-  };
+  const handleNavigate = link => navigate(link);
 
-  const handleNavigate = (link) => {
-    navigate(link);
-  };
-
-  const handleUserTypeChange = (type) => {
-    setUserType(type);
-  };
+  const handleUserTypeChange = type => setUserType(type);
 
   return (
     <>
-      <Navbar />
-      <div className="home-container">
-        {/* Carrusel principal */}
+      <Header 
+        searchResults={searchResults} 
+        handleSelect={handleSelect}
+        handleSearchChange={handleSearchChange}
+        handleSearch={handleSearch}
+        searchValue={searchValue}
+        setSearchValue={setSearchValue}
+      />
+      <main>
         <div className="search-bar">
           <AutoComplete
-            options={searchResults.map((product) => ({
-              value: product.name, // Usar "name" del backend
-              key: product.product_id, // Clave única
-              label: (
-                <div className="search-result-item">
-                  <img
-                    src={product.photo_url} // Usar "photo_url" para la miniatura
-                    alt={product.name} // Usar "name" como alt
-                    style={{ width: "50px", marginRight: "10px" }}
-                  />
-                  <span>{product.name}</span> {/* Mostrar el nombre del producto */}
-                </div>
-              ),
-            }))}            
-            style={{ width: 300 }}
+            options={searchResults.map((product) => {
+              // Obtener el mínimo y máximo de los precios en todas las variaciones
+              const prices = product.variations.flatMap((variation) => [
+                variation.price_fruver,
+                variation.price_home,
+                variation.price_restaurant,
+                variation.price_supermarket,
+              ]);
+
+              const minPrice = Math.min(...prices);
+              const maxPrice = Math.max(...prices);
+
+              return {
+                value: product.name, // Usar "name" del backend
+                key: product.product_id, // Clave única
+                label: (
+                  <div className="search-result-item">
+                    <div>
+                      <img
+                        src={product.photo_url} // Usar "photo_url" para la miniatura
+                        alt={product.name} // Usar "name" como alt
+                        style={{ width: "50px", marginRight: "10px" }}
+                      />
+                      <span>{product.name}</span> {/* Mostrar el nombre del producto */}
+                    </div>
+                    <span className="range">
+                      {minPrice === maxPrice
+                        ? `$${minPrice}` // Si los precios son iguales, mostrar solo uno
+                        : `$${minPrice} - $${maxPrice}`} {/* Mostrar el rango de precios */}
+                    </span>
+                  </div>
+                ),
+              };
+            })}
+            style={{ width: 500 }}
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."
             value={searchValue}
             onChange={setSearchValue}
           />
+
           <Button
             type="primary"
             className="search-button"
@@ -190,7 +193,7 @@ const Home = () => {
             Buscar
           </Button>
         </div>
-
+        {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>
             {carouselItems.map((item, index) => (
@@ -235,13 +238,11 @@ const Home = () => {
         </div>
 
         {/* Categorías destacadas */}
-        <div className="categories-section">
-          <Title style={{ color: "#00983a" }} level={3}>
-            Explora nuestras categorías
-          </Title>
-          <Row gutter={16}>
+        <section className="categories-section">
+          <h3 style={{ color: "#00983a" }}> Explora nuestras categorías </h3>
+          <ul>
             {categories.map((category, index) => (
-              <Col key={index} xs={24} sm={12} md={6}>
+              <li key={index}>
                 <Card
                   hoverable
                   cover={<img alt={category.title} src={category.img} />}
@@ -250,54 +251,31 @@ const Home = () => {
                 >
                   <Card.Meta title={category.title} />
                 </Card>
-              </Col>
+              </li>
             ))}
-          </Row>
-        </div>
+          </ul>
+        </section>
 
         {/* Testimonios o sección de información */}
-        <div className="info-section">
-          <Row gutter={32} align="middle">
-            <Col xs={24} md={12}>
-              <Title level={3}>Calidad garantizada</Title>
-              <Paragraph>
-                En Don Kampo, nuestra pasión es brindar productos frescos y de
-                calidad excepcional, cultivados con dedicación y respeto por la
-                tierra. Nos enorgullece llevar lo mejor del campo directamente a
-                tu mesa, promoviendo un consumo responsable y sostenible que
-                apoya a nuestros agricultores y cuida del medio ambiente.
-              </Paragraph>
-              <Button type="primary" size="large" className="Boton_mas">
-                Conoce más sobre nosotros
-              </Button>
-            </Col>
-            <Col xs={24} md={12}>
-              <img
-                src="/images/6.jpg"
-                alt="Calidad Don Kampo"
-                className="info-image"
-              />
-            </Col>
-          </Row>
-        </div>
+        <section className="info-section">
+          <h3>Calidad garantizada</h3>
+          <p>
+            En Don Kampo, nuestra pasión es brindar productos frescos y de
+            calidad excepcional, cultivados con dedicación y respeto por la
+            tierra. <br /><br /> Nos enorgullece llevar lo mejor del campo directamente a
+            tu mesa, promoviendo un consumo responsable y sostenible que
+            apoya a nuestros agricultores y cuida del medio ambiente.
+          </p>
+          <Button type="primary" size="large">Conoce más sobre nosotros</Button>
 
-        <div className="delivery-section">
-          <Title style={{ color: "#00983a" }} level={3}>
-            No te Preocupes por el Envío:
-          </Title>
-          <Row gutter={[16, 16]} justify="space-between" align="middle">
-            <Col xs={24} sm={12} md={8} lg={8}>
-              <Card hoverable className="delivery-card">
-                <img 
-                  alt="Camión Don Kampo" 
-                  src="/images/37.png"  // Cambia por la ruta correcta de tus imágenes
-                  className="delivery-image"
-                />
-                <Card.Meta title="Entrega a Domicilio!" />
-              </Card>
-            </Col>
-          </Row>
-        </div>
+          <div />
+        </section>
+
+        <section className="delivery-section">
+          <h2> No te Preocupes por el Envío! </h2>
+          <img  alt="Camión Don Kampo" src="/images/37.png"
+          />
+        </section>
 
         {/* Modal de selección de usuario */}
         <Modal
@@ -331,9 +309,9 @@ const Home = () => {
         </Modal>
 
         <InstallPrompt />
-      </div>
+      </main>
+      <Footer />
       <BotonWhatsapp />
-      <CustomFooter />
     </>
   );
 };

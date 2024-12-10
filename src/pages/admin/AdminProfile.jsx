@@ -16,11 +16,11 @@ import {
   Upload,
   Progress,
 } from "antd";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
+import Navbar from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
 
 import { SearchOutlined } from "@ant-design/icons";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "./AdminProfile.css";
@@ -38,6 +38,38 @@ const AdminProfile = () => {
   const [globalSearchText, setGlobalSearchText] = useState("");
   const [products, setProducts] = useState([]); // Datos cargados del Excel
   const [progress, setProgress] = useState(0); // Progreso del envío
+  const columns = [
+    { title: "Nombre", dataIndex: "name", key: "name" },
+    { title: "Descripción", dataIndex: "description", key: "description" },
+    { title: "Categoría", dataIndex: "category", key: "category" },
+    { title: "Stock", dataIndex: "stock", key: "stock" },
+    {
+      title: "Estado de Imagen",
+      key: "imageStatus",
+      render: (_, record) =>
+        record.imageFile ? (
+          <span style={{ color: "green" }}>Cargada</span>
+        ) : (
+          <span style={{ color: "red" }}>No cargada</span>
+        ),
+    },
+    {
+      title: "Imagen",
+      key: "image",
+      render: (_, record) => (
+        <Upload
+          accept="image/*"
+          beforeUpload={(file) => {
+            handleImageUpload(file, record.key);
+            return false;
+          }}
+          showUploadList={false}
+        >
+          <Button type="link">Adjuntar Imagen</Button>
+        </Upload>
+      ),
+    },
+  ];
 
   const [shippingCosts, setShippingCosts] = useState({
     hogar: 0,
@@ -47,6 +79,38 @@ const AdminProfile = () => {
   });
 
   const [loadingShipping, setLoadingShipping] = useState(false);
+
+  const fetchShippingCosts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/customer-types");
+      const costs = response.data.reduce((acc, type) => {
+        acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
+        return acc;
+      }, {});
+      console.log("Shipping Costs Cargados:", costs); // Verifica que los datos se carguen correctamente
+      setShippingCosts(costs); // Actualiza el estado con los datos cargados
+    } catch (error) {
+      message.error("Error al cargar los costos de envío.");
+      console.error(error);
+    }
+  };
+
+  const updateShippingCosts = async (values) => {
+    setLoadingShipping(true);
+    try {
+      await axios.put("http://localhost:8080/api/customer-types/shipping-costs", values);
+      message.success("Costos de envío actualizados exitosamente.");
+      fetchShippingCosts(); // Refresca los datos
+    } catch (error) {
+      message.error("Error al actualizar los costos de envío.");
+      console.error(error);
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
+
+  useEffect(() => { fetchShippingCosts(); }, []);
+  useEffect(() => { formDelivery.setFieldsValue(shippingCosts); }, [shippingCosts]);
 
   const handleExcelUpload = (file) => {
     const reader = new FileReader();
@@ -145,51 +209,6 @@ const AdminProfile = () => {
     }
   };
 
-  const columns = [
-    { title: "Nombre", dataIndex: "name", key: "name" },
-    { title: "Descripción", dataIndex: "description", key: "description" },
-    { title: "Categoría", dataIndex: "category", key: "category" },
-    { title: "Stock", dataIndex: "stock", key: "stock" },
-    {
-      title: "Estado de Imagen",
-      key: "imageStatus",
-      render: (_, record) =>
-        record.imageFile ? (
-          <span style={{ color: "green" }}>Cargada</span>
-        ) : (
-          <span style={{ color: "red" }}>No cargada</span>
-        ),
-    },
-    {
-      title: "Imagen",
-      key: "image",
-      render: (_, record) => (
-        <Upload
-          accept="image/*"
-          beforeUpload={(file) => {
-            handleImageUpload(file, record.key);
-            return false;
-          }}
-          showUploadList={false}
-        >
-          <Button type="link">Adjuntar Imagen</Button>
-        </Upload>
-      ),
-    },
-  ];
-
-  const handleImageUpload = (file, key) => {
-    const updatedProducts = products.map((product) => {
-      if (product.key === key) {
-        return { ...product, imageFile: file }; // Asocia el archivo binario con el producto
-      }
-      return product;
-    });
-
-    setProducts(updatedProducts);
-    message.success(`Imagen cargada para el producto con clave: ${key}`);
-  };
-
   const sendProductsToAPI = async (products) => {
     try {
       for (const product of products) {
@@ -221,46 +240,21 @@ const AdminProfile = () => {
     }
   };
 
-  const fetchShippingCosts = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/customer-types");
-      const costs = response.data.reduce((acc, type) => {
-        acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
-        return acc;
-      }, {});
-      console.log("Shipping Costs Cargados:", costs); // Verifica que los datos se carguen correctamente
-      setShippingCosts(costs); // Actualiza el estado con los datos cargados
-    } catch (error) {
-      message.error("Error al cargar los costos de envío.");
-      console.error(error);
-    }
+  const handleImageUpload = (file, key) => {
+    const updatedProducts = products.map((product) => {
+      if (product.key === key) {
+        return { ...product, imageFile: file }; // Asocia el archivo binario con el producto
+      }
+      return product;
+    });
+
+    setProducts(updatedProducts);
+    message.success(`Imagen cargada para el producto con clave: ${key}`);
   };
-
-  const updateShippingCosts = async (values) => {
-    setLoadingShipping(true);
-    try {
-      await axios.put("http://localhost:8080/api/customer-types/shipping-costs", values);
-      message.success("Costos de envío actualizados exitosamente.");
-      fetchShippingCosts(); // Refresca los datos
-    } catch (error) {
-      message.error("Error al actualizar los costos de envío.");
-      console.error(error);
-    } finally {
-      setLoadingShipping(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchShippingCosts(); // Carga los costos de envío al cargar la página
-  }, []);
-
-  useEffect(() => {
-    form.setFieldsValue(shippingCosts); // Actualiza los valores del formulario
-  }, [shippingCosts]);
 
   const getFilteredUsers = () => {
     if (!globalSearchText) return users;
-
+    
     return users.filter((user) => {
       const statusText = renderUserStatus(user.status_id); // Convierte el estado a texto legible
       return (
@@ -274,18 +268,14 @@ const AdminProfile = () => {
     });
   };
 
-  const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
-    useState(false);
+  const [isCreateUserModalVisible, setIsCreateUserModalVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    fetchUsers();
-    fetchOrders();
-  }, []);
-
+  const [formDelivery] = Form.useForm();
+  const [formUserDetail] = Form.useForm()
+  const [formCreateUser] = Form.useForm()
+  
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/users");
@@ -306,6 +296,11 @@ const AdminProfile = () => {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchOrders();
+  }, []);
 
   const uploadProducts = async (products) => {
     setLoading(true);
@@ -404,7 +399,7 @@ const AdminProfile = () => {
       const response = await axios.get(`http://localhost:8080/api/users/${user.id}`);
       setSelectedUser(response.data);
       setIsUserModalVisible(true);
-      form.setFieldsValue(response.data.user); // Actualiza los valores del formulario
+      formUserDetail.setFieldsValue(response.data.user); // Actualiza los valores del formulario
     } catch (error) {
       message.error("Error al cargar los detalles del usuario.");
       console.error(error);
@@ -414,7 +409,7 @@ const AdminProfile = () => {
   const handleCancelUserModal = () => {
     setIsUserModalVisible(false);
     setSelectedUser(null);
-    form.resetFields(); // Limpia el formulario
+    formUserDetail.resetFields(); // Limpia el formulario
   };
 
   const openOrderModal = async (orderId) => {
@@ -439,6 +434,8 @@ const AdminProfile = () => {
   };
 
   const updateUserDetails = async (values) => {
+    console.log('hola');
+    
     try {
       await axios.put(`http://localhost:8080/api/updateusers/${selectedUser.user.id}`, values);
       message.success("Usuario actualizado exitosamente.");
@@ -451,7 +448,7 @@ const AdminProfile = () => {
   };
 
   const openCreateUserModal = () => {
-    form.resetFields();
+    formCreateUser.resetFields();
     setIsCreateUserModalVisible(true);
   };
 
@@ -516,22 +513,6 @@ const AdminProfile = () => {
           record.email.toLowerCase().includes(value.toLowerCase()),
       },
       { title: "Tipo", dataIndex: "user_type", key: "user_type" },
-      {
-        title: "Estado",
-        dataIndex: "status_id",
-        key: "status_id",
-        render: (status, record) => (
-          <Select
-            defaultValue={status}
-            onChange={(newStatus) => updateUserStatus(record.id, newStatus)}
-            style={{ width: 120 }}
-          >
-            <Option value={1}>Activo</Option>
-            <Option value={2}>Inactivo</Option>
-            <Option value={3}>Suspendido</Option>
-          </Select>
-        ),
-      },
       {
         title: "Acciones",
         key: "actions",
@@ -822,7 +803,10 @@ const AdminProfile = () => {
           footer={null}
         >
           {selectedUser && (
-            <Form form={form} onFinish={updateUserDetails} layout="vertical">
+            <Form form={formUserDetail} onFinish={(values) => {
+              console.log("Formulario enviado con valores:", values);
+              updateUserDetails(values);
+            }} layout="vertical">
               <Form.Item
                 label="Nombre"
                 name="user_name"
@@ -911,18 +895,6 @@ const AdminProfile = () => {
                   <Option value="fruver">Fruver</Option>
                 </Select>
               </Form.Item>
-              <Form.Item
-                label="Estado"
-                name="status_id"
-                rules={[
-                  { required: true, message: "Por favor selecciona el estado" },
-                ]}
-              >
-                <Select>
-                  <Option value={true}>Activo</Option>
-                  <Option value={false}>Inactivo</Option>
-                </Select>
-              </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit" block>
                   Guardar Cambios
@@ -932,8 +904,9 @@ const AdminProfile = () => {
           )}
         </Modal>
 
+        {/* Costos Envio */}
         <Form
-          form={form}
+          form={formDelivery}
           layout="vertical"
           onFinish={updateShippingCosts} // Maneja la actualización de costos
         >
@@ -984,55 +957,6 @@ const AdminProfile = () => {
             </div>
           </Card>
         </Form>
-
-        <div>
-          <Card title="Gestión de Productos" style={{ marginTop: 20 }}>
-            <h2>Cargar Productos desde Excel</h2>
-            <Button
-              type="primary"
-              onClick={downloadSampleExcel}
-              style={{ marginBottom: "20px", marginRight: "20px" }}
-            >
-              Descargar Excel de Ejemplo
-            </Button>
-
-            <Upload
-              accept=".xlsx"
-              beforeUpload={handleExcelUpload}
-              showUploadList={false}
-            >
-              <Button type="primary">Cargar Archivo Excel</Button>
-            </Upload>
-
-            {products.length > 0 && (
-              <>
-                <Table
-                  dataSource={products}
-                  columns={columns}
-                  rowKey="key"
-                  style={{ marginTop: 20 }}
-                  pagination={{ pageSize: 5 }}
-                />
-
-                <Button
-                  type="primary"
-                  onClick={handleSendToAPI}
-                  loading={loading}
-                  style={{ marginTop: 20 }}
-                >
-                  Enviar Productos a la API
-                </Button>
-
-                {loading && (
-                  <div style={{ marginTop: 20 }}>
-                    <Spin spinning={loading} />
-                    <Progress percent={progress} />
-                  </div>
-                )}
-              </>
-            )}
-          </Card>
-        </div>
 
         <Modal
           title="Detalles del Pedido"
@@ -1127,7 +1051,7 @@ const AdminProfile = () => {
           onCancel={() => setIsCreateUserModalVisible(false)}
           footer={null}
         >
-          <Form form={form} onFinish={handleCreateUser} layout="vertical">
+          <Form form={formCreateUser} onFinish={handleCreateUser} layout="vertical">
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item

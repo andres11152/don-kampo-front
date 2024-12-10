@@ -1,15 +1,5 @@
-.home-container {
-  padding: 20px;
-  background: linear-gradient(to bottom right, #20ff02, rgb(255, 255, 255), #20ff02);
- 
-}
-.Boton_mas{
-  background-color: #00983a;
-}
+main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);}
 
-.carousel-wrapper {
-    position: relative;
-}
 /* Estilo para el modal */
 .modal-logo {
   display: block;
@@ -198,12 +188,23 @@
 }
 
 .categories-section {
-    margin-top: 40px;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 60px;
+  gap: 40px;
+  padding: 0 20px;
 }
 
 .categories-section .ant-typography h3 {
     color: #00983a;
+}
+
+.categories-section ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 10px;
+  width: 100%;
 }
 
 .category-card {
@@ -216,20 +217,69 @@
     object-fit: cover;
 }
 
+/* Mobile and below */
+@media only screen and (max-width: 767px) {
+  .categories-section ul { 
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+/* Tablet */
+@media only screen and (min-width: 767px) and (max-width: 979px) {
+  .categories-section ul { 
+    grid-template-columns: 1fr 1fr; 
+    gap: 20px;
+  }
+}
+
 .info-section {
-    background-color: rgba(65, 94, 78, 0.342);
-    padding: 40px 20px;
-    margin-top: 40px;
+    position: relative;
+    display: grid;
+    gap: 50px;
+    width: 75%;
+    padding: 50px;
+    margin: 100px auto;
     border-radius: 8px;
+    color: white;
+    z-index: 10;
+    overflow: hidden;
 }
 
-.info-section .info-image {
-    width: 100%;
-    border-radius: 8px;
+.info-section div { 
+  position: absolute;
+  background-image: url('/images/6.jpg');
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+  color: rgba(0, 0, 0, .1);
 }
 
-.info-section h3 {
-    color: #00983a;
+.info-section div:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.info-section h3, .info-section p, .info-section button { z-index: 10; }
+
+.info-section h3 { 
+  font-size: 32px; 
+  color: white;
+}
+
+.info-section p {
+  font-weight: 600;
+  font-size: 18px;
+  width: 80%;
+}
+
+.info-section button {
+  font-weight: 700;
+  text-transform: uppercase;
+  width: 80%;
 }
 
 .ant-modal-title {
@@ -426,11 +476,26 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
-  padding: 10px;
+  padding: 20px;
   background-color: rgba(65, 94, 78, 0.178); /* Fondo suave */
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+.search-result-item div { 
+  display: flex;
+  align-items: center;
+ }
+
+.search-result-item .range {
+  color:#ff914d;
 }
 
 /* Estilo para el input */
@@ -466,16 +531,10 @@
 }
 /* Estilos para la nueva sección de "Delivery" */
 .delivery-section {
-  margin-top: 40px;
+  padding-top: 45px;
   text-align: center;
-  padding: 40px 0;
-  background-color: rgba(65, 94, 78, 0.1); /* Fondo claro para la sección */
-}
-
-/* Títulos dentro de la sección */
-.delivery-section .ant-typography h3 {
-  color: #00983a;
-  font-size: 1.8rem;
+  box-shadow: inset 0 0 75px 0px rgba(0, 0, 0, .1);
+  background-color: #fcfcfc /* Fondo claro para la sección */
 }
 
 /* Ajuste para las tarjetas de entrega */

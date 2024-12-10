@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
+import Header from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
 import { useCart } from "../products/CartContext";
 import { Card, Button, message, Divider } from "antd";
 import { DeleteOutlined } from '@ant-design/icons'; // Icono de la papelera (basura)
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Cart.css";
@@ -150,7 +150,7 @@ const Cart = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="cart-container">
         <h2 className="cart-title">Resumen del Carrito</h2>
         {loading ? (

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../../components/navbar/Navbar";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
-import CustomFooter from "../../components/footer/Footer";
+import Header from "../../components/General/Header";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
+import CustomFooter from "../../components/General/Footer";
 import {
   Table,
   Input,
@@ -176,7 +176,7 @@ const ManageProducts = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div style={{ padding: "20px" }}>
         <h2>Gestión de Productos</h2>
         <Input

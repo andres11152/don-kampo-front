@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 import axios from "axios";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
+import Header from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../products/CartContext";
 import useWindowSize from "react-use/lib/useWindowSize";
@@ -363,7 +363,7 @@ const Checkout = () => {
 
   return (
     <div>
-      <Navbar />
+      <Header />
       <div className="checkout-container">
         <h2>Finalizar Compra</h2>
         <div className="checkout-content">

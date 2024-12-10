@@ -3,8 +3,8 @@ import { Form, Select, Button, message, Input } from "antd";
 import { jsPDF } from "jspdf";
 
 import axios from "axios";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
+import Navbar from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 

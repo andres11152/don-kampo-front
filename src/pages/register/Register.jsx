@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Form, Input, Button, message, Select, Row, Col } from "antd";
 import axios from "axios";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import Header from "../../components/General/Header";
+import CustomFooter from "../../components/General/Footer";
+import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import { useNavigate } from "react-router-dom";
 import "./Register.css";
 
@@ -65,7 +65,7 @@ const Register = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="register-container">
         <h2>Registro de Usuario</h2>
         <Form name="register_form" onFinish={onFinish} layout="vertical">

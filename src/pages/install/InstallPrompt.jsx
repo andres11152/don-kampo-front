@@ -46,11 +46,9 @@ const InstallPrompt = () => {
         <h2>¿Quieres instalar esta aplicación?</h2>
         <p>Puedes instalar esta aplicación en tu dispositivo para un acceso más rápido y una experiencia más cómoda.</p>
         
-        <div className="modal-icons">
-          <i className="fa fa-android" style={{ fontSize: '40px' ,paddingRight: '40px' ,color: '#ff914d' }}></i>
-          <i className="fa fa-apple" style={{ fontSize: '40px',paddingRight: '40px',color: '#ff914d' }}></i>
-          <i className="fa fa-windows" style={{ fontSize: '40px' ,color: '#ff914d'}}></i>
-        </div>
+        <ul>
+          {['android', 'apple', 'windows'].map((icon, index) =>  <li key={index}><i className={`fa fa-${icon}`} /></li>)}
+        </ul>
 
         <div className="modal-actions">
           <button onClick={handleInstall}>Instalar</button>
