@@ -1,17 +1,53 @@
 .manage-products-container {
-    padding: 20px;
+    margin: 50px auto;
+    padding: 40px;
     font-family: Arial, sans-serif;
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
+    width: 90%;
+    display: grid;
+    gap: 20px;
+}
   
   .manage-products-container h2 {
     color: #ff7e00;
     font-weight: bold;
     margin-bottom: 20px;
   }
+
+  .manage-products-container .manage-search {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .manage-products-container .manage-search button {
+    border: 2px solid var(--color-primary-hover);
+    color: var(--color-primary-hover);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
   
+  .manage-products-container .manage-search button:hover {
+    background-color: var(--color-primary-hover);
+    color: white;
+  }
+
+  .manage-products-container .manage-search i {
+    color: var(--color-primary-hover);
+    font-size: 24px;
+    cursor: pointer;
+    transition: .5s ease;
+  }
+
+  .manage-products-container .manage-search i:hover {
+    transform: rotate(45deg);
+  }
+
   .search-input {
     margin-bottom: 16px;
     width: 300px;

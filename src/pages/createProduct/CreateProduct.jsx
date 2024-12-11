@@ -33,10 +33,40 @@ const CreateProduct = () => {
       price_fruver: "",
     },
   ]);
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true);
 
-  const handleImageUpload = ({ file }) => file && setImageFile(file);
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/products", {
+        withCredentials: true,
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        const updatedProducts = response.data.map((product) => ({
+          ...product,
+          variations: Array.isArray(product.variations)
+            ? product.variations.map((variation, index) => ({
+                ...variation,
+                variation_id: `${product.product_id}-${index}`,
+              }))
+            : [],
+        }));
+
+        setProducts(updatedProducts);
+      } else {
+        throw new Error("Datos de productos incorrectos o vacíos");
+      }
+    } catch (error) {
+      message.error("Error al cargar los productos.");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const processExcelFile = (file) => {
+    fetchProducts(); // Carga los productos de la base de datos
     const reader = new FileReader();
   
     reader.onload = (e) => {
@@ -45,100 +75,102 @@ const CreateProduct = () => {
   
       const sheetNames = workbook.SheetNames;
   
-      // Validar existencia de la hoja Main Data
-      if (!sheetNames.includes('Main Data')) {
-        console.error("El archivo debe tener una hoja llamada 'Main Data'");
+      // Validar que exista la hoja Products
+      if (!sheetNames.includes('Products')) {
+        console.error('El archivo debe tener una hoja llamada "Products".');
         return;
       }
   
-      // Procesar Main Data
-      const mainSheet = workbook.Sheets['Main Data'];
-      const mainTable = XLSX.utils.sheet_to_json(mainSheet, { header: 1 });
+      // Leer hoja Products
+      const productsSheet = workbook.Sheets['Products'];
+      const productsTable = XLSX.utils.sheet_to_json(productsSheet, { header: 1 });
   
-      if (mainTable.length < 2) {
-        console.error("La hoja 'Main Data' debe contener al menos los encabezados y una fila de datos");
+      const excelProducts = [];
+      const headers = productsTable[0];
+      const requiredHeaders = ['Id', 'Nombre', 'Descripcion', 'Categoria', 'Stock'];
+  
+      if (!requiredHeaders.every((header) => headers.includes(header))) {
+        console.error('La hoja "Products" no tiene los encabezados requeridos.');
         return;
       }
   
-      const headers = mainTable[0];
-      const requiredHeaders = ['Nombre', 'Descripcion', 'Categoria', 'Stock'];
-      const missingHeaders = requiredHeaders.filter(header => !headers.includes(header));
-  
-      if (missingHeaders.length > 0) {
-        console.error(`Faltan los siguientes encabezados: ${missingHeaders.join(', ')}`);
-        return;
-      }
-  
-      const products = mainTable.slice(1).map(row => {
-        const product = {};
-        headers.forEach((header, index) => {
-          product[header] = row[index];
-        });
-        product.variations = []; // Inicializar las variaciones
-        return product;
+      // Convertir la tabla Products a objetos
+      productsTable.slice(1).forEach((row) => {
+        const product = {
+          product_id: row[headers.indexOf('Id')],
+          name: row[headers.indexOf('Nombre')],
+          description: row[headers.indexOf('Descripcion')],
+          category: row[headers.indexOf('Categoria')],
+          stock: row[headers.indexOf('Stock')],
+          variations: [], // Inicializar la lista de variaciones vacía
+        };
+        excelProducts.push(product);
       });
   
-      // Validar y procesar hojas Variation
-      const variationSheets = sheetNames.filter(name => name.startsWith('Variation'));
+      console.log('Productos de Excel:', excelProducts);
   
-      if (!variationSheets.includes('Variation 1')) {
-        console.error("Debe existir al menos una hoja llamada 'Variation 1'");
-        return;
-      }
+      // Procesar hojas Variation
+      const variationSheets = sheetNames.filter((name) => name.startsWith('Variation'));
   
-      variationSheets.forEach(sheetName => {
+      variationSheets.forEach((sheetName) => {
         const sheet = workbook.Sheets[sheetName];
+        const table = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        const headers = table[0];
   
-        // Obtener Variation_Data
-        const variationDataTable = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 'A1:C100' }); // Asume que Variation_Data está en el rango A1:C100
-        const variationDataHeaders = variationDataTable[0] || [];
-  
-        if (!['Calidad', 'Cantidad', 'Medida'].every(h => variationDataHeaders.includes(h))) {
-          console.error(`La hoja ${sheetName} debe contener una tabla 'Variation_Data' con los encabezados Calidad, Cantidad y Medida`);
+        if (
+          ![
+            'Id Product',
+            'Id Variation',
+            'Calidad',
+            'Cantidad',
+            'Hogar',
+            'Supermercado',
+            'Restaurant',
+            'Fruver',
+          ].every((header) => headers.includes(header))
+        ) {
+          console.error(`La hoja "${sheetName}" no tiene los encabezados requeridos.`);
           return;
         }
   
-        const variationData = variationDataTable.slice(1).map(row => ({
-          calidad: row[0],
-          cantidad: `${row[1]}${row[2]}` // Concatenar Cantidad y Medida
-        }));
+        // Convertir las variaciones y asociarlas directamente al producto
+        table.slice(1).forEach((row) => {
+          const productId = row[headers.indexOf('Id Product')];
+          const variation = {
+            variation_id: row[headers.indexOf('Id Variation')],
+            quality: row[headers.indexOf('Calidad')],
+            quantity: row[headers.indexOf('Cantidad')],
+            price_home: row[headers.indexOf('Hogar')],
+            price_supermarket: row[headers.indexOf('Supermercado')],
+            price_restaurant: row[headers.indexOf('Restaurant')],
+            price_fruver: row[headers.indexOf('Fruver')],
+          };
   
-        // Obtener Variation_Price
-        const variationPriceTable = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 'E1:H100' }); // Asume que Variation_Price está en el rango E1:H100
-        const variationPriceHeaders = variationPriceTable[0] || [];
-  
-        if (!['Hogar', 'Supermercado', 'Restaurante', 'Fruver'].every(h => variationPriceHeaders.includes(h))) {
-          console.error(`La hoja ${sheetName} debe contener una tabla 'Variation_Price' con los encabezados Hogar, Supermercado, Restaurante y Fruver`);
-          return;
-        }
-  
-        const variationPrices = variationPriceTable.slice(1).map(row => ({
-          precios: {
-            hogar: row[0],
-            supermercado: row[1],
-            restaurante: row[2],
-            fruver: row[3]
+          // Buscar el producto correspondiente en excelProducts
+          const product = excelProducts.find((p) => p.product_id === productId);
+          if (product) {
+            product.variations.push(variation); // Añadir la variación al producto
+          } else {
+            console.warn(`No se encontró un producto con Id ${productId} para asociar la variación.`);
           }
-        }));
-  
-        // Combinar datos y precios
-        variationData.forEach((data, index) => {
-          const prices = variationPrices[index] ? variationPrices[index].precios : {};
-          products[index].variations.push({
-            calidad: data.calidad,
-            cantidad: data.cantidad,
-            precios: prices
-          });
         });
       });
   
-      console.log('Datos procesados:', products);
-      // Ahora `products` contiene toda la información con las variaciones
+      console.log('Productos con variaciones:', excelProducts);
+  
+      // // Aquí puedes comparar excelProducts con products (los datos de la API) y detectar cambios
+      // excelProducts.forEach((product) => {
+      //   const existingProduct = products.find((p) => p.product_id === product.product_id);
+      //   if (existingProduct) {
+      //     // Comparar propiedades del producto y sus variaciones
+      //     // ...
+      //   }
+      // });
     };
   
     reader.readAsArrayBuffer(file);
-  };  
-
+  };
+  
   const uploadProps = {
     accept: ".xlsx, .xls",
     beforeUpload: (file) => {
@@ -146,6 +178,8 @@ const CreateProduct = () => {
       return false;
     }
   };
+
+  const handleImageUpload = ({ file }) => file && setImageFile(file);
 
   const handleVariationChange = (index, field, value) => {
     const updatedVariations = [...variations];

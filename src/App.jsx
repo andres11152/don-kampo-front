@@ -14,7 +14,7 @@ import CreateProduct from "./pages/createProduct/CreateProduct.jsx";
 import Profile from "./pages/proflile/Profile.jsx";
 import AdminProfile from "./pages/admin/AdminProfile.jsx";
 import CreateOrder from "./pages/createOrden/CreateOrder.jsx";
-import ManageProducts from "./pages/deleteProduct/deleteProduct.jsx";
+import ManageProducts from "./pages/ManageProducts/ManageProducts.jsx";
 import Home from "./pages/home/Home.jsx";
 
 import { CartProvider } from "./pages/products/CartContext.jsx";
