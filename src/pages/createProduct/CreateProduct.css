@@ -1,13 +1,74 @@
 .create-product {
   display: grid;
+  position: relative;
   gap: 60px;
   max-width: 1200px;
-  width: 90%;
-  margin: 80px auto;
+  margin: 0 auto;
   padding: 40px;
   background-color: #f5f5f5;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.isLoading {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.isLoading div {
+  background-color: white;
+  height: 300px;
+  width: 400px;
+  border-radius: 8px;
+  display: flex;
+  gap: 40px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border: 3px solid #eaeaea ;
+}
+
+.isLoading div button { 
+  border: 1px solid; 
+  border-radius: 10px;
+  width: 200px;
+}
+.isLoading div button:hover {
+  color: white;
+  background-color: #919191;
+}
+
+.isLoading div * { color: #919191; }
+
+.isLoading .info { border-color: #007acc; }
+.isLoading .info * { color: #007acc; }
+.isLoading .info button:hover { background-color: #007acc }
+
+.isLoading .success { border-color: var(--color-secondary); }
+.isLoading .success * { color: var(--color-secondary); }
+.isLoading .success button:hover { background-color: var(--color-secondary); }
+
+.isLoading .warning { border-color: #f7c600; }
+.isLoading .warning * { color: #f7c600; }
+.isLoading .warning button:hover { background-color: #f7c600 }
+
+.isLoading .error { border-color: #f14c4c; }
+.isLoading .error * { color: #f14c4c; }
+.isLoading .error button:hover { background-color: #f14c4c }
+
+.isLoading div i { font-size: 24px; }
+
+.isLoading div .spin {animation: spin 1s linear infinite;}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg);}
 }
 
 .create-product .main-data > div {
@@ -46,15 +107,36 @@
 
 .create-product .submit button { 
   padding: 20px 0; 
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.create-product .submit span button {
-  width: 100%;
-}
+.create-product .submit span button { width: 100%; }
 
 .create-product .submit span div { width: 100%; }
 
 .create-product .submit * { color: var(--color-secondary-hover); }
 
+.create-product .submit .variation { border-color: #b6b6b6; }
+.create-product .submit .variation:hover { border-color: #26292c; }
+
+.create-product .submit .variation span { 
+  color: #909090; 
+  transition: .2s ease;
+}
+.create-product .submit .variation:hover span { color: #26292c; }
+
 .create-product .submit .create * { color: white; }
+
+.create-product .submit .excel { border-color: var(--color-secondary); }
+
+.create-product .submit .excel:hover {
+  background-color: var(--color-secondary-hover);
+  border-color: var(--color-secondary-hover);
+}
+
+.create-product .submit .excel * {
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.create-product .submit .excel:hover * { color: white; }

@@ -23,6 +23,10 @@ const { Option } = Select;
 const CreateProduct = () => {
   const [form] = Form.useForm();
   const [imageFile, setImageFile] = useState(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const [processExcel, setProcessExcel] = useState({message: '', status: ''})
+  const [messageButton, setMessageButton] = useState('Continuar')
+  const [updateProducts, setUpdateProducts] = useState([])
   const [variations, setVariations] = useState([
     {
       quality: "",
@@ -33,139 +37,110 @@ const CreateProduct = () => {
       price_fruver: "",
     },
   ]);
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true);
 
-  const fetchProducts = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/products", {
-        withCredentials: true,
-      });
-
-      if (response.data && Array.isArray(response.data)) {
-        const updatedProducts = response.data.map((product) => ({
-          ...product,
-          variations: Array.isArray(product.variations)
-            ? product.variations.map((variation, index) => ({
-                ...variation,
-                variation_id: `${product.product_id}-${index}`,
-              }))
-            : [],
-        }));
-
-        setProducts(updatedProducts);
-      } else {
-        throw new Error("Datos de productos incorrectos o vacíos");
-      }
-    } catch (error) {
-      message.error("Error al cargar los productos.");
-      console.error("Error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const processExcelFile = (file) => {
-    fetchProducts(); // Carga los productos de la base de datos
+  const processingExcel = async (file) => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    setIsLoading(true)
+    setProcessExcel({message: 'Procesando archivo Excel', status: ''})
+    await sleep(2000)
     const reader = new FileReader();
   
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+    reader.onload = async (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
   
-      const sheetNames = workbook.SheetNames;
-  
-      // Validar que exista la hoja Products
-      if (!sheetNames.includes('Products')) {
-        console.error('El archivo debe tener una hoja llamada "Products".');
-        return;
-      }
-  
-      // Leer hoja Products
-      const productsSheet = workbook.Sheets['Products'];
-      const productsTable = XLSX.utils.sheet_to_json(productsSheet, { header: 1 });
-  
-      const excelProducts = [];
-      const headers = productsTable[0];
-      const requiredHeaders = ['Id', 'Nombre', 'Descripcion', 'Categoria', 'Stock'];
-  
-      if (!requiredHeaders.every((header) => headers.includes(header))) {
-        console.error('La hoja "Products" no tiene los encabezados requeridos.');
-        return;
-      }
-  
-      // Convertir la tabla Products a objetos
-      productsTable.slice(1).forEach((row) => {
-        const product = {
-          product_id: row[headers.indexOf('Id')],
-          name: row[headers.indexOf('Nombre')],
-          description: row[headers.indexOf('Descripcion')],
-          category: row[headers.indexOf('Categoria')],
-          stock: row[headers.indexOf('Stock')],
-          variations: [], // Inicializar la lista de variaciones vacía
-        };
-        excelProducts.push(product);
-      });
-  
-      console.log('Productos de Excel:', excelProducts);
-  
-      // Procesar hojas Variation
-      const variationSheets = sheetNames.filter((name) => name.startsWith('Variation'));
-  
-      variationSheets.forEach((sheetName) => {
-        const sheet = workbook.Sheets[sheetName];
-        const table = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-        const headers = table[0];
-  
-        if (
-          ![
-            'Id Product',
-            'Id Variation',
-            'Calidad',
-            'Cantidad',
-            'Hogar',
-            'Supermercado',
-            'Restaurant',
-            'Fruver',
-          ].every((header) => headers.includes(header))
-        ) {
-          console.error(`La hoja "${sheetName}" no tiene los encabezados requeridos.`);
-          return;
+        // Leer la hoja Products
+        const productSheet = workbook.Sheets['Products'];
+        if (!productSheet) {
+          setProcessExcel({message: 'La hoja Products no existe.', status: 'error'})
+          throw new Error('La hoja Products no existe en el archivo Excel.');
         }
   
-        // Convertir las variaciones y asociarlas directamente al producto
-        table.slice(1).forEach((row) => {
-          const productId = row[headers.indexOf('Id Product')];
-          const variation = {
-            variation_id: row[headers.indexOf('Id Variation')],
-            quality: row[headers.indexOf('Calidad')],
-            quantity: row[headers.indexOf('Cantidad')],
-            price_home: row[headers.indexOf('Hogar')],
-            price_supermarket: row[headers.indexOf('Supermercado')],
-            price_restaurant: row[headers.indexOf('Restaurant')],
-            price_fruver: row[headers.indexOf('Fruver')],
+        const productData = XLSX.utils.sheet_to_json(productSheet, { header: 1 });
+        if (productData.length < 2) {
+          setProcessExcel({message: 'La hoja Products no contiene datos.', status: 'error'})
+          throw new Error('La hoja Products no contiene datos suficientes.');
+        }
+        
+        const headers = productData[0];
+        const productRows = productData.slice(1).filter(row => row.length > 0);
+        
+        // Convertir filas a objetos
+        const excelProducts = productRows.map((row) => {
+          const product = {};
+          headers.forEach((header, index) => {
+            product[header] = row[index];
+          });
+          return {
+            product_id: product['Id'],
+            name: product['Nombre'],
+            description: product['Descripcion'],
+            category: product['Categoria'],
+            photo_url: null,
+            stock: product['Stock'],
+            variations: [], // Inicialmente vacío, se llenará más adelante
           };
-  
-          // Buscar el producto correspondiente en excelProducts
-          const product = excelProducts.find((p) => p.product_id === productId);
-          if (product) {
-            product.variations.push(variation); // Añadir la variación al producto
-          } else {
-            console.warn(`No se encontró un producto con Id ${productId} para asociar la variación.`);
-          }
         });
-      });
   
-      console.log('Productos con variaciones:', excelProducts);
+        setProcessExcel({message: 'Productos obtenidos de excel.', status: ''})
+        await sleep(2000)
+
+        // obtengo todos los productos
+        const response = await axios.get("http://localhost:8080/api/products", { withCredentials: true });
+        const products = response.data
+        // Filtro los productos cuyo id sea igual a los de la base de datos
+        const totalExcelProducts = excelProducts.filter(excelProduct => products.some(product => product.product_id === excelProduct.product_id));
+                
+        // Leer hojas de Variation
+        const variationSheets = Object.keys(workbook.Sheets).filter((sheetName) =>
+          /^Variation \d+$/.test(sheetName)
+        );
   
-      // // Aquí puedes comparar excelProducts con products (los datos de la API) y detectar cambios
-      // excelProducts.forEach((product) => {
-      //   const existingProduct = products.find((p) => p.product_id === product.product_id);
-      //   if (existingProduct) {
-      //     // Comparar propiedades del producto y sus variaciones
-      //     // ...
-      //   }
-      // });
+        variationSheets.forEach((sheetName) => {
+          const variationSheet = workbook.Sheets[sheetName];
+          const variationData = XLSX.utils.sheet_to_json(variationSheet, { header: 1 });
+  
+          if (variationData.length < 2) {
+            console.warn(`La hoja ${sheetName} no contiene datos suficientes.`);
+            setProcessExcel({message: 'La hoja ${sheetName} no contiene datos suficientes.', status: 'warning'})
+            return;
+          }
+  
+          const variationHeaders = variationData[0];
+          const variationRows = variationData.slice(1);
+  
+          variationRows.forEach((row) => {
+            const variation = {};
+            variationHeaders.forEach((header, index) => {
+              variation[header] = row[index];
+            });
+  
+            const product = totalExcelProducts.find((p) => p.product_id === variation['Id Product']);
+            if (product) {
+              product.variations.push({
+                variation_id: variation['Id Variation'],
+                quality: variation['Calidad'],
+                quantity: variation['Cantidad'],
+                price_home: variation['Hogar'],
+                price_supermarket: variation['Supermercado'],
+                price_restaurant: variation['Restaurant'],
+                price_fruver: variation['Fruver'],
+              });
+            }
+          });
+        });
+
+        setProcessExcel({message: 'Variaciones obtenidas de excel.', status: ''})
+        await sleep(1000)
+        setProcessExcel({message: `${totalExcelProducts.length} de ${excelProducts.length} productos por actualizar `, status:'info'})
+        setMessageButton(`Actualizar Productos`)
+        setUpdateProducts(totalExcelProducts)
+      } catch (error) { 
+        console.error('Error procesando el archivo Excel:', error); 
+        setProcessExcel({message: 'Error procesando el archivo Excel' + error, status: 'error'})
+        setMessageButton('Cancelar')
+      }
     };
   
     reader.readAsArrayBuffer(file);
@@ -174,10 +149,33 @@ const CreateProduct = () => {
   const uploadProps = {
     accept: ".xlsx, .xls",
     beforeUpload: (file) => {
-      processExcelFile(file);
+      processingExcel(file);
       return false;
     }
   };
+
+  const updatingProducts = (event) => {   
+    event.preventDefault()
+    setProcessExcel({message: 'Actualizando productos', status: ''})
+    axios.put("http://localhost:8080/api/updatemultipleproducts", updateProducts, {
+      headers: { 'Content-Type': 'application/json' },
+    })
+    .then((response) => {
+      console.log("Productos actualizados exitosamente:", response.data);
+      setProcessExcel({message: 'Productos actualizados exitosamente', status: 'success'})
+      setMessageButton('Continuar')
+    })
+    .catch((error) => {
+      console.error("Error procesando el archivo Excel:", error);
+      setProcessExcel({message: 'Error procesando el archivo Excel', status: 'error'})
+      setMessageButton('Cancelar')
+    });
+  }
+
+  const closeModal = () => {
+    setIsLoading(false);
+    processExcel.status === 'success' && window.location.reload();
+  }
 
   const handleImageUpload = ({ file }) => file && setImageFile(file);
 
@@ -264,12 +262,16 @@ const CreateProduct = () => {
       message.error("Error al crear el producto.");
       console.error(error);
     }
+
+    console.log('camilo');
+    
   };
 
   return (
     <>
       <Header />
       <form onSubmit={handleSubmit} className="create-product">
+
         <section className="main-data">
           <h2>Crear Producto</h2>
           
@@ -427,16 +429,32 @@ const CreateProduct = () => {
         </section>
 
         <section className="submit">
-          <Button onClick={addVariation}> Añadir Variación </Button>
+          <Button onClick={addVariation} className="variation"> Añadir Variación </Button>
 
           <Form.Item className="create">
             <Button type="primary" htmlType="submit" block> Crear Producto </Button>
           </Form.Item>
 
-          <Upload {...uploadProps} > 
-            <Button icon={<UploadOutlined />}> Añadir multiples productos (EXCEL) </Button> 
+          <Upload {...uploadProps}> 
+            <Button className="excel" icon={<UploadOutlined />}> Actualicer multiples productos (EXCEL) </Button> 
           </Upload>
         </section>
+
+        {isLoading &&
+          <div className='isLoading'> 
+              <div className={processExcel.status}>
+                <i className={`fa-solid fa-${processExcel.status == 'success' ? 'circle-check' : processExcel.status == 'error' ? 'circle-xmark' : processExcel.status == 'info' ? 'circle-info' : 'spinner'}
+                  ${processExcel.status == '' && 'spin'}`} 
+                />
+                <span>{processExcel.message}</span>
+                
+                { processExcel.status === 'info' && <button onClick={updatingProducts}> {messageButton} </button> }
+                {(processExcel.status === 'success' || processExcel.status === 'error' ) &&
+                  <button onClick={closeModal}> {messageButton} </button>
+                }
+              </div>
+          </div>
+        }
       </form>
       <BotonWhatsapp />
       <CustomFooter />

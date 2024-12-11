@@ -153,7 +153,7 @@ const ManageProducts = () => {
       title: "Acciones",
       key: "actions",
       render: (_, record) => (
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", justifyContent: 'space-evenly' }}>
           <Button
             type="primary"
             icon={<EditOutlined />}
@@ -361,15 +361,6 @@ const ManageProducts = () => {
             >
               <Input />
             </Form.Item>
-            {/* <Form.Item
-              label="Stock"
-              name="stock"
-              rules={[
-                { required: true, message: "Por favor ingresa el stock" },
-              ]}
-            >
-              <Input type="number" />
-            </Form.Item> */}
 
             <div>
               <h3>Variaciones</h3>

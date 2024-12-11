@@ -14,9 +14,7 @@
     text-align: center;
     color: #666;
   }
-
-  .ant-table-thead tr th { text-align: center !important; } 
-
+  
   .crearUser{
     margin-left: 35%;
   }
@@ -24,9 +22,8 @@
   .ant-card {
     margin-top: 20px;
   }
-  
-  .ant-table-row:hover {
-    background-color: #FF914D;
+
+  .ant-table-row {
     cursor: pointer;
   }
 

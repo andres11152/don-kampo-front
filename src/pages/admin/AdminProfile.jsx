@@ -290,6 +290,8 @@ const AdminProfile = () => {
     try {
       const response = await axios.get("http://localhost:8080/api/orders");
       setOrders(response.data);
+      console.log(response.data);
+      
       setFilteredOrders(response.data);
     } catch (error) {
       message.error("Error al cargar los pedidos.");
@@ -636,6 +638,32 @@ const AdminProfile = () => {
     );
   };
 
+  const renderPurchaseTable = () => {
+    const orderColumns = [
+      { title: "ID Producto", dataIndex: "product_id", key: "product_id" },
+      { title: "Producto", dataIndex: "name", key: "name" },
+      { title: "ID Variacion", dataIndex: "variations[0].variation_id", key: "variations[0].variation_id" },
+      { title: "Variacion", dataIndex: "variations.quality", key: "variations.quality" },
+      { title: "Total a Comprar", dataIndex: "variations.quantity", key:"variations.quantity" }
+    ];
+
+    return (
+      <Card title="Gestión de Compras" style={{ marginTop: "20px" }}>
+        <Button style={{ marginBottom: '20px' }} type="primary" onClick={exportFilteredOrdersToExcel}> Descargar Excel </Button>
+        <Spin spinning={loading}>
+          {" "}
+          {/* Muestra la rueda de carga mientras `loading` está activo */}
+          <Table
+            // dataSource={filteredOrders}
+            columns={orderColumns}
+            rowKey="id"
+            pagination={{ pageSize: 5 }}
+          />
+        </Spin>
+      </Card>
+    );
+  };
+
   const downloadSampleExcel = () => {
     // Ejemplo con múltiples bloques de variaciones
     const exampleData = [
@@ -794,6 +822,7 @@ const AdminProfile = () => {
         </p>
         {renderUserTable()}
         {renderOrderTable()}
+        {renderPurchaseTable()}
 
         {/* Modal for User Details */}
         <Modal

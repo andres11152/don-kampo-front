@@ -279,7 +279,9 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 .info-section button {
   font-weight: 700;
   text-transform: uppercase;
-  width: 80%;
+  width: fit-content;
+  border-radius: 5px;
+  padding: 20px;
 }
 
 .ant-modal-title {

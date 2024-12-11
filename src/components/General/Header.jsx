@@ -158,7 +158,7 @@ const Header = () => {
         placement="right"
         closable
         onClose={() => setDrawerVisible(false)}
-        visible={drawerVisible}
+        open={drawerVisible}
         width={200}
       >
         <Menu theme="light" mode="vertical" selectedKeys={[selectedKey]}>

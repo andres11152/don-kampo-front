@@ -53,41 +53,39 @@
     width: 300px;
   }
   
-  .ant-table {
+  .manage-products-container .ant-table {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
-  .ant-table-thead > tr > th {
+  .manage-products-container .ant-table-thead > tr > th {
     background-color: #ff7e00;
     color: white;
     font-weight: bold;
     text-align: center;
   }
   
-  .ant-table-tbody > tr > td {
-    text-align: center;
-  }
+  .ant-table tr > * { text-align: center !important; }
   
-  .ant-btn-danger {
+  .manage-products-container .ant-btn-danger {
     border: 1px solid #ff4d4f;
     color: #ff4d4f;
     font-weight: bold;
   }
   
-  .ant-btn-danger:hover {
+  .manage-products-container .ant-btn-danger:hover {
     background-color: #ff7875;
     color: white;
   }
   
-  .ant-input {
+  .manage-products-container .ant-input {
     border-radius: 5px;
     border: 1px solid #d9d9d9;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
   
-  .ant-input:focus {
+  .manage-products-container .ant-input:focus {
     border-color: #ff7e00;
     box-shadow: 0 0 5px rgba(255, 126, 0, 0.5);
   }

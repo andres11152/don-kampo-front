@@ -21,52 +21,134 @@ import "./Home.css";
 
 const { Title, Paragraph } = Typography;
 
-const carouselItems = [
-  {
-    img: "/images/frutas.webp",
-    title: "Frutas frescas",
-    description: "Compra frutas frescas y de calidad directamente del campo",
-    link: "/products?category=Frutas",
-  },
-  {
-    img: "/images/organicas.webp",
-    title: "Verduras orgánicas",
-    description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
-    link: "/products?category=Verduras",
-  },
-  {
-    img: "/images/frutasImportadas.jpg",
-    title: "Frutas importadas",
-    description: "Frutas importadas de la mejor calidad para tu hogar",
-    link: "/products?category=Frutas",
-  },
-  {
-    img: "/images/slider.jpg",
-    title: "Promociones exclusivas",
-    description: "Aprovecha las ofertas semanales en nuestros productos",
-    link: "/products",
-  },
-];
+const carouselItems = {
+  "Hogar": [
+    {
+      img: "/images/frutas.webp",
+      title: "Frutas frescas",
+      description: "Compra frutas frescas y de calidad directamente del campo",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/organicas.webp",
+      title: "Verduras orgánicas",
+      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
+      link: "/products?category=Verduras",
+    },
+    {
+      img: "/images/frutasImportadas.jpg",
+      title: "Frutas importadas",
+      description: "Frutas importadas de la mejor calidad para tu hogar",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/slider.jpg",
+      title: "Promociones exclusivas",
+      description: "Aprovecha las ofertas semanales en nuestros productos",
+      link: "/products",
+    } 
+  ],
+  "Restaurante": [
+    {
+      img: "/images/organicas.webp",
+      title: "Verduras orgánicas",
+      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
+      link: "/products?category=Verduras",
+    },
+    {
+      img: "/images/frutasImportadas.jpg",
+      title: "Frutas importadas",
+      description: "Frutas importadas de la mejor calidad para tu hogar",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/slider.jpg",
+      title: "Promociones exclusivas",
+      description: "Aprovecha las ofertas semanales en nuestros productos",
+      link: "/products",
+    },
+    {
+      img: "/images/frutas.webp",
+      title: "Frutas frescas",
+      description: "Compra frutas frescas y de calidad directamente del campo",
+      link: "/products?category=Frutas",
+    },
+  ],
+  "Supermercado": [
+    {
+      img: "/images/frutasImportadas.jpg",
+      title: "Frutas importadas",
+      description: "Frutas importadas de la mejor calidad para tu hogar",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/slider.jpg",
+      title: "Promociones exclusivas",
+      description: "Aprovecha las ofertas semanales en nuestros productos",
+      link: "/products",
+    },
+    {
+      img: "/images/frutas.webp",
+      title: "Frutas frescas",
+      description: "Compra frutas frescas y de calidad directamente del campo",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/organicas.webp",
+      title: "Verduras orgánicas",
+      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
+      link: "/products?category=Verduras",
+    },
+  ],
+  "Fruver": [
+    {
+      img: "/images/slider.jpg",
+      title: "Promociones exclusivas",
+      description: "Aprovecha las ofertas semanales en nuestros productos",
+      link: "/products",
+    },
+    {
+      img: "/images/frutas.webp",
+      title: "Frutas frescas",
+      description: "Compra frutas frescas y de calidad directamente del campo",
+      link: "/products?category=Frutas",
+    },
+    {
+      img: "/images/organicas.webp",
+      title: "Verduras orgánicas",
+      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
+      link: "/products?category=Verduras",
+    },
+    {
+      img: "/images/frutasImportadas.jpg",
+      title: "Frutas importadas",
+      description: "Frutas importadas de la mejor calidad para tu hogar",
+      link: "/products?category=Frutas",
+    },
+  ]
+}
 
 const categories = [
   { title: "Frutas nacionales", img: "/images/mangostino.webp" },
   { title: "Verduras", img: "/images/verdurasProducto.jpg" },
   { title: "Frutas importadas", img: "/images/frutasImportadas.jpg" },
   { title: "Hortalizas", img: "/images/hortalizas.jpg" },
-];
+]
 
-const userTypeCarouselItems = {
-  Fruver: ["Frutas", "Verduras"],
-  Hogar: ["Frutas", "Hortalizas"],
-  Restaurante: ["Verduras", "Frutas importadas"],
-  Supermercado: ["Promociones exclusivas", "Frutas nacionales"],
-};
-
-const Home = () => {
+const Home = () => {  
   const carouselRef = useRef(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [userType, setUserType] = useState('hogar');
-  // const [userType, setUserType] = useState(JSON.parse(localStorage.getItem("loginData")).user.user_type);
+  
+  const [isModalVisible, setIsModalVisible] = useState(() => {
+    const storedValue = localStorage.getItem('modalShown');
+    return storedValue !== null ? JSON.parse(storedValue) : true;
+  });
+  
+  const [userType, setUserType] = useState(() => {
+    const storedValue = localStorage.getItem('userType');
+    return storedValue !== null ? storedValue : 'Hogar';
+  });
+  const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
+
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();  
@@ -111,24 +193,25 @@ const Home = () => {
     selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
 
+  console.log(isModalVisible);
+  
   useEffect(() => {
-    const modalShown = localStorage.getItem("modalShown");
-    !modalShown && setIsModalVisible(true);
-  }, []);
-
-  useEffect(() => {
-    userType && 
-      localStorage.setItem("modalShown", "true");
+    userType &&
+      localStorage.setItem("modalShown", false);
       localStorage.setItem("userType", userType);
-      setIsModalVisible(false);
-  }, [userType]);
+    !userType &&       
+      localStorage.setItem("modalShown", true);
+  }, [userType]); 
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();
 
   const handleNavigate = link => navigate(link);
 
-  const handleUserTypeChange = type => setUserType(type);
+  const handleUserTypeChange = type => {
+    setUserType(type)
+    setIsModalVisible(!isModalVisible)
+  };
 
   return (
     <>
@@ -196,7 +279,7 @@ const Home = () => {
         {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>
-            {carouselItems.map((item, index) => (
+            {carouselItems[userType].map((item, index) => (
               <div key={index} className="carousel-item">
                 <img
                   src={item.img}
@@ -280,7 +363,7 @@ const Home = () => {
         {/* Modal de selección de usuario */}
         <Modal
           title={<img src="/images/1.png" alt="Logo" className="modal-logo" />}
-          visible={isModalVisible}
+          open={isModalVisible}
           closable={false}
           footer={null}
         >
@@ -293,7 +376,7 @@ const Home = () => {
           <div className="user-type-selection">
             <Title level={5}>Selecciona tu tipo de usuario:</Title>
             <Row gutter={[16, 16]} justify="center">
-              {Object.keys(userTypeCarouselItems).map((type, index) => (
+              {userTypes.map((type, index) => (
                 <Col xs={24} sm={12} md={12} key={index}>
                   <Button
                     type={userType === type ? "primary" : "default"}
