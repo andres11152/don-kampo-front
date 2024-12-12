@@ -189,9 +189,7 @@ const CreateOrder = () => {
       shippingCost,
       total,
       actual_delivery: new Date().toISOString(),
-      estimatedDelivery: new Date(
-        Date.now() + 2 * 24 * 60 * 60 * 1000
-      ).toISOString(),
+      estimatedDelivery: new Date( Date.now() + 2 * 24 * 60 * 60 * 1000 ).toISOString(),
     };
 
     setLoading(true);

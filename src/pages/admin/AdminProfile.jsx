@@ -631,6 +631,7 @@ const AdminProfile = () => {
       },
     ];
 
+    
     return (
       <Card title="Gestión de Pedidos" style={{ marginTop: "20px" }}>
         <div style={{ marginBottom: "20px" }}>
