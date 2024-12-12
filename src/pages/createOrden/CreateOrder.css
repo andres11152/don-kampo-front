@@ -1,7 +1,7 @@
 /* Estilos para centrar y organizar los elementos horizontalmente en CreateOrder */
 
 .create-order-container {
-    max-width: 1400px;
+  max-width: 1400px;
   padding: 2rem;
   background-color: #fff;
   border-radius: 8px;
@@ -10,9 +10,7 @@
   margin-bottom: 8%;
   }
   
-  .product-selection, .selected-products {
-    margin-bottom: 20px;
-  }
+  .product-selection, .selected-products { margin-bottom: 20px; }
   
   .products-list {
     display: flex;
