@@ -290,7 +290,6 @@ const ManageProducts = () => {
       const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
       saveAs(blob, 'Products.xlsx');
   
-      console.log('Archivo Excel generado exitosamente.');
     } catch (error) {
       console.error('Error generando el archivo Excel:', error);
     }

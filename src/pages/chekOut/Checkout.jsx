@@ -73,7 +73,8 @@ const Checkout = () => {
     fetchShippingCostsAndUser();
   }, []); // Se ejecuta solo una vez
 
-  const { cart, clearCart, addToCart, removeFromCart } = useCart();
+  const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
+  
   const navigate = useNavigate();
   const { width, height } = useWindowSize();
 
@@ -251,12 +252,6 @@ const Checkout = () => {
         : userData?.[field]?.trim()
     );
 
-    console.log("Validación de formulario:", {
-      requiredFields,
-      userData,
-      isValid,
-    });
-
     return isValid;
   };
 
@@ -273,7 +268,7 @@ const Checkout = () => {
       console.error("La variación seleccionada no está definida.");
       return;
     }
-    removeFromCart(product);
+    removeOneFromCart(product);
   };
 
   const handlePlaceOrder = async () => {
@@ -319,11 +314,10 @@ const Checkout = () => {
           setIsModalVisible(true);
         } else {
           message.error("Error al realizar el pedido. Inténtalo nuevamente.");
-          console.log("Datos enviados al backend:", orderData);
+          
         }
       } catch (error) {
         message.error("Error al realizar el pedido.");
-        console.log("Datos enviados al backend:", orderData);
 
         console.error(error);
       }
@@ -457,7 +451,7 @@ const Checkout = () => {
                   {product.selectedVariation.quantity}) x {product.quantity}
                 </span>
                 <div className="quantity-controls">
-                  <Button onClick={() => handleRemoveFromCart(product)}>
+                  <Button onClick={() => handleRemoveFromCart(product, product.selectedVariation)}>
                     -
                   </Button>
                   <span className="quantity-text">{product.quantity}</span>

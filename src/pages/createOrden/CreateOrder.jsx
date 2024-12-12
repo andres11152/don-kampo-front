@@ -197,10 +197,8 @@ const CreateOrder = () => {
     setLoading(true);
     try {
       const response = await axios.post("http://localhost:8080/api/orders/placeOrder", orderData);
-      console.log("Respuesta de la API:", response);
 
       if (response.status === 201) {
-        console.log("La orden fue creada exitosamente.");
         message.success("Orden creada exitosamente.");
         generatePDF(orderData); // Generar el PDF
         form.resetFields(); // Limpiar el formulario

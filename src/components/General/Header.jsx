@@ -77,8 +77,7 @@ const Header = () => {
 
   // Función para manejar el clic en el menú y cambiar la ruta
   const handleMenuClick = key => {
-    localStorage.setItem("selectedKey", key);    
-    setSelectedKey(key);
+    navigate(`/${key}`)
     setDrawerVisible(false); // Cierra el Drawer si se selecciona un elemento
   };
 

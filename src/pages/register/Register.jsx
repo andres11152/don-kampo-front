@@ -12,7 +12,6 @@ const { Option } = Select;
 const Register = () => {
   const [loading, setLoading] = useState(false);
   const redirectTo = localStorage.getItem("redirectTo") || "/";
-  console.log("traigo el estado de redirect",redirectTo);
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
@@ -45,7 +44,6 @@ const Register = () => {
       const redirectTo = localStorage.getItem("redirectTo") || "/";
       if (redirectTo === "/cart" ) {
         const reenviar = "/login";
-        console.log(redirectTo);
       navigate(reenviar, { replace: true });
       }else{
         navigate("/login", { replace: true });

@@ -272,6 +272,7 @@ const Products = () => {
                 key={product.product_id}
                 className="product-card"
                 hoverable
+                onClick={() => openModal(product)}
                 cover={
                   <img
                     alt={product.name}

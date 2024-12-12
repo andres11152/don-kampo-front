@@ -51,7 +51,6 @@ const Profile = () => {
           const userOrders = ordersResponse.data.filter(
             (order) => order.customer_id === loginData.user.id
           );
-          console.log("Pedidos del usuario:", userOrders); // LOG PARA VERIFICAR LOS DATOS
           setOrders(userOrders);
           setFilteredOrders(userOrders);
         } catch (error) {
@@ -145,7 +144,6 @@ const Profile = () => {
   
       return matchTerm && matchDate;
     });
-    console.log("Pedidos filtrados:", filtered); 
     setFilteredOrders(filtered);
   };
   

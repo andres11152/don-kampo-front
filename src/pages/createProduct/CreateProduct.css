@@ -90,9 +90,22 @@
   gap: 15px;
 }
 
+.variation-fields h4 {
+  color: var(--color-secondary);
+  font-weight: 700;
+  font-size: 20px;
+  margin-left: 10px;
+}
+
 .variation-fields button {
   width: 25%;
   min-width: 200px;
+  border: 1px solid #ff423f;
+  color: #ff423f;
+}
+.variation-fields button:hover {
+  background-color: #ff423f;
+  color: white;
 }
 
 .create-product .submit {

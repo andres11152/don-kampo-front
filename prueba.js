@@ -221,7 +221,6 @@ const AdminProfile = () => {
         acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
         return acc;
       }, {});
-      console.log("Shipping Costs Cargados:", costs); // Verifica que los datos se carguen correctamente
       setShippingCosts(costs); // Actualiza el estado con los datos cargados
     } catch (error) {
       message.error("Error al cargar los costos de envío.");

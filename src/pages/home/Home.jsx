@@ -171,7 +171,6 @@ const Home = () => {
         );
         
         setSearchResults(filteredProducts);
-        console.log("Productos encontrados:", filteredProducts);
       } else {
         throw new Error("Respuesta inesperada del backend");
       }
@@ -188,12 +187,10 @@ const Home = () => {
 
   const handleSelect = value => {
     const selectedProduct = searchResults.find( product => product.name === value );
-    console.log(selectedProduct);
     
     selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
 
-  console.log(isModalVisible);
   
   useEffect(() => {
     userType &&

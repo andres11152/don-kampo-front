@@ -79,7 +79,6 @@ export const CartProvider = ({ children }) => {
     });
   };
   
-
   const clearCart = () => {
     setCart({});
   };
@@ -88,7 +87,7 @@ export const CartProvider = ({ children }) => {
     setCart((prevCart) => {
       const newCart = { ...prevCart };
       const cartKey = `${product.product_id}-${product.selectedVariation.variation_id}`;
-
+      
       if (newCart[cartKey]) {
         delete newCart[cartKey];
       }

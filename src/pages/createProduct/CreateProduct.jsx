@@ -37,6 +37,8 @@ const CreateProduct = () => {
       price_fruver: "",
     },
   ]);
+  const [values, setValues] = useState({'name': '', 'category': '', 'description': ''})
+
 
   const processingExcel = async (file) => {
     const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -156,12 +158,13 @@ const CreateProduct = () => {
 
   const updatingProducts = (event) => {   
     event.preventDefault()
+    console.log(updateProducts);
+    
     setProcessExcel({message: 'Actualizando productos', status: ''})
     axios.put("http://localhost:8080/api/updatemultipleproducts", updateProducts, {
       headers: { 'Content-Type': 'application/json' },
     })
     .then((response) => {
-      console.log("Productos actualizados exitosamente:", response.data);
       setProcessExcel({message: 'Productos actualizados exitosamente', status: 'success'})
       setMessageButton('Continuar')
     })
@@ -205,7 +208,28 @@ const CreateProduct = () => {
     setVariations(updatedVariations);
   };
 
-  const handleSubmit = async (values) => {
+  const handleValues = (key, value) => {
+    setValues(prev => ({...prev, [key]: value}))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const isVariations = variations.every(variation => 
+      Object.keys(variation).every(key => 
+        variation[key] !== null && variation[key] !== undefined
+    ))
+    
+    const isValues = Object.keys(values).every(key => values[key] !== null && values[key] !== undefined && values[key] !== '')
+    
+    if (!isValues) {
+      message.error('No se ingresaron los datos')
+      return
+    }
+    else if (!isVariations) {
+      message.error('Faltan datos en las variaciones')
+      return
+    }
+    
     // Crear el objeto de datos del producto
     const productData = {
       name: values.name,
@@ -232,7 +256,7 @@ const CreateProduct = () => {
     Object.keys(productData).forEach(key => {
       key === "variations" ? formData.append(key, JSON.stringify(productData[key]))
       : formData.append(key, productData[key]);
-    });
+    });    
   
     try {
       const response = await axios.post(
@@ -258,19 +282,19 @@ const CreateProduct = () => {
           price_fruver: "",
         },
       ]);
+      const sleep = ms => new Promise(r => setTimeout(r, ms));
+      await sleep(1500)
+      window.location.reload()
     } catch (error) {
       message.error("Error al crear el producto.");
       console.error(error);
     }
-
-    console.log('camilo');
-    
   };
 
   return (
     <>
       <Header />
-      <form onSubmit={handleSubmit} className="create-product">
+      <form onSubmit={(e) => handleSubmit(e)} className="create-product">
 
         <section className="main-data">
           <h2>Crear Producto</h2>
@@ -283,7 +307,7 @@ const CreateProduct = () => {
                 { required: true, message: "Por favor ingresa el nombre" },
               ]}
             >
-              <Input placeholder="Nombre del producto" />
+              <Input onChange={(e) => handleValues('name', e.target.value)} placeholder="Nombre del producto" />
             </Form.Item>
             <Form.Item
               name="category"
@@ -295,12 +319,13 @@ const CreateProduct = () => {
                 },
               ]}
             >
-              <Select placeholder="Selecciona una categoría">
+              <Select onChange={(value) => handleValues('category', value)} placeholder="Selecciona una categoría">
                 <Option value="Frutas importadas">Frutas importadas</Option>
                 <Option value="Verdura">Verdura</Option>
                 <Option value="Frutas nacionales">Frutas nacionales</Option>
                 <Option value="Cosecha">Cosecha</Option>
                 <Option value="Hortalizas">Hortalizas</Option>
+                <Option value="Promociones">Promociones</Option>
                 <Option value="Otros">Otros</Option>
               </Select>
             </Form.Item>
@@ -316,7 +341,7 @@ const CreateProduct = () => {
               },
             ]}
           >
-            <Input.TextArea placeholder="Descripción del producto" />
+            <Input.TextArea onChange={(e) => handleValues('description', e.target.value)} placeholder="Descripción del producto" />
           </Form.Item>
           
           <Form.Item label="Foto del Producto">
@@ -349,6 +374,7 @@ const CreateProduct = () => {
           <h3>Variaciones del Producto</h3>
           {variations.map((variation, index) => (
             <div key={index} className="variation-fields">
+              <h4>{index + 1}</h4>
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Input
@@ -417,13 +443,15 @@ const CreateProduct = () => {
                   />
                 </Col>
               </Row>
-              <Button
-                onClick={() => removeVariation(index)}
-                type="danger"
-                style={{ marginTop: 10 }}
-              >
-                Eliminar Variación
-              </Button>
+              {index > 0 &&
+                <Button
+                  onClick={() => removeVariation(index)}
+                  type="danger"
+                  style={{ marginTop: 10 }}
+                >
+                  Eliminar Variación
+                </Button>
+              }
             </div>
           ))}
         </section>

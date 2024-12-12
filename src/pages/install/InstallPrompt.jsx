@@ -23,11 +23,7 @@ const InstallPrompt = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt(); // Muestra el prompt nativo de instalación
       deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === "accepted") {
-          console.log("El usuario aceptó instalar la app");
-        } else {
-          console.log("El usuario rechazó instalar la app");
-        }
+
         setDeferredPrompt(null); // Limpia el evento
         setShowModal(false); // Cierra el modal
       });
