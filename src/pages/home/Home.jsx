@@ -21,113 +21,6 @@ import "./Home.css";
 
 const { Title, Paragraph } = Typography;
 
-const carouselItems = {
-  "Hogar": [
-    {
-      img: "/images/frutas.webp",
-      title: "Frutas frescas",
-      description: "Compra frutas frescas y de calidad directamente del campo",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/organicas.webp",
-      title: "Verduras orgánicas",
-      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
-      link: "/products?category=Verduras",
-    },
-    {
-      img: "/images/frutasImportadas.jpg",
-      title: "Frutas importadas",
-      description: "Frutas importadas de la mejor calidad para tu hogar",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/slider.jpg",
-      title: "Promociones exclusivas",
-      description: "Aprovecha las ofertas semanales en nuestros productos",
-      link: "/products",
-    } 
-  ],
-  "Restaurante": [
-    {
-      img: "/images/organicas.webp",
-      title: "Verduras orgánicas",
-      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
-      link: "/products?category=Verduras",
-    },
-    {
-      img: "/images/frutasImportadas.jpg",
-      title: "Frutas importadas",
-      description: "Frutas importadas de la mejor calidad para tu hogar",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/slider.jpg",
-      title: "Promociones exclusivas",
-      description: "Aprovecha las ofertas semanales en nuestros productos",
-      link: "/products",
-    },
-    {
-      img: "/images/frutas.webp",
-      title: "Frutas frescas",
-      description: "Compra frutas frescas y de calidad directamente del campo",
-      link: "/products?category=Frutas",
-    },
-  ],
-  "Supermercado": [
-    {
-      img: "/images/frutasImportadas.jpg",
-      title: "Frutas importadas",
-      description: "Frutas importadas de la mejor calidad para tu hogar",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/slider.jpg",
-      title: "Promociones exclusivas",
-      description: "Aprovecha las ofertas semanales en nuestros productos",
-      link: "/products",
-    },
-    {
-      img: "/images/frutas.webp",
-      title: "Frutas frescas",
-      description: "Compra frutas frescas y de calidad directamente del campo",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/organicas.webp",
-      title: "Verduras orgánicas",
-      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
-      link: "/products?category=Verduras",
-    },
-  ],
-  "Fruver": [
-    {
-      img: "/images/slider.jpg",
-      title: "Promociones exclusivas",
-      description: "Aprovecha las ofertas semanales en nuestros productos",
-      link: "/products",
-    },
-    {
-      img: "/images/frutas.webp",
-      title: "Frutas frescas",
-      description: "Compra frutas frescas y de calidad directamente del campo",
-      link: "/products?category=Frutas",
-    },
-    {
-      img: "/images/organicas.webp",
-      title: "Verduras orgánicas",
-      description: "Verduras cultivadas orgánicamente, perfectas para tu dieta",
-      link: "/products?category=Verduras",
-    },
-    {
-      img: "/images/frutasImportadas.jpg",
-      title: "Frutas importadas",
-      description: "Frutas importadas de la mejor calidad para tu hogar",
-      link: "/products?category=Frutas",
-    },
-  ]
-}
-
 const categories = [
   { title: "Frutas nacionales", img: "/images/mangostino.webp" },
   { title: "Verduras", img: "/images/verdurasProducto.jpg" },
@@ -142,13 +35,13 @@ const Home = () => {
     const storedValue = localStorage.getItem('modalShown');
     return storedValue !== null ? JSON.parse(storedValue) : true;
   });
-  
+
   const [userType, setUserType] = useState(() => {
     const storedValue = localStorage.getItem('userType');
     return storedValue !== null ? storedValue : 'Hogar';
   });
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
-
+  const [publicity, setPublicity] = useState({})
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();  
@@ -199,6 +92,20 @@ const Home = () => {
     !userType &&       
       localStorage.setItem("modalShown", true);
   }, [userType]); 
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/publicidad");
+        const responseData = await response.json();
+        setPublicity(responseData);
+      } catch (error) {
+        console.error("Error al cargar los datos", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();
@@ -276,11 +183,11 @@ const Home = () => {
         {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>
-            {carouselItems[userType].map((item, index) => (
+            {publicity[userType].map((item, index) => (
               <div key={index} className="carousel-item">
                 <img
                   src={item.img}
-                  alt={item.title}
+                  alt={publicity[userType].title}
                   className="carousel-image"
                 />
                 <div className="carousel-overlay">
@@ -290,16 +197,16 @@ const Home = () => {
                       className="carousel-title"
                       style={{ color: "white" }}
                     >
-                      {item.title}
+                      {publicity[userType].title}
                     </Title>
                     <Paragraph className="carousel-description">
-                      {item.description}
+                      {publicity[userType].description}
                     </Paragraph>
                     <Button
                       type="primary"
                       size="large"
                       className="carousel-button"
-                      onClick={() => handleNavigate(item.link)}
+                      onClick={() => handleNavigate('/products')}
                     >
                       Ver más
                     </Button>
@@ -359,11 +266,11 @@ const Home = () => {
 
         {/* Modal de selección de usuario */}
         <Modal
-          title={<img src="/images/1.png" alt="Logo" className="modal-logo" />}
           open={isModalVisible}
           closable={false}
           footer={null}
         >
+          <img src="/images/1.png" alt="Logo" />
           <div className="modal-text">
             Por el momento, nuestros servicios están disponibles únicamente en
             <span className="modal-body-highlight"> Chía</span> y

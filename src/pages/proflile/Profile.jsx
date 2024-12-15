@@ -48,15 +48,20 @@ const Profile = () => {
   
           // Cargar pedidos
           const ordersResponse = await axios.get("http://localhost:8080/api/orders");
+          
           const userOrders = ordersResponse.data.filter(
-            (order) => order.customer_id === loginData.user.id
+            (dataOrder) => dataOrder.order.customer_id === loginData.user.id
           );
-          setOrders(userOrders);
-          setFilteredOrders(userOrders);
+          
+          const userIdOrders = userOrders.map(order => order.order)
+          
+          setOrders(userIdOrders);
+          setFilteredOrders(userIdOrders);
+          
         } catch (error) {
           message.error("Error al cargar los datos.");
-          console.error(error);
-        }
+          console.error(error); 
+        };
       } else {
         message.error("Debe iniciar sesión para ver su perfil.");
       }
@@ -240,8 +245,8 @@ const Profile = () => {
     </Card>
   );
 
-  const renderOrders = () => {
-    const columns = [
+  const renderOrdersTable = () => {
+    const orderColumns = [
       {
         title: "ID de Orden",
         dataIndex: "id",
@@ -291,10 +296,9 @@ const Profile = () => {
         </div>
         <Table
           dataSource={filteredOrders}
-          columns={columns}
+          columns={orderColumns}
           rowKey="id"
           pagination={{ pageSize: 5 }}
-          className="orders-table"
         />
         <Button
           type="default"
@@ -399,7 +403,7 @@ const Profile = () => {
       <div className="user-profile-container">
         {view === "welcome" && renderWelcome()}
         {view === "profile" && renderProfile()}
-        {view === "orders" && renderOrders()}
+        {view === "orders" && renderOrdersTable()}
         {renderOrderDetailsModal()}
       </div>
       <BotonWhatsapp />

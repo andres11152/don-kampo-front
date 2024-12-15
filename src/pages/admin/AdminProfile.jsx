@@ -18,7 +18,7 @@ import {
 } from "antd";
 import Navbar from "../../components/General/Header";
 import CustomFooter from "../../components/General/Footer";
-
+import ManagePublicity from "./ManagePublicity";
 import { SearchOutlined } from "@ant-design/icons";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
@@ -289,7 +289,11 @@ const AdminProfile = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/orders");
-      const dataOrders = response.data.map(item => item.order)
+      const dataOrders = response.data.map(item => ({
+        ...item.order,
+        email: item.userData?.email || ''
+      }));      
+      
       const dataPurchaseOrders = response.data.flatMap(item => item.items)
       // Agrupamos y sumamos las cantidades
       const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
@@ -309,10 +313,10 @@ const AdminProfile = () => {
           // Traemos las propiedades al nivel superior
           return {
             id_producto: product.product_id,
-            cantidad: variation.variationQuantity,
+            cantidad: variation.quantity,
             nombre_producto: product.product_name,
-            id_variacion: variation.variationId,
-            calidad: variation.variationQuality,
+            id_variacion: product.product_variation_id,
+            calidad: variation.quality,
             total: product.quantity
           };
         }
@@ -580,7 +584,7 @@ const AdminProfile = () => {
   const renderOrderTable = () => {
     const orderColumns = [
       { title: "ID de Orden", dataIndex: "id", key: "id" },
-      { title: "Cliente", dataIndex: "customer_id", key: "customer_id" },
+      { title: "Cliente", dataIndex: "email", key: "email" },
       {
         title: "Fecha",
         dataIndex: "order_date",
@@ -631,7 +635,6 @@ const AdminProfile = () => {
       },
     ];
 
-    
     return (
       <Card title="Gestión de Pedidos" style={{ marginTop: "20px" }}>
         <div style={{ marginBottom: "20px" }}>
@@ -692,7 +695,7 @@ const AdminProfile = () => {
       </Card>
     );
   };
-
+  
   const downloadSampleExcel = () => {
     // Ejemplo con múltiples bloques de variaciones
     const exampleData = [
@@ -752,45 +755,42 @@ const AdminProfile = () => {
   const exportFilteredOrdersToExcel = async () => {
     const failedOrders = []; // Lista para almacenar los detalles de órdenes fallidas
     const detailedOrders = []; // Lista para almacenar los detalles exitosos
-
+  
     setLoading(true); // Activamos la rueda de carga
-
+  
     try {
       // Realizar todas las solicitudes en paralelo
       const responses = await Promise.all(
         filteredOrders.map(async (order) => {
           try {
             const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
-            const { order: orderDetails, items, shippingInfo } = response.data;
-
-            // Combinar los detalles de la orden, ítems y envío en un solo objeto
-            detailedOrders.push({
-              "ID de Orden": orderDetails.id,
-              Cliente: orderDetails.customer_name,
-              "Correo Cliente": orderDetails.customer_email,
-              "Fecha de Pedido": new Date(
-                orderDetails.order_date
-              ).toLocaleDateString(),
-              Total: `$${orderDetails.total}`,
-              Estado:
-                orderDetails.status_id === 1
-                  ? "Pendiente"
-                  : orderDetails.status_id === 2
-                  ? "Enviado"
-                  : orderDetails.status_id === 3
-                  ? "Entregado"
-                  : "Cancelado",
-              "Método de Envío":
-                shippingInfo?.shipping_method || "No disponible",
-              "Número de Rastreo":
-                shippingInfo?.tracking_number || "No disponible",
-              Ítems:
-                items
-                  .map(
-                    (item) =>
-                      `${item.product_name} (x${item.quantity}) - $${item.price}`
-                  )
-                  .join("; ") || "No disponible",
+            const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
+  
+            // Crear filas por cada ítem y variación
+            items.forEach((item) => {
+              detailedOrders.push({
+                "ID de Orden": orderDetails.id,
+                Cliente: orderDetails.customer_name,
+                Ciudad: city,
+                Teléfono: phone,
+                Dirección: address,
+                "Correo Cliente": orderDetails.customer_email,
+                "Fecha de Pedido": new Date(orderDetails.order_date).toLocaleDateString(),
+                Total: `$${orderDetails.total}`,
+                Estado:
+                  orderDetails.status_id === 1
+                    ? "Pendiente"
+                    : orderDetails.status_id === 2
+                    ? "Enviado"
+                    : orderDetails.status_id === 3
+                    ? "Entregado"
+                    : "Cancelado",
+                "ID de Variación": item.product_variation_id,
+                "Nombre del Producto": item.product_name,
+                Calidad: item.variation.quality,
+                Cantidad: item.quantity,
+                Precio: `$${item.price}`,
+              });
             });
           } catch (error) {
             // Captura el detalle del error para la hoja de errores
@@ -803,10 +803,10 @@ const AdminProfile = () => {
           }
         })
       );
-
+  
       // Crear hojas de trabajo
       const workbook = XLSX.utils.book_new();
-
+  
       if (detailedOrders.length > 0) {
         const detailedWorksheet = XLSX.utils.json_to_sheet(detailedOrders);
         XLSX.utils.book_append_sheet(
@@ -815,15 +815,15 @@ const AdminProfile = () => {
           "Pedidos Detallados"
         );
       }
-
+  
       if (failedOrders.length > 0) {
         const failedWorksheet = XLSX.utils.json_to_sheet(failedOrders);
         XLSX.utils.book_append_sheet(workbook, failedWorksheet, "Errores");
       }
-
+  
       // Guardar el archivo Excel
       XLSX.writeFile(workbook, "Pedidos_Detallados_y_Errores.xlsx");
-
+  
       // Mensajes al usuario
       if (detailedOrders.length > 0) {
         message.success("Archivo Excel generado exitosamente.");
@@ -840,7 +840,7 @@ const AdminProfile = () => {
       setLoading(false); // Desactivamos la rueda de carga
     }
   };
-
+  
   const exportPurchaseOrdersToExcel = async () => {
     setLoading(true); // Activamos la rueda de carga
 
@@ -978,6 +978,8 @@ const AdminProfile = () => {
             </Form>
           )}
         </Modal>
+
+        <ManagePublicity />
 
         {/* Costos Envio */}
         <Form
@@ -1255,6 +1257,6 @@ const AdminProfile = () => {
       <CustomFooter />
     </div>
   );
-};
+  };
 
 export default AdminProfile;

@@ -30,7 +30,8 @@
 /* Estilos básicos */
 body {
   font-family: var(--font-family-primary);
-  color: var(--text-color);
+  color: var(--color-secondary);
+  width: 100% !important;
 }
 
 /* Títulos para seguir la paleta de color */

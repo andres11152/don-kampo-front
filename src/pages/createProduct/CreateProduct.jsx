@@ -180,7 +180,9 @@ const CreateProduct = () => {
     processExcel.status === 'success' && window.location.reload();
   }
 
-  const handleImageUpload = ({ file }) => file && setImageFile(file);
+  const handleImageUpload = ({ file }) => {
+    file && setImageFile(file)    
+  };
 
   const handleVariationChange = (index, field, value) => {
     const updatedVariations = [...variations];

@@ -108,6 +108,7 @@ const Checkout = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      
       if (loginData && loginData.user) {
         try {
           const response = await axios.get(
@@ -135,8 +136,16 @@ const Checkout = () => {
           message.error("Error al cargar los datos del usuario.");
           console.error(error);
         }
-      } else {
-        message.error("Debe iniciar sesión para realizar la compra.");
+      } else if (localStorage.getItem('userType') === 'Hogar') { setUserData({
+        user_name: 'anonimo',
+        lastname: 'anonimo',
+        email: 'anonimo',
+        phone: 'anonimo',
+        city: 'anonimo',
+        address: 'anonimo',
+        neighborhood: 'anonimo'}) }
+      else {
+        message.error("Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra.");
         navigate("/login");
       }
     };
@@ -278,7 +287,7 @@ const Checkout = () => {
       const estimatedDelivery = currentDate.toISOString();
 
       const orderData = {
-        userId: loginData?.user?.id,
+        userId: loginData?.user?.id || '8739e2f0-5674-4b00-bee7-d83b47035573',
         cartDetails: cartDetails.map((product) => ({
           productId: product.product_id,
           quantity: product.quantity,
@@ -302,7 +311,9 @@ const Checkout = () => {
         needsElectronicInvoice,
         companyName: needsElectronicInvoice ? companyName : "",
         companyNit: needsElectronicInvoice ? companyNit : "",
-      };
+      };     
+      console.log(orderData);
+       
 
       try {
         const response = await axios.post(
@@ -564,7 +575,7 @@ const Checkout = () => {
               <div id="order-summary-pdf">
                 <p>
                   ¡{userData?.user_name}, tu pedido ha sido realizado
-                  exitosamente!
+                  exitosamente!<br />Sera despachado mañana
                 </p>
                 <p>
                   ID de la orden: <strong>{orderId}</strong>

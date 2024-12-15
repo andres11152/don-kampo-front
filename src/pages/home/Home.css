@@ -1,13 +1,10 @@
 main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);}
 
 /* Estilo para el modal */
-.modal-logo {
-  display: block;
-  margin: 0 auto;
-  max-width: 150px;
-  margin-bottom: 15px;
-}
 
+.ant-modal-body img {
+  width: 100% ;
+}
 .modal-text {
   text-align: center;
   font-size: 16px;
@@ -21,7 +18,7 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 }
 
 .user-type-selection {
-  margin-top: 20px;
+  margin: 20px 0;
   text-align: center;
 }
 
@@ -284,6 +281,15 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   padding: 20px;
 }
 
+/* Mobile and below */
+@media only screen and (max-width: 767px) {
+ .ant-modal {
+  max-width: 500px !important;
+  min-width: 200px !important;
+  width: 90% !important;
+ }
+}
+
 .ant-modal-title {
     font-size: 1.8rem;
     color: #00983a;
@@ -294,13 +300,6 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 .ant-modal-body {
     text-align: center;
     padding: 20px 40px;
-}
-
-.modal-logo {
-    display: block;
-    margin: 0 auto 20px auto;
-    width: 100px;
-    height: auto;
 }
 
 .modal-text {
