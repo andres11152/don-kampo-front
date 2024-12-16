@@ -6,6 +6,7 @@ import CustomFooter from "../../components/General/Footer";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import { useNavigate } from "react-router-dom";
 import "./Register.css";
+import fruits from '../../assets/fruits.jpg'
 
 const { Option } = Select;
 
@@ -63,6 +64,7 @@ const Register = () => {
 
   return (
     <>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <div className="register-container">
         <h2>Registro de Usuario</h2>

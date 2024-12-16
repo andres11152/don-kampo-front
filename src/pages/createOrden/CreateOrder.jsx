@@ -7,6 +7,7 @@ import Navbar from "../../components/General/Header";
 import CustomFooter from "../../components/General/Footer";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
+import fruits from '../../assets/fruits.jpg'
 
 const { Option } = Select;
 
@@ -216,6 +217,7 @@ const CreateOrder = () => {
 
   return (
     <div>
+      <img id="fruits" src={fruits} alt="" />
       <Navbar />
       <div className="create-order-container">
         <h2>Crear Orden Manual</h2>

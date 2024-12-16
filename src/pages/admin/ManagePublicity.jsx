@@ -171,12 +171,20 @@ const ManagePublicity = () => {
             value={newAd.description}
             onChange={handleInputChange}
           />
-          <input
-            type="file"
-            name="photo_url"
-            accept="image/*"
-            onChange={handleInputChange}
-          />
+          <div>
+            <label htmlFor="fileInput" className="custom-file-upload">
+              Subir imágenes
+            </label>
+            <input
+              id="fileInput"
+              type="file"
+              name="photo_url"
+              accept="image/*"
+              placeholder="Subir imagen"
+              onChange={handleInputChange}
+              style={{display: "none"}}
+            />
+          </div>
           <button
             onClick={createAdvertisement}
             className="create-button"
@@ -281,16 +289,12 @@ const ManagePublicity = () => {
               value={newAd.description}
               onChange={handleInputChange}
             />
-            <input
-              type="file"
-              name="photo_url"
-              accept="image/*"
-              onChange={handleInputChange}
-            />
-            <button onClick={editAdvertisement} disabled={isLoading}>
-              {isLoading ? "Actualizando..." : "Actualizar Publicidad"}
-            </button>
-            <button onClick={closeModal} className="close-button">Cerrar</button>
+            <div className="buttons">
+              <button className="edit-button" onClick={editAdvertisement} disabled={isLoading}>
+                {isLoading ? "Actualizando..." : "Actualizar Publicidad"}
+              </button> 
+              <button onClick={closeModal} className="close-button">Cerrar</button>
+            </div>
           </div>
         </div>
       )}

@@ -322,7 +322,7 @@ const AdminProfile = () => {
         }
         return product; // Si no hay variation, devolvemos el producto sin cambios
       });
-      
+            
       setPurchaseOrders(uniquePurchaseProducts)      
       setOrders(dataOrders);
       setFilteredOrders(dataOrders);
@@ -847,8 +847,18 @@ const AdminProfile = () => {
     // Crear hojas de trabajo
     const workbook = XLSX.utils.book_new();
     
+    // Reorganizar los datos en el orden deseado
+    const orderedPurchaseOrders = purchaseOrders.map(order => ({
+      id_producto: order.id_producto,
+      nombre_producto: order.nombre_producto,
+      id_variacion: order.id_variacion,
+      calidad: order.calidad,
+      cantidad: order.cantidad,
+      total: order.total
+    }));
 
-    const purchasedWorksheet = XLSX.utils.json_to_sheet(purchaseOrders);
+    // Convertir a hoja de cálculo con el orden de columnas establecido
+    const purchasedWorksheet = XLSX.utils.json_to_sheet(orderedPurchaseOrders);
 
     XLSX.utils.book_append_sheet(workbook, purchasedWorksheet, "Pedidos a comprar");
 

@@ -8,6 +8,7 @@ import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./Cart.css";
+import fruits from '../../assets/fruits.jpg'
 
 const Cart = () => {
   const { cart, removeFromCart, removeOneFromCart, addToCart } = useCart();
@@ -150,6 +151,7 @@ const Cart = () => {
 
   return (
     <>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <div className="cart-container">
         <h2 className="cart-title">Resumen del Carrito</h2>

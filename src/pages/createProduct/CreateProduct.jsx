@@ -17,6 +17,7 @@ import axios from "axios";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import { UploadOutlined } from "@ant-design/icons";
 import "./CreateProduct.css";
+import fruits from '../../assets/fruits.jpg'
 
 const { Option } = Select;
 
@@ -295,6 +296,7 @@ const CreateProduct = () => {
 
   return (
     <>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <form onSubmit={(e) => handleSubmit(e)} className="create-product">
 

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../products/CartContext";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./Checkout.css";
+import fruits from '../../assets/fruits.jpg'
 
 const Checkout = () => {
   const [userData, setUserData] = useState(null);
@@ -368,6 +369,7 @@ const Checkout = () => {
 
   return (
     <div>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <div className="checkout-container">
         <h2>Finalizar Compra</h2>

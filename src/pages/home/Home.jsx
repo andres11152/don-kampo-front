@@ -40,6 +40,7 @@ const Home = () => {
     const storedValue = localStorage.getItem('userType');
     return storedValue !== null ? storedValue : 'Hogar';
   });
+  
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState({})
   const [searchValue, setSearchValue] = useState("");
@@ -100,14 +101,14 @@ const Home = () => {
         const response = await fetch("/api/publicidad");
         const responseData = await response.json();
         const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase())
-        
+
         setPublicity(publicityData);
       } catch (error) {
         console.error("Error al cargar los datos", error);
       }
     };
     fetchData();
-  }, [userType]);
+  }, []);
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();

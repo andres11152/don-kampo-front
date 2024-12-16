@@ -6,6 +6,7 @@ import CustomFooter from "../../components/General/Footer";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import "./Login.css";
 import Header from "../../components/General/Header";
+import fruits from '../../assets/fruits.jpg'
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -115,6 +116,7 @@ const Login = () => {
 
   return (
     <>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <div className="login-container">
         <h2>Inicio de Sesión</h2>
