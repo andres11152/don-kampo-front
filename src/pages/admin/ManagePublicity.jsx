@@ -81,7 +81,7 @@ const ManagePublicity = () => {
   const deleteAdvertisement = async (id) => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
-    try {
+    try {      
       await axios.delete(`http://localhost:8080/api/publicidad/${id}`);
       alert("Publicidad eliminada correctamente.");
       fetchAdvertisements();
@@ -143,101 +143,103 @@ const ManagePublicity = () => {
     <section className="manage-publicity">
       <h2>Gestión de Publicidad</h2>
 
-      {/* Crear nueva publicidad */}
-      <div className="create-advertisement">
-        <h3>Crear Nueva Publicidad</h3>
-        <select
-          name="category"
-          value={newAd.category}
-          onChange={handleInputChange}
-        >
-          <option value="">Selecciona una categoría</option>
-          <option value="hogar">Hogar</option>
-          <option value="supermercado">Supermercado</option>
-          <option value="restaurante">Restaurante</option>
-          <option value="fruver">Fruver</option>
-        </select>
-        <input
-          type="text"
-          name="title"
-          placeholder="Título"
-          value={newAd.title}
-          onChange={handleInputChange}
-        />
-        <textarea
-          name="description"
-          placeholder="Descripción"
-          value={newAd.description}
-          onChange={handleInputChange}
-        />
-        <input
-          type="file"
-          name="photo_url"
-          accept="image/*"
-          onChange={handleInputChange}
-        />
-        <button
-          onClick={createAdvertisement}
-          className="create-button"
-          disabled={isLoading}
-        >
-          {isLoading ? "Creando..." : "Crear Publicidad"}
-        </button>
-      </div>
+      <div className="container-publicity">
+        {/* Crear nueva publicidad */}
+        <div className="create-advertisement">
+          <h3>Crear Nueva Publicidad</h3>
+          <select
+            name="category"
+            value={newAd.category}
+            onChange={handleInputChange}
+          >
+            <option value="">Selecciona una categoría</option>
+            <option value="hogar">Hogar</option>
+            <option value="supermercado">Supermercado</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="fruver">Fruver</option>
+          </select>
+          <input
+            type="text"
+            name="title"
+            placeholder="Título"
+            value={newAd.title}
+            onChange={handleInputChange}
+          />
+          <textarea
+            name="description"
+            placeholder="Descripción"
+            value={newAd.description}
+            onChange={handleInputChange}
+          />
+          <input
+            type="file"
+            name="photo_url"
+            accept="image/*"
+            onChange={handleInputChange}
+          />
+          <button
+            onClick={createAdvertisement}
+            className="create-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creando..." : "Crear Publicidad"}
+          </button>
+        </div>
 
-      {/* Filtro por categoría */}
-      <div className="category-filter">
-        <label htmlFor="categoryFilter">Filtrar por categoría:</label>
-        <select
-          id="categoryFilter"
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="">Todas</option>
-          <option value="hogar">Hogar</option>
-          <option value="supermercado">Supermercado</option>
-          <option value="restaurante">Restaurante</option>
-          <option value="fruver">Fruver</option>
-        </select>
-      </div>
+        {/* Filtro por categoría */}
+        <div className="category-filter">
+          <label htmlFor="categoryFilter">Filtrar por categoría:</label>
+          <select
+            id="categoryFilter"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">Todas</option>
+            <option value="hogar">Hogar</option>
+            <option value="supermercado">Supermercado</option>
+            <option value="restaurante">Restaurante</option>
+            <option value="fruver">Fruver</option>
+          </select>
+        </div>
 
-      {/* Lista de publicidades filtradas */}
-      <div className="advertisements-list">
-        {filteredAdvertisements.length > 0 ? (
-          filteredAdvertisements.map((ad) => (
-            <div key={ad.advertisement_id} className="advertisement-item">
-              <img
-                src={ad.photo_url}
-                alt={ad.title}
-                className="advertisement-image"
-                onClick={() => openImageModal(ad.photo_url)} // Al hacer clic se abre el modal con la imagen
-              />
-              <div className="advertisement-info">
-                <h4>{ad.title}</h4>
-                <p>
-                  <strong>Categoría:</strong> {ad.category}
-                </p>
-                <p>{ad.description}</p>
+        {/* Lista de publicidades filtradas */}
+        <div className="advertisements-list">
+          {filteredAdvertisements.length > 0 ? (
+            filteredAdvertisements.map((ad) => (
+              <div key={ad.advertisement_id} className="advertisement-item">
+                <img
+                  src={ad.photo_url}
+                  alt={ad.title}
+                  className="advertisement-image"
+                  onClick={() => openImageModal(ad.photo_url)} // Al hacer clic se abre el modal con la imagen
+                />
+                <div className="advertisement-info">
+                  <h4>{ad.title}</h4>
+                  <p>
+                    <strong>Categoría:</strong> {ad.category}
+                  </p>
+                  <p>{ad.description}</p>
+                </div>
+                <div className="advertisement-actions">
+                  <button
+                    onClick={() => deleteAdvertisement(ad.advertisement_id)}
+                    className="delete-button"
+                  >
+                    Eliminar
+                  </button>
+                  <button
+                    onClick={() => openEditModal(ad)}
+                    className="edit-button"
+                  >
+                    Editar
+                  </button>
+                </div>
               </div>
-              <div className="advertisement-actions">
-                <button
-                  onClick={() => deleteAdvertisement(ad.advertisement_id)}
-                  className="delete-button"
-                >
-                  Eliminar
-                </button>
-                <button
-                  onClick={() => openEditModal(ad)}
-                  className="edit-button"
-                >
-                  Editar
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p>No hay publicidades disponibles.</p>
-        )}
+            ))
+          ) : (
+            <p>No hay publicidades disponibles.</p>
+          )}
+        </div>
       </div>
 
       {/* Modal para la imagen */}

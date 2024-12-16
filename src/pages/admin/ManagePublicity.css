@@ -11,36 +11,39 @@ body {
 .manage-publicity {
   max-width: 1200px;
   margin: 20px auto;
-  padding: 20px;
   background: #fff;
   border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .manage-publicity h2 {
   text-align: center;
-  color: #4a90e2;
-  margin-bottom: 20px;
+  background-color: #00983a;
+  font-size: 16px;
+  padding: 20px 0;
+  margin-bottom: 0 !important;
+  color: white !important;
 }
 
+
+.container-publicity {
+  padding: 20px;
+  display: grid;
+}
 /* Create Advertisement */
 .create-advertisement {
   margin-bottom: 40px;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #f9f9f9;
+  display: grid;
 }
 
 .create-advertisement h3 {
-  color: #555;
   margin-bottom: 10px;
 }
 
 .create-advertisement input,
 .create-advertisement select,
 .create-advertisement textarea {
-  width: 100%;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
@@ -51,7 +54,7 @@ body {
   display: block;
   width: 100%;
   padding: 10px;
-  background-color: #4a90e2;
+  background-color: var(--color-primary);
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -60,7 +63,7 @@ body {
 }
 
 .create-advertisement button:hover {
-  background-color: #357ab8;
+  background-color: var(--color-primary-hover);
 }
 
 /* Advertisements List */
@@ -86,6 +89,12 @@ body {
   background-color: #fafafa;
 }
 
+#categoryFilter {
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-left: 5px;
+}
+
 .advertisement-image {
   max-width: 150px;
   border-radius: 8px;
@@ -103,6 +112,7 @@ body {
 
 .advertisement-info p {
   margin: 5px 0;
+  text-align: left !important;
   color: #666;
 }
 
@@ -129,12 +139,12 @@ body {
 }
 
 .advertisement-actions .edit-button {
-  background-color: #f1c40f;
+  background-color: #11a8cd;
   color: #fff;
 }
 
 .advertisement-actions .edit-button:hover {
-  background-color: #d4ac0d;
+  background-color: #0c7e9a;
 }
 
 /* Modal Styles */
