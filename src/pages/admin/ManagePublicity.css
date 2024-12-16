@@ -1,139 +1,225 @@
+/* General Styles */
+body {
+  font-family: "Arial", sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
 .manage-publicity {
-    display: grid;
-    gap: 60px;
-    margin: 40px 0;
-    border-radius: 8px;
-    box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.3);
-  }
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
 
-  .manage-publicity > div {
-    padding: 40px;
-  }
+.manage-publicity h2 {
+  text-align: center;
+  color: #4a90e2;
+  margin-bottom: 20px;
+}
 
-  .manage-publicity button { font-weight: 700; }
+/* Create Advertisement */
+.create-advertisement {
+  margin-bottom: 40px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
 
-  .manage-publicity h2 {
-    background-color: #00983a;
-    color: white !important;
-    justify-content: center !important;
-    height: 56px;
-    align-items: center !important;
-    font-size: 16px;
-    width: 100% !important;
-  }
+.create-advertisement h3 {
+  color: #555;
+  margin-bottom: 10px;
+}
 
-  .manage-publicity > button {
-    margin: 0 40px;
-    justify-content: center;
-  }
+.create-advertisement input,
+.create-advertisement select,
+.create-advertisement textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
 
-  .manage-publicity .add-category {
-    display: flex;
-    gap: 40px;
-  }
+.create-advertisement button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background-color: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 
-  .manage-publicity h2, .manage-publicity h3 {
-    display: flex;
-    justify-content: space-between;
-  }
+.create-advertisement button:hover {
+  background-color: #357ab8;
+}
 
-  .update-category-button, .send-publicity-button, .add-publicity-button, .update-image-button {
-    background-color: var(--color-primary);
-    border-radius: 8px;
-  }
+/* Advertisements List */
+.advertisements-list {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* 2 columnas en pantallas grandes */
+  gap: 20px;
+}
 
-  .update-category-button:hover, .send-publicity-button:hover, .add-publicity-button:hover, .update-image-button:hover {
-    background-color: var(--color-primary-hover);
-  }
+.advertisements-list h3 {
+  margin-bottom: 20px;
+  color: #555;
+}
 
-  .categories {
-    display: grid;
-    gap: 20px;
-  }
+.advertisement-item {
+  display: flex;
+  flex-direction: column; /* Coloca los elementos de la tarjeta en columna */
+  align-items: flex-start;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
 
-  .manage-publicity input, .manage-publicity textarea {
-    border-radius: 5px;
-    padding: 10px 5px;
-    background-color: #f2f2f2;
-    border: 1px solid #bfbfbf;
-  }
+.advertisement-image {
+  max-width: 150px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
 
-  .category {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between;
-  }
-  
-  .image-container {
-    position: relative;
-    flex: 1 1 calc(25% - 20px);
-    max-width: calc(25% - 20px);
-    text-align: center;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-    padding: 20px;
-    overflow: hidden;
-    display: grid;
-    gap: 10px;
-  }
+.advertisement-info {
+  flex: 1;
+}
 
-  .image-container img {
-    max-width: 100%;
-    transition: .2s ease;
-    cursor: pointer;
-  }
+.advertisement-info h4 {
+  margin: 0 0 10px;
+  color: #333;
+}
 
-  .image-container img:hover {
-    opacity: .8;
-  }
+.advertisement-info p {
+  margin: 5px 0;
+  color: #666;
+}
 
-  .upload-label {
-    cursor: pointer;
-    color: #007bff;
-  }
+.advertisement-actions {
+  display: flex;
+  gap: 10px;
+}
 
-  .image-preview {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
-  }
-  
-  .image-preview .remove-image-button { 
-    background-color: #ff4d4f;
-    border-radius: 5px;
-  }
-  .image-preview .remove-image-button:hover { background-color: #cc3d3f; }
- 
-  .image-preview .update-image-button { 
-    background-color: #2782b2; 
-    padding: 6px 12px;
-  }
-  .image-preview .update-image-button:hover { background-color: #1b5c7e; }
-  
-  
-  /* Modal */
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    cursor: pointer; /* Permite cerrar al hacer clic en cualquier lugar */
-  }
-  
-  .modal-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain; /* Ajusta la imagen sin deformarla */
-    border-radius: 5px;
-    opacity: 1;
-  }
-  
+.advertisement-actions button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.advertisement-actions .delete-button {
+  background-color: #e74c3c;
+  color: #fff;
+}
+
+.advertisement-actions .delete-button:hover {
+  background-color: #c0392b;
+}
+
+.advertisement-actions .edit-button {
+  background-color: #f1c40f;
+  color: #fff;
+}
+
+.advertisement-actions .edit-button:hover {
+  background-color: #d4ac0d;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 500px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.modal-content h3 {
+  margin-bottom: 20px;
+  color: #4a90e2;
+}
+
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-content button {
+  width: 48%;
+  padding: 10px;
+  margin-right: 4%;
+  background-color: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+  background-color: #357ab8;
+}
+
+.modal-content button:last-child {
+  background-color: #e74c3c;
+}
+
+.modal-content button:last-child:hover {
+  background-color: #c0392b;
+}
+
+/* Modal Image Styles */
+.modal-image {
+  width: 100%;
+  height: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 25px;
+  background: none;
+  border: none;
+  color: #000;
+  cursor: pointer;
+}
+
+/* Adjustments for Advertisement Image */
+.advertisement-image {
+  width: 100px; /* Imagen más pequeña */
+  height: 100px;
+  object-fit: cover;
+  cursor: pointer;
+}
