@@ -270,7 +270,7 @@ const Profile = () => {
         title: "Total",
         dataIndex: "total",
         key: "total",
-        render: (total) => `$${parseFloat(total).toLocaleString()}`,
+        render: (total) => `$${parseInt(total).toLocaleString()}`,
       },
       {
         title: "Acciones",
@@ -348,7 +348,7 @@ const Profile = () => {
             </p>
             <p className="modal-total-horizontal">
               <strong>Total:</strong> $
-              {parseFloat(selectedOrder.order.total).toLocaleString()}
+              {parseInt(selectedOrder.order.total).toLocaleString()}
             </p>
           </div>
           <div className="modal-section-horizontal">
@@ -370,7 +370,7 @@ const Profile = () => {
                   </p>
                   <p>
                     <strong>Precio:</strong> $
-                    {parseFloat(item.price).toLocaleString()}
+                    {parseInt(item.price).toLocaleString()}
                   </p>
                 </div>
               ))}

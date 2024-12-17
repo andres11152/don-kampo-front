@@ -242,10 +242,10 @@ const CreateProduct = () => {
       variations: variations.map((variation) =>({        
         quality: variation.quality,
         quantity: variation.quantity,
-        price_home: parseFloat(variation.price_home),
-        price_supermarket: parseFloat(variation.price_supermarket),
-        price_restaurant: parseFloat(variation.price_restaurant),
-        price_fruver: parseFloat(variation.price_fruver),
+        price_home: parseInt(variation.price_home),
+        price_supermarket: parseInt(variation.price_supermarket),
+        price_restaurant: parseInt(variation.price_restaurant),
+        price_fruver: parseInt(variation.price_fruver),
       })),
     };  
     
@@ -467,8 +467,10 @@ const CreateProduct = () => {
             <Button type="primary" htmlType="submit" block> Crear Producto </Button>
           </Form.Item>
 
+          <p className="warning"><i className="fa-solid fa-triangle-exclamation" /> Recuerda que el archivo Excel que debes enviar corresponde al que ha sido generado desde el módulo de Gestión de Productos.</p>
+
           <Upload {...uploadProps}> 
-            <Button className="excel" icon={<UploadOutlined />}> Actualicer multiples productos (EXCEL) </Button> 
+            <Button className="excel" icon={<UploadOutlined />}> Actualizar multiples productos (EXCEL) </Button> 
           </Upload>
         </section>
 

@@ -32,6 +32,7 @@ body {
   font-family: var(--font-family-primary);
   color: var(--color-secondary);
   width: 100% !important;
+  background-color: #e1ffed !important;
   position: relative;
   background-image: url(../../assets/fruits.jpg) !important;
 }
@@ -40,11 +41,12 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-family-secondary);
   font-weight: 700;
+  color: var(--color-secondary-hover);
 }
 
-h1 { font-size: 42px; }
-h2 { font-size: 36px; }
-h3 { font-size: 32px; }
+h1 { font-size: 36px; }
+h2 { font-size: 28px; }
+h3 { font-size: 22px; }
 
 ul, ol { list-style: none; }
 

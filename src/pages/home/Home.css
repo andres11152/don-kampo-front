@@ -204,6 +204,11 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   width: 100%;
 }
 
+.categories-section ul li div {
+  color: var(--color-secondary) !important;
+  font-weight: 700 !important;
+}
+
 .category-card {
     text-align: center;
     background-color: rgba(65, 94, 78, 0.178);
@@ -538,8 +543,12 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 .delivery-section {
   padding-top: 45px;
   text-align: center;
-  box-shadow: inset 0 0 75px 0px rgba(0, 0, 0, .1);
-  background-color: #fcfcfc /* Fondo claro para la sección */
+}
+
+.delivery-section p {
+  color: var(--color-secondary);
+  font-weight: 700;
+  font-size: 18px;
 }
 
 /* Ajuste para las tarjetas de entrega */

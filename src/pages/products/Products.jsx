@@ -81,7 +81,8 @@ const Products = () => {
   const filterProducts = useCallback(
     (category, query) => {
       const filtered = products.filter((product) => {
-        const matchesCategory = category === "Todas" || product.category === category;
+        const matchesCategory = category === "Todas" || product.category === category;    
+        
         const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
         return matchesCategory && matchesSearch;
       });
@@ -96,13 +97,16 @@ const Products = () => {
     const urlParams = new URLSearchParams(window.location.search);
     
     const searchQueryFromUrl = urlParams.get("search") || "";
+    const categoryQueryFromUrl = urlParams.get("category") || "Todas"
     const idQueryFromUrl = urlParams.get("id") || null;
+    
+    setSelectedCategory(categoryQueryFromUrl)
     
     idQueryFromUrl && 
       openModal(products.filter(product => product.product_id == idQueryFromUrl)[0])
     
     setSearchQuery(searchQueryFromUrl);
-    filterProducts(selectedCategory, searchQueryFromUrl);
+    filterProducts(categoryQueryFromUrl, searchQueryFromUrl);
   }, [selectedCategory, filterProducts]);
 
   const handleCategoryChange = (value) => {
@@ -117,7 +121,7 @@ const Products = () => {
   
   const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  useEffect(() => {    
+  useEffect(() => { 
     filterProducts(selectedCategory, searchQuery);
   }, [selectedCategory, searchQuery, filterProducts]);
 
@@ -141,7 +145,7 @@ const Products = () => {
       default:
         price = variation.price_home;
     }
-    return parseFloat(price);
+    return parseInt(price);
   };
 
   const handleVariationChange = (productId, variationType, value) => {

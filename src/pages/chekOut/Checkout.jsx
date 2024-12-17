@@ -33,7 +33,7 @@ const Checkout = () => {
           "http://localhost:8080/api/customer-types"
         );
         const costs = response.data.reduce((acc, type) => {
-          acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
+          acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
           return acc;
         }, {});
         setShippingCosts(costs);
@@ -93,7 +93,7 @@ const Checkout = () => {
             "http://localhost:8080/api/customer-types"
           );
           const costs = response.data.reduce((acc, type) => {
-            acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
+            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
             return acc;
           }, {});
           setShippingCosts(costs);
@@ -190,15 +190,15 @@ const Checkout = () => {
     const userType = loginData?.user?.user_type;
     switch (userType) {
       case "hogar":
-        return parseFloat(selectedVariation.price_home) || 0;
+        return parseInt(selectedVariation.price_home) || 0;
       case "supermercado":
-        return parseFloat(selectedVariation.price_supermarket) || 0;
+        return parseInt(selectedVariation.price_supermarket) || 0;
       case "restaurante":
-        return parseFloat(selectedVariation.price_restaurant) || 0;
+        return parseInt(selectedVariation.price_restaurant) || 0;
       case "fruver":
-        return parseFloat(selectedVariation.price_fruver) || 0;
+        return parseInt(selectedVariation.price_fruver) || 0;
       default:
-        return parseFloat(selectedVariation.price_home) || 0;
+        return parseInt(selectedVariation.price_home) || 0;
     }
   };
 
@@ -577,7 +577,7 @@ const Checkout = () => {
               <div id="order-summary-pdf">
                 <p>
                   ¡{userData?.user_name}, tu pedido ha sido realizado
-                  exitosamente!<br />Sera despachado mañana
+                  exitosamente!<br />Sera despachado {new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
                 <p>
                   ID de la orden: <strong>{orderId}</strong>

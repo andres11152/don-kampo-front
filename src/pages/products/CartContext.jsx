@@ -21,15 +21,15 @@ export const CartProvider = ({ children }) => {
     if (!item) return 0;
     switch (userType) {
       case "hogar":
-        return parseFloat(item.price_home);
+        return parseInt(item.price_home);
       case "supermercado":
-        return parseFloat(item.price_supermarket);
+        return parseInt(item.price_supermarket);
       case "restaurante":
-        return parseFloat(item.price_restaurant);
+        return parseInt(item.price_restaurant);
       case "fruver":
-        return parseFloat(item.price_fruver);
+        return parseInt(item.price_fruver);
       default:
-        return parseFloat(item.price_home);
+        return parseInt(item.price_home);
     }
   };
 

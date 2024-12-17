@@ -5,8 +5,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px;
-  background-color: #f5f5f5;
   border-radius: 8px;
+  background-color: white;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -153,3 +153,16 @@
 }
 
 .create-product .submit .excel:hover * { color: white; }
+
+.create-product .warning {
+  color: #aa8b03 !important;
+  background-color: rgba(247, 202, 5, .3);
+  text-align: center;
+  padding: 10px 0;
+  border-radius: 8px;
+  font-weight: bolder;
+}
+
+.create-product .warning i {
+  color: #aa8b03 !important;
+}
