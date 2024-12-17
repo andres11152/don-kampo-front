@@ -32,6 +32,7 @@ body {
   font-family: var(--font-family-primary);
   color: var(--color-secondary);
   width: 100% !important;
+  background-color: #e1ffed !important;
   position: relative;
   background-image: url(../../assets/fruits.jpg) !important;
 }

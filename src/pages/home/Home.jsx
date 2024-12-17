@@ -118,6 +118,7 @@ const Home = () => {
   const handleUserTypeChange = type => {
     setUserType(type)
     setIsModalVisible(!isModalVisible)
+    window.location.reload()
   };
 
   return (
@@ -263,6 +264,7 @@ const Home = () => {
 
         <section className="delivery-section">
           <h2> No te Preocupes por el Envío! </h2>
+          <p>Los envios se despachan al dia siguiente</p>
           <img  alt="Camión Don Kampo" src="/images/37.png"
           />
         </section>

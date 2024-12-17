@@ -102,11 +102,6 @@
   .selected-product-item p {
     margin-bottom: 5px;
   }
-
-  .ant-input,
-  .ant-btn {
-    width: 100%; /* Asegura que inputs y botones ocupen todo el ancho */
-  }
 }
 
 /* Para pantallas medianas (tablets y laptops pequeños, entre 768px y 1024px) */

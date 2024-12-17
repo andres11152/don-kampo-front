@@ -26,7 +26,7 @@ const Cart = () => {
         if (!isShippingCostsLoaded) {
           const response = await axios.get("http://localhost:8080/api/customer-types");
           const costs = response.data.reduce((acc, type) => {
-            acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_percentage) / 100; // Asumimos que shipping_percentage es un porcentaje en formato entero
+            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_percentage) / 100; // Asumimos que shipping_percentage es un porcentaje en formato entero
             return acc;
           }, {});
           setShippingCosts(costs);
@@ -90,15 +90,15 @@ const Cart = () => {
     const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type;
     switch (userType) {
       case "hogar":
-        return parseFloat(selectedVariation.price_home) || 0;
+        return parseInt(selectedVariation.price_home) || 0;
       case "supermercado":
-        return parseFloat(selectedVariation.price_supermarket) || 0;
+        return parseInt(selectedVariation.price_supermarket) || 0;
       case "restaurante":
-        return parseFloat(selectedVariation.price_restaurant) || 0;
+        return parseInt(selectedVariation.price_restaurant) || 0;
       case "fruver":
-        return parseFloat(selectedVariation.price_fruver) || 0;
+        return parseInt(selectedVariation.price_fruver) || 0;
       default:
-        return parseFloat(selectedVariation.price_home) || 0;
+        return parseInt(selectedVariation.price_home) || 0;
     }
   };
 

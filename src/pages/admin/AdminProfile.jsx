@@ -85,7 +85,7 @@ const AdminProfile = () => {
     try {
       const response = await axios.get("http://localhost:8080/api/customer-types");
       const costs = response.data.reduce((acc, type) => {
-        acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost);
+        acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
         return acc;
       }, {});
       setShippingCosts(costs); // Actualiza el estado con los datos cargados
@@ -390,10 +390,10 @@ const AdminProfile = () => {
           {
             quality: row["Calidad"] || "",
             quantity: row["Cantidad"] || 0,
-            price_home: parseFloat(row["Precio Hogar"] || 0),
-            price_supermarket: parseFloat(row["Precio Supermercado"] || 0),
-            price_restaurant: parseFloat(row["Precio Restaurante"] || 0),
-            price_fruver: parseFloat(row["Precio Fruver"] || 0),
+            price_home: parseInt(row["Precio Hogar"] || 0),
+            price_supermarket: parseInt(row["Precio Supermercado"] || 0),
+            price_restaurant: parseInt(row["Precio Restaurante"] || 0),
+            price_fruver: parseInt(row["Precio Fruver"] || 0),
           },
         ],
       }));
