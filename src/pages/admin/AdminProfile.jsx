@@ -451,6 +451,7 @@ const AdminProfile = () => {
     try {
       const response = await axios.get(`/api/orders/${orderId}`);
       // Actualiza el estado con toda la respuesta (incluyendo order, items y shippingInfo)
+      
       setSelectedOrder(response.data);
       setIsOrderModalVisible(true);
     } catch (error) {
@@ -1068,8 +1069,10 @@ const AdminProfile = () => {
                 <strong>Email:</strong> {selectedOrder.order.customer_email}
               </p>
               <p>
-                <strong>Fecha:</strong>{" "}
-                {new Date(selectedOrder.order.order_date).toLocaleDateString()}
+                <strong>Fecha:</strong> {new Date(selectedOrder.order.order_date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Fecha Entrega</strong> {new Date(new Date(selectedOrder.order.order_date).setDate(new Date(selectedOrder.order.order_date).getDate() + 1)).toLocaleDateString()}
               </p>
               <p>
                 <strong>Total:</strong> ${selectedOrder.order.total}
@@ -1086,41 +1089,12 @@ const AdminProfile = () => {
               </p>
               <Divider />
 
-              <h3>Información de Envío</h3>
-              {selectedOrder.shippingInfo ? (
-                <>
-                  <p>
-                    <strong>Método de Envío:</strong>{" "}
-                    {selectedOrder.shippingInfo.shipping_method}
-                  </p>
-                  <p>
-                    <strong>Número de Rastreo:</strong>{" "}
-                    {selectedOrder.shippingInfo.tracking_number}
-                  </p>
-                  <p>
-                    <strong>Fecha Estimada de Entrega:</strong>{" "}
-                    {new Date(
-                      selectedOrder.shippingInfo.estimated_delivery
-                    ).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Estado de Envío:</strong>{" "}
-                    {selectedOrder.shippingInfo.shipping_status_id === 1
-                      ? "En Proceso"
-                      : "Entregado"}
-                  </p>
-                </>
-              ) : (
-                <p>No hay información de envío disponible.</p>
-              )}
-              <Divider />
-
               <h3>Ítems del Pedido</h3>
               {selectedOrder.items.length > 0 ? (
                 <ul>
                   {selectedOrder.items.map((item, index) => (
                     <li key={index}>
-                      {item.name} - {item.quantity} x ${item.price}
+                      {item.product_name} - {item.quantity} x ${item.price}
                     </li>
                   ))}
                 </ul>

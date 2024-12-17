@@ -577,7 +577,7 @@ const Checkout = () => {
               <div id="order-summary-pdf">
                 <p>
                   ¡{userData?.user_name}, tu pedido ha sido realizado
-                  exitosamente!<br />Sera despachado mañana
+                  exitosamente!<br />Sera despachado {new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
                 <p>
                   ID de la orden: <strong>{orderId}</strong>
