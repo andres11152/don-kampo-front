@@ -14,7 +14,8 @@ import { useCart } from "../../pages/products/CartContext"; // Importa el hook d
 import "./General.css";
 import  InstallPrompt from "../../pages/install/InstallPrompt";
 
-const Header = () => {
+const Header = (props) => {
+  const { setShowInstallModal } = props
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -124,6 +125,7 @@ const Header = () => {
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
+          <li><a className="app" href="#" onClick={() => setShowInstallModal(true)}>App</a></li>
           <li>
             <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
           </li>
@@ -221,6 +223,14 @@ const Header = () => {
               </Menu.Item>
             </>
           )}
+
+          <Menu.Item
+            key="app"
+            icon={<AppstoreOutlined />}
+            onClick={() => setShowInstallModal(true)}
+          >
+            App
+          </Menu.Item>
         </Menu>
       </Drawer>
     </header>

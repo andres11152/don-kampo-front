@@ -40,6 +40,12 @@
   color: var(--color-primary-hover);
 }
 
+.header ul .app { background-color: var(--color-secondary-hover); }
+.header ul .app:hover { 
+  background-color: var(--color-secondary); 
+  color: white;
+}
+
 .header ul a i { margin-right: 5px; }
 
 .header button { display: none !important; }
@@ -143,6 +149,7 @@
   
 .footer .contact-info li .company { color: var(--color-secondary); }
 
+<<<<<<< HEAD
 .app-button {
   background-color: var(--color-secondary);
   color: white;
@@ -160,3 +167,16 @@
   background-color: var(--color-secondary-hover);
   transform: translateY(-2px);
 }
+=======
+.footer button {
+  background-color: white;
+  color: var(--color-primary-hover);
+  border-radius: 8px;
+  margin-top: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.footer button:hover { background-color: rgba(255, 255, 255, .9); }
+>>>>>>> fc594fc4144812b01ec1231ae30ab4cf21bb876f

@@ -30,7 +30,10 @@ const categories = [
 
 const Home = () => {  
   const carouselRef = useRef(null);
-  
+  const [showInstallModal, setShowInstallModal] = useState(false)
+
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
   const [isModalVisible, setIsModalVisible] = useState(() => {
     const storedValue = localStorage.getItem('modalShown');
     return storedValue !== null ? JSON.parse(storedValue) : true;
@@ -84,7 +87,6 @@ const Home = () => {
     
     selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
-
   
   useEffect(() => {
     userType &&
@@ -123,14 +125,7 @@ const Home = () => {
 
   return (
     <>
-      <Header 
-        searchResults={searchResults} 
-        handleSelect={handleSelect}
-        handleSearchChange={handleSearchChange}
-        handleSearch={handleSearch}
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-      />
+      <Header setShowInstallModal={setShowInstallModal} />
       <main>
         <div className="search-bar">
           <AutoComplete
@@ -299,9 +294,15 @@ const Home = () => {
             </Row>
           </div>
         </Modal>
+<<<<<<< HEAD
         <InstallPrompt />
+=======
+
+        <InstallPrompt setShowInstallModal={setShowInstallModal} showInstallModal={showInstallModal} />
+
+>>>>>>> fc594fc4144812b01ec1231ae30ab4cf21bb876f
       </main>
-      <Footer />
+      <Footer setShowInstallModal={setShowInstallModal} />
       <BotonWhatsapp />
     </>
   );
