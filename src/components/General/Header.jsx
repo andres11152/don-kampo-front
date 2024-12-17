@@ -12,6 +12,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/products/CartContext"; // Importa el hook de contexto de carrito
 import "./General.css";
+import  InstallPrompt from "../../pages/install/InstallPrompt";
 
 const Header = () => {
   const navigate = useNavigate();

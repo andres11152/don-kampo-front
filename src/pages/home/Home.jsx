@@ -299,7 +299,6 @@ const Home = () => {
             </Row>
           </div>
         </Modal>
-
         <InstallPrompt />
       </main>
       <Footer />

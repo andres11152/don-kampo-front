@@ -142,3 +142,21 @@
 .footer .contact-info li a:hover { transform: scale(1.05) }
   
 .footer .contact-info li .company { color: var(--color-secondary); }
+
+.app-button {
+  background-color: var(--color-secondary);
+  color: white;
+  padding: 10px 15px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.app-button:hover {
+  background-color: var(--color-secondary-hover);
+  transform: translateY(-2px);
+}

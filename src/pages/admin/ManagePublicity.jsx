@@ -121,7 +121,7 @@ const ManagePublicity = () => {
   
       // Enviar la solicitud PUT con los datos formateados
       const response = await axios.put(
-        `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
+        `https://don-kampo-api.onrender.com/api/publicidad/${editingAd.advertisement_id}`,
         formData,
         {
           headers: {
