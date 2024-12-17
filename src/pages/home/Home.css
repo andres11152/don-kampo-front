@@ -551,6 +551,11 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   font-size: 18px;
 }
 
+.delivery-section img {
+  width: 100%;
+  max-width: 800px;
+}
+
 /* Ajuste para las tarjetas de entrega */
 .category-card {
   background-color: rgba(65, 94, 78, 0.178);
