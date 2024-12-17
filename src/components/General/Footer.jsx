@@ -28,8 +28,8 @@ const categories = [
 ];
 
 
-
-const Footer = () => {
+const Footer = (props) => {
+  const { handleInstall } = props
   return (
     <footer className="footer">
       <h3>Explora nuestras categorías</h3>
@@ -58,6 +58,8 @@ const Footer = () => {
           <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
         </li>
       </ul>
+
+      <button onClick={handleInstall}>Instalar App</button>
     </footer>
   );
 };

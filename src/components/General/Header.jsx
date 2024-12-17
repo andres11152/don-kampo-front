@@ -13,7 +13,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/products/CartContext"; // Importa el hook de contexto de carrito
 import "./General.css";
 
-const Header = () => {
+const Header = (props) => {
+  const { handleInstall } = props
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -123,6 +124,7 @@ const Header = () => {
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
+          <li><a className="app" href="#" onClick={handleInstall}>App</a></li>
           <li>
             <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
           </li>
@@ -220,6 +222,14 @@ const Header = () => {
               </Menu.Item>
             </>
           )}
+
+          <Menu.Item
+            key="app"
+            icon={<AppstoreOutlined />}
+            onClick={handleInstall}
+          >
+            App
+          </Menu.Item>
         </Menu>
       </Drawer>
     </header>

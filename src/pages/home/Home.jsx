@@ -16,7 +16,6 @@ import axios from "axios";
 import Header from "../../components/General/Header";
 import Footer from "../../components/General/Footer";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
-import InstallPrompt from "../install/InstallPrompt";
 import "./Home.css";
 
 const { Title, Paragraph } = Typography;
@@ -30,7 +29,28 @@ const categories = [
 
 const Home = () => {  
   const carouselRef = useRef(null);
-  
+
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); 
+      setDeferredPrompt(e); 
+    });
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", () => {});
+    };
+  }, []);
+
+  const handleInstall = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); 
+      deferredPrompt.userChoice.then(choiceResult => setDeferredPrompt(null));
+    }
+  };
+
   const [isModalVisible, setIsModalVisible] = useState(() => {
     const storedValue = localStorage.getItem('modalShown');
     return storedValue !== null ? JSON.parse(storedValue) : true;
@@ -84,7 +104,6 @@ const Home = () => {
     
     selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
-
   
   useEffect(() => {
     userType &&
@@ -123,14 +142,7 @@ const Home = () => {
 
   return (
     <>
-      <Header 
-        searchResults={searchResults} 
-        handleSelect={handleSelect}
-        handleSearchChange={handleSearchChange}
-        handleSearch={handleSearch}
-        searchValue={searchValue}
-        setSearchValue={setSearchValue}
-      />
+      <Header handleInstall={handleInstall} />
       <main>
         <div className="search-bar">
           <AutoComplete
@@ -300,9 +312,8 @@ const Home = () => {
           </div>
         </Modal>
 
-        <InstallPrompt />
       </main>
-      <Footer />
+      <Footer handleInstall={handleInstall} />
       <BotonWhatsapp />
     </>
   );
