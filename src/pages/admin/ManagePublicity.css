@@ -34,11 +34,12 @@ body {
 /* Create Advertisement */
 .create-advertisement {
   margin-bottom: 40px;
+
   display: grid;
 }
 
-.create-advertisement h3 {
-  margin-bottom: 10px;
+.create-advertisement h5 {
+  margin-bottom: 15px;
 }
 
 .create-advertisement input,

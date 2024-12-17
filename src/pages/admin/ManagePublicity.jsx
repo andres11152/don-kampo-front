@@ -14,15 +14,15 @@ const ManagePublicity = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalImage, setModalImage] = useState(null);  // Estado para la imagen del modal
-  const [categoryFilter, setCategoryFilter] = useState(""); // Nuevo estado para filtrar
+  const [modalImage, setModalImage] = useState(null);
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   // Obtener todas las publicidades
   const fetchAdvertisements = async () => {
     try {
       const response = await axios.get("https://don-kampo-api.onrender.com/api/publicidad");
       setAdvertisements(response.data);
-      setFilteredAdvertisements(response.data); // Inicializar con todas las publicidades
+      setFilteredAdvertisements(response.data);
     } catch (error) {
       console.error("Error al obtener las publicidades:", error);
       alert("No se pudo cargar la lista de publicidades.");
@@ -34,7 +34,6 @@ const ManagePublicity = () => {
   }, []);
 
   useEffect(() => {
-    // Filtrar publicidades según la categoría seleccionada
     if (categoryFilter) {
       setFilteredAdvertisements(
         advertisements.filter((ad) => ad.category === categoryFilter)
@@ -44,7 +43,6 @@ const ManagePublicity = () => {
     }
   }, [categoryFilter, advertisements]);
 
-  // Manejar cambios en el formulario
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
     setNewAd((prev) => ({
@@ -53,7 +51,6 @@ const ManagePublicity = () => {
     }));
   };
 
-  // Crear nueva publicidad
   const createAdvertisement = async () => {
     if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url) {
       alert("Por favor, complete todos los campos antes de enviar.");
@@ -77,7 +74,6 @@ const ManagePublicity = () => {
     }
   };
 
-  // Eliminar publicidad
   const deleteAdvertisement = async (id) => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
@@ -91,53 +87,73 @@ const ManagePublicity = () => {
     }
   };
 
-  // Abrir modal de edición
   const openEditModal = (ad) => {
     setEditingAd(ad);
     setNewAd({
       category: ad.category,
       title: ad.title,
       description: ad.description,
-      photo_url: null, // Resetear archivo al abrir modal
+      photo_url: null,
     });
     setShowModal(true);
   };
 
-  // Editar publicidad
   const editAdvertisement = async () => {
+    // Validación de que todos los campos necesarios estén completos
     if (!newAd.category || !newAd.title || !newAd.description) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
-
-    setIsLoading(true);
+  
+    setIsLoading(true); // Establecer estado de carga
     try {
+      console.log(newAd); // Ver los datos en la consola para depuración
+  
+      // Crear un objeto FormData para enviar los datos
       const formData = new FormData();
-      Object.keys(newAd).forEach((key) => formData.append(key, newAd[key]));
-
-      await axios.put(`https://don-kampo-api.onrender.com/api/publicidad/${editingAd.advertisement_id}`, formData);
+  
+      // Se agregan todos los campos de newAd al FormData (sin incluir photo_url)
+      Object.keys(newAd).forEach((key) => {
+        if (newAd[key] !== null && newAd[key] !== undefined && key !== 'photo_url') {
+          formData.append(key, newAd[key]); // Agregar los datos al FormData, excepto photo_url
+        }
+      });
+  
+      // Enviar la solicitud PUT con los datos formateados
+      const response = await axios.put(
+        `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data", // Establecer el tipo de contenido adecuado para FormData
+          },
+        }
+      );
+  
       alert("Publicidad actualizada exitosamente.");
-      setShowModal(false);
-      fetchAdvertisements();
+      setShowModal(false); // Cierra el modal
+      setNewAd({ category: "", title: "", description: "", photo_url: null }); // Limpia los campos
+      fetchAdvertisements(); // Recargar las publicidades después de la actualización
     } catch (error) {
       console.error("Error al editar la publicidad:", error);
       alert("Ocurrió un error al editar la publicidad.");
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Finaliza el estado de carga
     }
   };
-
-  // Mostrar el modal con la imagen
+  
+  
+  
   const openImageModal = (imageUrl) => {
     setModalImage(imageUrl);
     setShowModal(true);
   };
-
-  // Cerrar el modal
+  
   const closeModal = () => {
     setShowModal(false);
     setModalImage(null);
   };
+  
 
   return (
     <section className="manage-publicity">
@@ -146,7 +162,7 @@ const ManagePublicity = () => {
       <div className="container-publicity">
         {/* Crear nueva publicidad */}
         <div className="create-advertisement">
-          <h3>Crear Nueva Publicidad</h3>
+          <h5>Crear Nueva Publicidad</h5>
           <select
             name="category"
             value={newAd.category}
@@ -249,6 +265,15 @@ const ManagePublicity = () => {
           )}
         </div>
       </div>
+
+      {showModal && modalImage && (
+        <div className="modal">
+          <div className="modal-content">
+            <img src={modalImage} alt="Publicidad" className="modal-image" />
+            <button onClick={closeModal} className="close-button">X</button>
+          </div>
+        </div>
+      )}
 
       {/* Modal para la imagen */}
       {showModal && modalImage && (
