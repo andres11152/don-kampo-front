@@ -32,6 +32,8 @@ body {
   font-family: var(--font-family-primary);
   color: var(--color-secondary);
   width: 100% !important;
+  position: relative;
+  background-image: url(../../assets/fruits.jpg) !important;
 }
 
 /* Títulos para seguir la paleta de color */
@@ -69,10 +71,18 @@ a {
   border: 1px solid #ddd;
   padding: 20px;
   border-radius: 5px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .product-card h3 {
   font-family: var(--font-family-secondary);
   color: var(--primary-color);
+}
+
+#fruits {
+  position: absolute;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
 }

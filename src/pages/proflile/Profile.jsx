@@ -20,6 +20,7 @@ import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "./UserProfile.css";
+import fruits from '../../assets/fruits.jpg'
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -86,6 +87,7 @@ const Profile = () => {
   const fetchOrderDetails = async (orderId) => {
     try {
       const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+      
       setSelectedOrder(response.data);
       setIsModalVisible(true);
     } catch (error) {
@@ -281,6 +283,7 @@ const Profile = () => {
 
     return (
       <Card title="Historial de Pedidos" className="user-orders-card">
+        <img id="fruits" src={fruits} alt="" />
         <div className="table-controls">
           <Input
             placeholder="Buscar por ID o Estado"
@@ -336,6 +339,10 @@ const Profile = () => {
               {new Date(selectedOrder.order.order_date).toLocaleDateString()}
             </p>
             <p>
+              <strong>Fecha de entrega:</strong>{" "}
+              {new Date(new Date(selectedOrder.order.order_date).setDate(new Date(selectedOrder.order.order_date).getDate() + 1)).toLocaleDateString()}
+            </p>
+            <p>
               <strong>Estado:</strong>{" "}
               {renderStatus(selectedOrder.order.status_id)}
             </p>
@@ -368,29 +375,6 @@ const Profile = () => {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="modal-shipping-info-horizontal">
-            <h4>Información de Envío:</h4>
-            <p>
-              <strong>Método de Envío:</strong>{" "}
-              {selectedOrder.shippingInfo.shipping_method}
-            </p>
-            <p>
-              <strong>Número de Rastreo:</strong>{" "}
-              {selectedOrder.shippingInfo.tracking_number}
-            </p>
-            <p>
-              <strong>Fecha Estimada de Entrega:</strong>{" "}
-              {new Date(
-                selectedOrder.shippingInfo.estimated_delivery
-              ).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Fecha de Entrega:</strong>{" "}
-              {new Date(
-                selectedOrder.shippingInfo.actual_delivery
-              ).toLocaleDateString()}
-            </p>
           </div>
         </div>
       )}

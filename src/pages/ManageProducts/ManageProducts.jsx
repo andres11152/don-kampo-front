@@ -23,6 +23,7 @@ import axios from "axios";
 import "./ManageProducts.css";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import fruits from '../../assets/fruits.jpg'
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -297,6 +298,7 @@ const ManageProducts = () => {
   
   return (
     <>
+      <img id="fruits" src={fruits} alt="" />
       <Header />
       <section className="manage-products-container">
         <h2>Gestión de Productos</h2>

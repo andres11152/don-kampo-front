@@ -40,7 +40,7 @@ const InstallPrompt = () => {
     <div className="modal">
       <div className="modal-content">
         <h2>¿Quieres instalar esta aplicación?</h2>
-        <p>Puedes instalar esta aplicación en tu dispositivo para un acceso más rápido y una experiencia más cómoda.</p>
+        <p>¡Puedes instalar esta aplicación en tu dispositivo para un acceso más rápido y una experiencia más cómoda!</p>
         
         <ul>
           {['android', 'apple', 'windows'].map((icon, index) =>  <li key={index}><i className={`fa fa-${icon}`} /></li>)}

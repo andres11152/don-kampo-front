@@ -40,6 +40,7 @@ const Home = () => {
     const storedValue = localStorage.getItem('userType');
     return storedValue !== null ? storedValue : 'Hogar';
   });
+  
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState({})
   const [searchValue, setSearchValue] = useState("");
@@ -99,7 +100,9 @@ const Home = () => {
       try {
         const response = await fetch("/api/publicidad");
         const responseData = await response.json();
-        setPublicity(responseData);
+        const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase())
+
+        setPublicity(publicityData);
       } catch (error) {
         console.error("Error al cargar los datos", error);
       }
@@ -183,11 +186,11 @@ const Home = () => {
         {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>
-            {publicity[userType].map((item, index) => (
+            {publicity.length > 0 && publicity.map((item, index) => (
               <div key={index} className="carousel-item">
                 <img
-                  src={item.img}
-                  alt={publicity[userType].title}
+                  src={item.photo_url}
+                  alt={item.title}
                   className="carousel-image"
                 />
                 <div className="carousel-overlay">
@@ -197,10 +200,10 @@ const Home = () => {
                       className="carousel-title"
                       style={{ color: "white" }}
                     >
-                      {publicity[userType].title}
+                      {item.title}
                     </Title>
                     <Paragraph className="carousel-description">
-                      {publicity[userType].description}
+                      {item.description}
                     </Paragraph>
                     <Button
                       type="primary"

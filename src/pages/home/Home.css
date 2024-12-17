@@ -281,6 +281,10 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   padding: 20px;
 }
 
+.ant-drawer-content {
+  background-image: url(../../assets/fruits.jpg) !important;
+}
+
 /* Mobile and below */
 @media only screen and (max-width: 767px) {
  .ant-modal {
