@@ -29,7 +29,7 @@ const categories = [
 
 
 const Footer = (props) => {
-  const { handleInstall } = props
+  const { setShowInstallModal } = props
   return (
     <footer className="footer">
       <h3>Explora nuestras categorías</h3>
@@ -59,7 +59,7 @@ const Footer = (props) => {
         </li>
       </ul>
 
-      <button onClick={handleInstall}>Instalar App</button>
+      <button onClick={() => setShowInstallModal(true)}>Instalar App</button>
     </footer>
   );
 };

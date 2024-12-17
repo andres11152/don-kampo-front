@@ -14,7 +14,7 @@ import { useCart } from "../../pages/products/CartContext"; // Importa el hook d
 import "./General.css";
 
 const Header = (props) => {
-  const { handleInstall } = props
+  const { setShowInstallModal } = props
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -124,7 +124,7 @@ const Header = (props) => {
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
-          <li><a className="app" href="#" onClick={handleInstall}>App</a></li>
+          <li><a className="app" href="#" onClick={() => setShowInstallModal(true)}>App</a></li>
           <li>
             <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
           </li>
@@ -226,7 +226,7 @@ const Header = (props) => {
           <Menu.Item
             key="app"
             icon={<AppstoreOutlined />}
-            onClick={handleInstall}
+            onClick={() => setShowInstallModal(true)}
           >
             App
           </Menu.Item>
