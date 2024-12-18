@@ -242,7 +242,7 @@ const Home = () => {
           </ul>
         </section>
 
-        {/* Testimonios o sección de información */}
+        {/* sección de información */}
         <section className="info-section">
           <h3>Calidad garantizada</h3>
           <p>
@@ -259,7 +259,8 @@ const Home = () => {
 
         <section className="delivery-section">
           <h2> No te Preocupes por el Envío! </h2>
-          <p>Los envios se despachan al dia siguiente</p>
+          <p>Los envios se despachan al dia siguient
+            e</p>
           <img  alt="Camión Don Kampo" src="/images/37.png"
           />
         </section>
