@@ -294,13 +294,9 @@ const Home = () => {
             </Row>
           </div>
         </Modal>
-<<<<<<< HEAD
-        <InstallPrompt />
-=======
 
         <InstallPrompt setShowInstallModal={setShowInstallModal} showInstallModal={showInstallModal} />
 
->>>>>>> fc594fc4144812b01ec1231ae30ab4cf21bb876f
       </main>
       <Footer setShowInstallModal={setShowInstallModal} />
       <BotonWhatsapp />
