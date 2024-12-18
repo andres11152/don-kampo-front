@@ -38,7 +38,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://don-kampo-api.onrender.com',  // Usa HTTP en lugar de HTTPS para el backend local
+        target: 'http://localhost:8080',  // Usa HTTP en lugar de HTTPS para el backend local
         changeOrigin: true,
         secure: false, // Desactiva la verificación de certificado
       },

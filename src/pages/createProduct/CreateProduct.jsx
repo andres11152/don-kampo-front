@@ -90,7 +90,7 @@ const CreateProduct = () => {
         await sleep(2000)
 
         // obtengo todos los productos
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", { withCredentials: true });
+        const response = await axios.get("http://localhost:8080/api/products", { withCredentials: true });
         const products = response.data
         // Filtro los productos cuyo id sea igual a los de la base de datos
         const totalExcelProducts = excelProducts.filter(excelProduct => products.some(product => product.product_id === excelProduct.product_id));
@@ -162,7 +162,7 @@ const CreateProduct = () => {
     console.log(updateProducts);
     
     setProcessExcel({message: 'Actualizando productos', status: ''})
-    axios.put("https://don-kampo-api.onrender.com/api/updatemultipleproducts", updateProducts, {
+    axios.put("http://localhost:8080/api/updatemultipleproducts", updateProducts, {
       headers: { 'Content-Type': 'application/json' },
     })
     .then((response) => {
@@ -263,7 +263,7 @@ const CreateProduct = () => {
   
     try {
       const response = await axios.post(
-        "https://don-kampo-api.onrender.com/api/createproduct",
+        "http://localhost:8080/api/createproduct",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
