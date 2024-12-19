@@ -239,7 +239,7 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
     position: relative;
     display: grid;
     gap: 50px;
-    width: 75%;
+    width: 55%;
     padding: 50px;
     margin: 100px auto;
     border-radius: 8px;
@@ -294,8 +294,7 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 
 .info-section button {
   font-weight: 700;
-  text-transform: uppercase;
-  width: fit-content;
+  width: 100%;
   border-radius: 5px;
   padding: 20px;
 }

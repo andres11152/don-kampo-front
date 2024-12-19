@@ -167,7 +167,7 @@ const Header = (props) => {
           <Menu.Item
             key="home"
             icon={<HomeOutlined />}
-            onClick={() => handleMenuClick("home", "/")}
+            onClick={() => handleMenuClick("", "/")}
           >
             Inicio
           </Menu.Item>

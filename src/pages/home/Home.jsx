@@ -163,7 +163,7 @@ const Home = () => {
                 ),
               };
             })}
-            style={{ width: 500 }}
+            style={{ width: '70%' }}
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."
@@ -252,17 +252,17 @@ const Home = () => {
             tu mesa, promoviendo un consumo responsable y sostenible que
             apoya a nuestros agricultores y cuida del medio ambiente.
           </p>
-          <Button type="primary" size="large">Conoce más sobre nosotros</Button>
+          <Button type="primary" size="50%" >Conoce más sobre nosotros</Button>
 
           <div />
         </section>
 
         <section className="delivery-section">
           <h2> No te Preocupes por el Envío! </h2>
-          <p>Los envios se despachan al dia siguient
-            e</p>
+          <h2>Te lo llevamos hasta tu puerta</h2>
           <img  alt="Camión Don Kampo" src="/images/37.png"
           />
+         
         </section>
 
         {/* Modal de selección de usuario */}

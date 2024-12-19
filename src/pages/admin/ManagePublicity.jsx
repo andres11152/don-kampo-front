@@ -93,56 +93,57 @@ const ManagePublicity = () => {
       category: ad.category,
       title: ad.title,
       description: ad.description,
-      photo_url: null,
+      photo_url: ad.photo_url, // Asignar la imagen actual
     });
     setShowModal(true);
   };
-
+  
   const editAdvertisement = async () => {
-    // Validación de que todos los campos necesarios estén completos
-    if (!newAd.category || !newAd.title || !newAd.description) {
+    if (!newAd.title || !newAd.description) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
   
-    setIsLoading(true); // Establecer estado de carga
+    setIsLoading(true);
     try {
-      console.log(newAd); // Ver los datos en la consola para depuración
+      console.log(newAd);
   
-      // Crear un objeto FormData para enviar los datos
       const formData = new FormData();
   
-      // Se agregan todos los campos de newAd al FormData (sin incluir photo_url)
-      Object.keys(newAd).forEach((key) => {
-        if (newAd[key] !== null && newAd[key] !== undefined && key !== 'photo_url') {
-          formData.append(key, newAd[key]); // Agregar los datos al FormData, excepto photo_url
-        }
-      });
+      // Agregar campos si tienen valor
+      formData.append("title", newAd.title);
+      formData.append("description", newAd.description);
   
-      // Enviar la solicitud PUT con los datos formateados
-      const response = await axios.put(
+      // Incluir la foto nueva si existe, si no, incluir la imagen actual
+      if (newAd.photo_url && newAd.photo_url instanceof File) {
+        formData.append("photo_url", newAd.photo_url);
+      } else if (editingAd.photo_url) {
+        formData.append("photo_url", editingAd.photo_url); // Mantener la foto actual
+      }
+  
+      // La categoría no se modifica, por lo que puedes enviar la actual
+      formData.append("category", editingAd.category);
+  
+      // Enviar la petición PUT
+      await axios.put(
         `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data", // Establecer el tipo de contenido adecuado para FormData
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
   
       alert("Publicidad actualizada exitosamente.");
-      setShowModal(false); // Cierra el modal
-      setNewAd({ category: "", title: "", description: "", photo_url: null }); // Limpia los campos
-      fetchAdvertisements(); // Recargar las publicidades después de la actualización
+      setShowModal(false);
+      setNewAd({ category: "", title: "", description: "", photo_url: null });
+      fetchAdvertisements(); // Refresca la lista de anuncios
     } catch (error) {
       console.error("Error al editar la publicidad:", error);
       alert("Ocurrió un error al editar la publicidad.");
     } finally {
-      setIsLoading(false); // Finaliza el estado de carga
+      setIsLoading(false);
     }
   };
-  
-  
   
   const openImageModal = (imageUrl) => {
     setModalImage(imageUrl);
