@@ -27,6 +27,7 @@ const App = () => {
   // Recuperar datos del usuario al cargar la aplicación
   useEffect(() => {
     const loginData = JSON.parse(localStorage.getItem("loginData"));
+        
     setUserType(loginData?.user?.user_type || null);
     setIsLoading(false); // Establecer que ya no se está cargando
   }, []);

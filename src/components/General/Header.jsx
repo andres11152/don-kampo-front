@@ -124,7 +124,9 @@ const Header = (props) => {
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
-          <li><a className="app" href="#" onClick={() => setShowInstallModal(true)}>App</a></li>
+          {location.pathname === '/' &&
+          <li><a className="app" href="#" onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/> App</a></li>
+          }
           <li>
             <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
           </li>
@@ -166,7 +168,7 @@ const Header = (props) => {
           <Menu.Item
             key="home"
             icon={<HomeOutlined />}
-            onClick={() => handleMenuClick("home", "/")}
+            onClick={() => handleMenuClick("", "/")}
           >
             Inicio
           </Menu.Item>

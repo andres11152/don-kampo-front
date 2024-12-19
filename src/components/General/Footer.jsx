@@ -59,7 +59,7 @@ const Footer = (props) => {
         </li>
       </ul>
 
-      <button onClick={() => setShowInstallModal(true)}>Instalar App</button>
+      <button onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/> Instalar <br /> App</button>
     </footer>
   );
 };

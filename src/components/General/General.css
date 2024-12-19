@@ -40,10 +40,19 @@
   color: var(--color-primary-hover);
 }
 
-.header ul .app { background-color: var(--color-secondary-hover); }
+.header ul .app { 
+  background-color: var(--color-secondary-hover); 
+  display: grid;
+  padding: 10px;
+  text-align: center;
+}
 .header ul .app:hover { 
   background-color: var(--color-secondary); 
   color: white;
+}
+
+.header ul .app i {
+  width: 100%;
 }
 
 .header ul a i { margin-right: 5px; }
@@ -157,6 +166,9 @@
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
+  display: grid;
+  gap: 5px;
+  padding: 10px;
 }
 
 .footer button:hover { background-color: rgba(255, 255, 255, .9); }
