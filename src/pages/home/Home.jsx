@@ -163,7 +163,7 @@ const Home = () => {
                 ),
               };
             })}
-            style={{ width: '70%' }}
+            style={{ width: '90%' }}
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."
