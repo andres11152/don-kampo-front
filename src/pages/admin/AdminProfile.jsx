@@ -757,9 +757,9 @@ const AdminProfile = () => {
   const exportFilteredOrdersToExcel = async () => {
     const failedOrders = []; // Lista para almacenar los detalles de órdenes fallidas
     const detailedOrders = []; // Lista para almacenar los detalles exitosos
-  
+
     setLoading(true); // Activamos la rueda de carga
-  
+
     try {
       // Realizar todas las solicitudes en paralelo
       const responses = await Promise.all(
@@ -769,7 +769,6 @@ const AdminProfile = () => {
             console.log(response);
             
             const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
-            
             // Crear filas por cada ítem y variación
             items.forEach((item) => {
               detailedOrders.push({
@@ -807,10 +806,10 @@ const AdminProfile = () => {
           }
         })
       );
-  
+
       // Crear hojas de trabajo
       const workbook = XLSX.utils.book_new();
-  
+
       if (detailedOrders.length > 0) {
         const detailedWorksheet = XLSX.utils.json_to_sheet(detailedOrders);
         XLSX.utils.book_append_sheet(
@@ -819,15 +818,15 @@ const AdminProfile = () => {
           "Pedidos Detallados"
         );
       }
-  
+
       if (failedOrders.length > 0) {
         const failedWorksheet = XLSX.utils.json_to_sheet(failedOrders);
         XLSX.utils.book_append_sheet(workbook, failedWorksheet, "Errores");
       }
-  
+
       // Guardar el archivo Excel
       XLSX.writeFile(workbook, "Pedidos_Detallados_y_Errores.xlsx");
-  
+
       // Mensajes al usuario
       if (detailedOrders.length > 0) {
         message.success("Archivo Excel generado exitosamente.");
@@ -879,7 +878,7 @@ const AdminProfile = () => {
       <div className="admin-profile-container">
         <h2>Bienvenido al Panel de Administración</h2>
         <p>
-        👤 Administra usuarios, 📦 gestiona pedidos, 🚚 configura precios de envíos y 🛒 crea productos fácilmente. ¡Todo en un solo lugar! 🎯
+        👤 Administra usuarios, 📦 gestiona pedidos, 🚚 configura precios de envíos y 🛒 Gestiona tus compras fácilmente. ¡Todo en un solo lugar! 🎯
         </p>
         {renderUserTable()}
         {renderOrderTable()}

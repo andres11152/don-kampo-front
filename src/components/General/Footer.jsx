@@ -1,7 +1,8 @@
 import React from "react";
 import "./General.css";
 import { WhatsAppOutlined, MailOutlined } from '@ant-design/icons';
-
+import InstallPrompt from "../../pages/install/InstallPrompt";
+import { FaMobileAlt } from "react-icons/fa";
 
 const categories = [
   {
@@ -47,11 +48,14 @@ const Footer = (props) => {
         </ul>
       </nav>
 
-      <hr />
       <ul className="contact-info">
         <li className="contact">
           <a href="https://wa.me/3117366666" target="_blank" rel="noopener noreferrer"> <i className="fa-brands fa-whatsapp" /> +573117366666 </a>
           <a href="mailto:info@donkampo.com"><i className="fa-regular fa-envelope" /> info@donkampo.com </a>
+          <button className="install-button" onClick={() => setShowInstallModal(true)}>
+            <FaMobileAlt className="icon" /> {/* Ícono de celular */}
+            Instalar App
+          </button>
         </li>
         <li className="copy">
           <span>&copy; { new Date().getFullYear() } Don Kampo. Todos los derechos reservados</span>

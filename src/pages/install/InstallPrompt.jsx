@@ -2,15 +2,16 @@ import React, { useEffect, useState } from "react";
 import "./InstallPrompt.css"; // CSS para el modal
 import "font-awesome/css/font-awesome.min.css";
 
-const InstallPrompt = (props) => {
+const InstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const {showInstallModal, setShowInstallModal} = props
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault(); 
-      setDeferredPrompt(e);  
+      setDeferredPrompt(e); 
+      setShowModal(true); 
     });
 
     return () => {
@@ -24,16 +25,16 @@ const InstallPrompt = (props) => {
       deferredPrompt.userChoice.then((choiceResult) => {
 
         setDeferredPrompt(null); // Limpia el evento
-        setShowInstallModal(false); // Cierra el modal
+        setShowModal(false); // Cierra el modal
       });
     }
   };
 
   const handleCancel = () => {
-    setShowInstallModal(false); // Cierra el modal si el usuario decide no instalar
+    setShowModal(false); // Cierra el modal si el usuario decide no instalar
   };
 
-  if (!showInstallModal) return null;
+  if (!showModal) return null;
 
   return (
     <div className="modal">

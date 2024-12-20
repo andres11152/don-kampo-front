@@ -12,6 +12,8 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../pages/products/CartContext"; // Importa el hook de contexto de carrito
 import "./General.css";
+import  InstallPrompt from "../../pages/install/InstallPrompt";
+import { FaMobileAlt } from "react-icons/fa";
 
 const Header = (props) => {
   const { setShowInstallModal } = props
@@ -31,6 +33,7 @@ const Header = (props) => {
   const [selectedKey, setSelectedKey] = useState(localStorage.getItem('selectedKey'));
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
 
   // Efecto para actualizar la ruta seleccionada en el menú
   useEffect(() => {
@@ -95,6 +98,7 @@ const Header = (props) => {
         <a href="/">
           <img src="/images/1.png" alt="Don Kampo Logo"/>
         </a>
+        <a className="app" href="#" onClick={() => setShowInstallModal(true)}><FaMobileAlt className="icon" />App</a>
 
         <div
           className="cart-icon"
@@ -120,7 +124,7 @@ const Header = (props) => {
           </Badge>
         </div>
       </div>
-
+    
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
