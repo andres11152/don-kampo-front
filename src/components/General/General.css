@@ -51,65 +51,22 @@
   color: var(--color-primary-hover);
 }
 
-
-.header .app {
-  position: relative;
-  display: inline-block;
-  padding: 10px ;
-  color: #fff;
-  background-color: var(--color-secondary-hover);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  overflow: hidden;
-  z-index: 1;
+.header ul .app { 
+  background-color: var(--color-secondary-hover); 
+  display: grid;
+  padding: 10px;
+  text-align: center;
 }
-
-.header .app::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.3); /* Ajusta el color del agua */
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
-  animation: ripple 1.5s infinite ease-out;
-}
-
-@keyframes ripple {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0.8;
-  }
-  50% {
-    width: 120%;
-    height: 120%;
-    opacity: 0.5;
-  }
-  100% {
-    width: 200%;
-    height: 200%;
-    opacity: 0;
-  }
-}
-
-
-
-
-
-
-.header ul .app:hover {
-  background-color: var(--color-secondary);
+.header ul .app:hover { 
+  background-color: var(--color-secondary); 
   color: white;
 }
 
-.header ul a i {
-  margin-right: 5px;
+.header ul .app i {
+  width: 100%;
 }
+
+.header ul a i { margin-right: 5px; }
 
 .header button {
   display: none !important;
@@ -250,6 +207,9 @@
   cursor: pointer;
   transition: background-color 0.3s ease;
   text-transform: uppercase;
+  display: grid;
+  gap: 5px;
+  padding: 10px;
 }
 
 .footer button:hover {

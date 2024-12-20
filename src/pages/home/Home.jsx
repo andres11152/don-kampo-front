@@ -40,8 +40,9 @@ const Home = () => {
   });
 
   const [userType, setUserType] = useState(() => {
-    const storedValue = localStorage.getItem('userType');
-    return storedValue !== null ? storedValue : 'Hogar';
+    const storedValue = localStorage.getItem('loginData');
+
+    return storedValue === null ? 'Hogar' : JSON.parse(storedValue).user.user_type === 'admin' ? 'Hogar' : JSON.parse(storedValue).user.user_type;
   });
   
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
@@ -91,7 +92,6 @@ const Home = () => {
   useEffect(() => {
     userType &&
       localStorage.setItem("modalShown", false);
-      localStorage.setItem("userType", userType);
     !userType &&       
       localStorage.setItem("modalShown", true);
   }, [userType]); 

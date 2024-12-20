@@ -760,13 +760,14 @@ const AdminProfile = () => {
     setLoading(true); // Activamos la rueda de carga
 
     try {
-      // Realizar todas las solicitudes en paralelo
+      // Realizar todas las solicitudes en par 
       const responses = await Promise.all(
         filteredOrders.map(async (order) => {
           try {
             const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
+            console.log(response);
+            
             const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
-
             // Crear filas por cada ítem y variación
             items.forEach((item) => {
               detailedOrders.push({

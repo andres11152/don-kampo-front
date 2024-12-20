@@ -62,6 +62,8 @@ const Footer = (props) => {
           <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
         </li>
       </ul>
+
+      <button onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/> Instalar <br /> App</button>
     </footer>
   );
 };
