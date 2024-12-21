@@ -1,7 +1,5 @@
 import React from "react";
 import "./General.css";
-import { WhatsAppOutlined, MailOutlined } from '@ant-design/icons';
-import InstallPrompt from "../../pages/install/InstallPrompt";
 import { FaMobileAlt } from "react-icons/fa";
 
 const categories = [
@@ -55,11 +53,11 @@ const Footer = (props) => {
           
         </li>
         <li className="copy">
+        <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
           <span>&copy; { new Date().getFullYear() } Don Kampo. Todos los derechos reservados</span>
-          <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
         </li>
       </ul>
-      <button onClick={() => setShowInstallModal(true)}>Instalar App</button>
+      <button onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/>  Instalar App</button>
     </footer>
   );
 };
