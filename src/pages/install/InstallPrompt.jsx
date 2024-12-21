@@ -2,16 +2,14 @@ import React, { useEffect, useState } from "react";
 import "./InstallPrompt.css"; // CSS para el modal
 import "font-awesome/css/font-awesome.min.css";
 
-const InstallPrompt = () => {
+const InstallPrompt = ({ showModal, setShowModal, handleInstall }) => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    
     window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault(); 
-      setDeferredPrompt(e); 
-      setShowModal(true); 
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowModal(true);
     });
 
     return () => {
@@ -19,15 +17,15 @@ const InstallPrompt = () => {
     };
   }, []);
 
-  const handleInstall = () => {
+  const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt(); // Muestra el prompt nativo de instalación
       deferredPrompt.userChoice.then((choiceResult) => {
-
         setDeferredPrompt(null); // Limpia el evento
         setShowModal(false); // Cierra el modal
       });
     }
+    handleInstall();
   };
 
   const handleCancel = () => {
@@ -47,7 +45,7 @@ const InstallPrompt = () => {
         </ul>
 
         <div className="modal-actions">
-          <button onClick={handleInstall}>Instalar</button>
+          <button onClick={handleInstallClick}>Instalar</button>
           <button onClick={handleCancel}>Cancelar</button>
         </div>
       </div>

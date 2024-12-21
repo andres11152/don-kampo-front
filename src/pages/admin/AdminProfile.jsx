@@ -289,6 +289,7 @@ const AdminProfile = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/orders");
+
       const dataOrders = response.data.map(item => ({
         ...item.order,
         email: item.userData?.email || ''
@@ -760,7 +761,7 @@ const AdminProfile = () => {
     setLoading(true); // Activamos la rueda de carga
 
     try {
-      // Realizar todas las solicitudes en par 
+      // Realizar todas las solicitudes en paralelo
       const responses = await Promise.all(
         filteredOrders.map(async (order) => {
           try {

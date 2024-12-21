@@ -98,7 +98,7 @@ const Header = (props) => {
         <a href="/">
           <img src="/images/1.png" alt="Don Kampo Logo"/>
         </a>
-        <a className="app" href="#" onClick={() => setShowInstallModal(true)}><FaMobileAlt className="icon" />App</a>
+       
 
         <div
           className="cart-icon"
