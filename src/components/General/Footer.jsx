@@ -52,16 +52,14 @@ const Footer = (props) => {
         <li className="contact">
           <a href="https://wa.me/3117366666" target="_blank" rel="noopener noreferrer"> <i className="fa-brands fa-whatsapp" /> +573117366666 </a>
           <a href="mailto:info@donkampo.com"><i className="fa-regular fa-envelope" /> info@donkampo.com </a>
-          <button className="install-button" onClick={() => setShowInstallModal(true)}>
-            <FaMobileAlt className="icon" /> {/* Ícono de celular */}
-            Instalar App
-          </button>
+          
         </li>
         <li className="copy">
           <span>&copy; { new Date().getFullYear() } Don Kampo. Todos los derechos reservados</span>
           <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
         </li>
       </ul>
+      <button onClick={() => setShowInstallModal(true)}>Instalar App</button>
     </footer>
   );
 };

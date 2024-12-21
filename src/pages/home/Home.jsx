@@ -40,9 +40,10 @@ const Home = () => {
   });
 
   const [userType, setUserType] = useState(() => {
-    const storedValue = localStorage.getItem('loginData');
-
-    return storedValue === null ? 'Hogar' : JSON.parse(storedValue).user.user_type === 'admin' ? 'Hogar' : JSON.parse(storedValue).user.user_type;
+    const storedValue = localStorage.getItem("loginData");
+    return storedValue
+      ? JSON.parse(storedValue).user.user_type
+      : "Hogar"; // Default: "Hogar"
   });
   
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']

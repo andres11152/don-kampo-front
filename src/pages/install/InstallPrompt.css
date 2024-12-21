@@ -24,6 +24,16 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Sombra elegante */
   animation: fadeIn 0.5s ease; /* Animación de aparición */
 }
+.modal-content button:last-child{
+  background-color: #e0e0e0;
+  color: #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+.modal-content button:last-child:hover{
+  background-color: #e0e0e0;
+  color: #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
 
 /* Título */
 .modal-content h2 {
@@ -79,8 +89,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
 }
-
-/* Botón Instalar */
+/* Botón Cancelar */
 .modal-actions button:first-child {
   background-color: var(--color-secondary);
   color: white;
@@ -93,7 +102,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Botón Cancelar */
+/* Botón Instalar */
 .modal-actions button:last-child {
   background-color: #e0e0e0;
   color: #333;
