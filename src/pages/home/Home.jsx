@@ -47,7 +47,7 @@ const Home = () => {
   });
   
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
-  const [publicity, setPublicity] = useState({})
+  const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();  
@@ -59,7 +59,7 @@ const Home = () => {
   const fetchProducts = async (query) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/products?search=${query}`,
+        `https://don-kampo-api.onrender.com/api/products?search=${query}`,
         { withCredentials: true }
       );
   
@@ -102,8 +102,15 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const response = await fetch("/api/publicidad");
+        
+        // Verificar si la respuesta es JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new TypeError("La respuesta no es JSON");
+        }
+
         const responseData = await response.json();
-        const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase())
+        const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase());
 
         setPublicity(publicityData);
       } catch (error) {
@@ -111,7 +118,7 @@ const Home = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [userType]);
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();

@@ -30,7 +30,7 @@ const Checkout = () => {
       try {
         // Fetch shipping costs
         const response = await axios.get(
-          "http://localhost:8080/api/customer-types"
+          "https://don-kampo-api.onrender.com/api/customer-types"
         );
         const costs = response.data.reduce((acc, type) => {
           acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
@@ -41,7 +41,7 @@ const Checkout = () => {
         // Fetch user data solo si no se ha cargado antes
         if (!userData && loginData?.user) {
           const userResponse = await axios.get(
-            `http://localhost:8080/api/users/${loginData.user.id}`
+            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
           );
           const user = userResponse.data.user;
           setUserData(user);
@@ -90,7 +90,7 @@ const Checkout = () => {
       const fetchShippingCosts = async () => {
         try {
           const response = await axios.get(
-            "http://localhost:8080/api/customer-types"
+            "https://don-kampo-api.onrender.com/api/customer-types"
           );
           const costs = response.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
@@ -113,7 +113,7 @@ const Checkout = () => {
       if (loginData && loginData.user) {
         try {
           const response = await axios.get(
-            `http://localhost:8080/api/users/${loginData.user.id}`
+            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
           );
           const user = response.data.user;
           setUserData(user);
@@ -164,7 +164,7 @@ const Checkout = () => {
             const [productId] = key.split('-');
             
             const response = await axios.get(
-              `http://localhost:8080/api/getproduct/${productId}`
+              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
             );
 
             return {
@@ -228,7 +228,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `http://localhost:8080/api/updateusers/${loginData.user.id}`,
+          `https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -318,7 +318,7 @@ const Checkout = () => {
 
       try {
         const response = await axios.post(
-          "http://localhost:8080/api/orders/placeOrder",
+          "https://don-kampo-api.onrender.com/api/orders/placeOrder",
           orderData
         );
         if (response.status === 201) {

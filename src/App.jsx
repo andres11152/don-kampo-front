@@ -16,7 +16,7 @@ import AdminProfile from "./pages/admin/AdminProfile.jsx";
 import CreateOrder from "./pages/createOrden/CreateOrder.jsx";
 import ManageProducts from "./pages/ManageProducts/ManageProducts.jsx";
 import Home from "./pages/home/Home.jsx";
-import fruits from './assets/fruits.jpg'
+
 
 import { CartProvider } from "./pages/products/CartContext.jsx";
 
