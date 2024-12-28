@@ -41,7 +41,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
+        const response = await axios.get("http://localhost:8080/api/products", {
           withCredentials: true,
         });
 
@@ -81,7 +81,7 @@ const Products = () => {
   const filterProducts = useCallback(
     (category, query) => {
       const filtered = products.filter((product) => {
-        const matchesCategory = category === "Todas" || product.category === category;    
+        const matchesCategory = category === "Todas" || product.category.toLowerCase() === category.toLowerCase();    
         
         const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
         return matchesCategory && matchesSearch;
@@ -104,10 +104,12 @@ const Products = () => {
     
     idQueryFromUrl && 
       openModal(products.filter(product => product.product_id == idQueryFromUrl)[0])
+
+    console.log(products.filter(product => product.product_id == idQueryFromUrl)[0]);
     
     setSearchQuery(searchQueryFromUrl);
     filterProducts(categoryQueryFromUrl, searchQueryFromUrl);
-  }, [selectedCategory, filterProducts]);
+  }, [filterProducts, products]);
 
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);

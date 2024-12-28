@@ -88,28 +88,27 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: white !important;
 }
 /* Botón Cancelar */
 .modal-actions button:first-child {
-  background-color: var(--color-secondary);
-  color: white;
+  background-color: #e74c3c;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .modal-actions button:first-child:hover {
-  background-color: var(--color-secondary-hover);
+  background-color: #c33b2e;
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Botón Instalar */
 .modal-actions button:last-child {
-  background-color: #e0e0e0;
-  color: #333;
+  background-color: var(--color-primary) !important;
 }
 
 .modal-actions button:last-child:hover {
-  background-color: #d0d0d0;
+  background-color: var(--color-primary-hover) !important;
   transform: translateY(-3px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }

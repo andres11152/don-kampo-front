@@ -32,7 +32,7 @@ body {
   font-family: var(--font-family-primary);
   color: var(--color-secondary);
   width: 100% !important;
-  background-color: #e1ffed !important;
+  background-color: #e0ffed !important;
   position: relative;
   background-image: url(../../assets/fruits.jpg) !important;
 }
@@ -87,4 +87,33 @@ a {
   width: 100%;
   height: 100%;
   z-index: -10;
+}
+
+.cargandoPaginas {
+  display: flex;
+  justify-content: center;
+  align-items: center;  
+  width: 90%;
+  max-width: 1160px;
+  margin: 0 auto;
+  height: 100vh;
+}
+
+.cargandoPaginas img { 
+  width: 100%; 
+  max-width: 600px;
+  animation: cargarPagina 2s infinite;
+}
+
+/* Definición de los keyframes para la animación */
+@keyframes cargarPagina {
+  0% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.35;
+  }
 }

@@ -42,7 +42,7 @@ const App = () => {
 
   if (isLoading) {
     // Mostrar una pantalla de carga mientras se recupera el tipo de usuario
-    return <div>Cargando...</div>;
+    return <div className="cargandoPaginas"><img src="/images/1.png" alt="Don Kampo Logo"/></div>;
   }
 
   return (

@@ -10,7 +10,6 @@ import {
   AutoComplete,
   message,
 } from "antd";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "../../components/General/Header";
@@ -30,22 +29,23 @@ const categories = [
 
 const Home = () => {  
   const carouselRef = useRef(null);
-  const [showInstallModal, setShowInstallModal] = useState(false)
+  const [showInstallModal, setShowInstallModal] = useState(true)
 
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-
-  const [isModalVisible, setIsModalVisible] = useState(() => {
-    const storedValue = localStorage.getItem('modalShown');
-    return storedValue !== null ? JSON.parse(storedValue) : true;
-  });
+  const [isModalVisible, setIsModalVisible] = useState(localStorage.getItem("loginData") === null ? true : false);
 
   const [userType, setUserType] = useState(() => {
-    const storedValue = localStorage.getItem("loginData");
-    return storedValue
-      ? JSON.parse(storedValue).user.user_type
-      : "Hogar"; // Default: "Hogar"
+    const storedValue = JSON.parse(localStorage.getItem("loginData"))
+    if (storedValue !== null) {
+      if (storedValue.user.user_type === 'admin' ) {
+        localStorage.setItem('userType', 'Hogar')
+        return 'Hogar'
+      } else {
+        localStorage.setItem('userType', storedValue.user.user_type)
+        return storedValue.user.user_type
+      }
+    } else { return 'Hogar' }
   });
-  
+
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -59,7 +59,7 @@ const Home = () => {
   const fetchProducts = async (query) => {
     try {
       const response = await axios.get(
-        `https://don-kampo-api.onrender.com/api/products?search=${query}`,
+        `http://localhost:8080/api/products?search=${query}`,
         { withCredentials: true }
       );
   
@@ -113,6 +113,7 @@ const Home = () => {
         const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase());
 
         setPublicity(publicityData);
+        
       } catch (error) {
         console.error("Error al cargar los datos", error);
       }
@@ -127,10 +128,10 @@ const Home = () => {
 
   const handleUserTypeChange = type => {
     setUserType(type)
+    localStorage.setItem('userType', type)
     setIsModalVisible(!isModalVisible)
-    window.location.reload()
   };
-
+  
   return (
     <>
       <Header setShowInstallModal={setShowInstallModal} />
@@ -213,7 +214,7 @@ const Home = () => {
                       type="primary"
                       size="large"
                       className="carousel-button"
-                      onClick={() => handleNavigate('/products')}
+                      onClick={() => handleNavigate(`/products?id=${item.related_product_id}`)}
                     >
                       Ver más
                     </Button>

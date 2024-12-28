@@ -128,14 +128,12 @@ const Header = (props) => {
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
-          {location.pathname === '/' &&
           <li><a className="app" href="#" onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/> App</a></li>
-          }
           <li>
             <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
           </li>
           <li className="cosechas">
-            <a href="/products?category=Cosecha">Cosechas</a>
+            <a href="/products?category=Cosechas">Cosechas</a>
           </li>
           <li>
             <a className={`${selectedKey === 'Productos' ? 'selected' : ''}`} href="/products" onClick={() => handleMenuClick('Productos')}><i className="fa-solid fa-grip" />Productos</a>

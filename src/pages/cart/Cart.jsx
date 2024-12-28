@@ -15,42 +15,53 @@ const Cart = () => {
   const [cartDetails, setCartDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [shippingCost, setShippingCost] = useState(5000);
-  const [shippingCosts, setShippingCosts] = useState({});
-  const [isShippingCostsLoaded, setIsShippingCostsLoaded] = useState(false);
 
-  const navigate = useNavigate();
+
+  // Función asíncrona para obtener y filtrar los pedidos
+  const fetchOrders = async (userEmail) => {
+    try {
+        // Realiza la solicitud fetch a la API de pedidos
+        const response = await axios.get('http://localhost:8080/api/orders');
+
+        // Convierte la respuesta a formato JSON
+        const orders = response.data;        
+
+        // Filtra los pedidos donde 'items' no esté vacío
+        const purchaseOrders = orders.filter(order => {
+          const haveItems = order.items.length > 0
+          const sameEmail = order.userData.email === userEmail
+            
+          return haveItems && sameEmail;
+        });
+
+        return purchaseOrders;
+    } catch (error) {
+        console.error('Error al obtener o procesar los pedidos:', error);
+        // Dependiendo de tu caso de uso, podrías re-lanzar el error o manejarlo de otra manera
+        throw error;
+    }
+  }
 
   useEffect(() => {
-    const fetchShippingCosts = async () => {
-      try {
-        if (!isShippingCostsLoaded) {
-          const response = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
-          const costs = response.data.reduce((acc, type) => {
-            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_percentage) / 100; // Asumimos que shipping_percentage es un porcentaje en formato entero
-            return acc;
-          }, {});
-          setShippingCosts(costs);
-          setIsShippingCostsLoaded(true);
-        }
-      } catch (error) {
-        message.error("Error al cargar los costos de envío.");
-        console.error(error);
+    const loginData = JSON.parse(localStorage.getItem('loginData'))
+    
+    if (loginData !== null) {
+      const userType = localStorage.getItem('userType').toLowerCase()
+      if (userType === 'restaurante') {
+        setShippingCost(shippingCost / 2)
+      } else if (userType === 'hogar' ) {
+        fetchOrders(loginData.user.email)
+          .then(purchaseOrders => {
+            if (purchaseOrders.length === 0) { setShippingCost(0) }
+          })
+          .catch(error => {
+              console.error('Error al obtener los pedidos filtrados:', error);
+          });
       }
-    };
-    
-    const setUserShippingCost = () => {
-      const loginData = JSON.parse(localStorage.getItem("loginData"));
-      if (loginData?.user && Object.keys(shippingCosts).length > 0) {
-        const userType = loginData.user.user_type.toLowerCase();
-        const shippingPercentage = shippingCosts[userType] || 0;
-        const subtotal = calculateSubtotal();
-        setShippingCost(subtotal * shippingPercentage); // Se calcula el costo de envío como un porcentaje del subtotal
-      }
-    };
-    
-    fetchShippingCosts().then(setUserShippingCost);
-    
-  }, [isShippingCostsLoaded]);
+    }
+  }, [])
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCartDetails = async () => {

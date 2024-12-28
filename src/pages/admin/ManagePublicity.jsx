@@ -10,6 +10,7 @@ const ManagePublicity = () => {
     title: "",
     description: "",
     photo_url: null,
+    related_product_id: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
@@ -20,7 +21,7 @@ const ManagePublicity = () => {
   // Obtener todas las publicidades
   const fetchAdvertisements = async () => {
     try {
-      const response = await axios.get("https://don-kampo-api.onrender.com/api/publicidad");
+      const response = await axios.get("http://localhost:8080/api/publicidad");
       setAdvertisements(response.data);
       setFilteredAdvertisements(response.data);
     } catch (error) {
@@ -51,24 +52,50 @@ const ManagePublicity = () => {
     }));
   };
 
-  const createAdvertisement = async () => {
-    if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url) {
+  // Definición de fetchgetProduct (sin cambios)
+  const fetchgetProduct = async (id) => {    
+    try {
+      const response = await fetch(`/api/getproduct/${id}`);
+      
+      const productId = await response.json();  
+
+      // Si todo está bien, devuelve el producto
+      return productId;
+    } catch (error) {      
+      // Manejar el error aquí
+      // console.error("Error al obtener el producto:", error);
+      throw new Error("Producto no encontrado")
+    }
+  }
+
+  // Definición de createAdvertisement usando async/await
+  const createAdvertisement = async () => {    
+    if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url || !newAd.related_product_id) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
 
-    setIsLoading(true);
     try {
+      setIsLoading(true);
+
+      // Obtener el producto
+      const producto = await fetchgetProduct(parseInt(newAd.related_product_id));      
+
+      // Preparar los datos del formulario
       const formData = new FormData();
       Object.keys(newAd).forEach((key) => formData.append(key, newAd[key]));
-
-      await axios.post("https://don-kampo-api.onrender.com/api/publicidad", formData);
+      
+      // Enviar la solicitud para crear la publicidad
+      await axios.post("http://localhost:8080/api/publicidad", formData);
       alert("Publicidad creada exitosamente.");
-      setNewAd({ category: "", title: "", description: "", photo_url: null });
+      
+      // Reiniciar el estado del nuevo anuncio
+      setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "", });
+
+      // Refrescar las publicidades
       fetchAdvertisements();
     } catch (error) {
-      console.error("Error al crear la publicidad:", error);
-      alert("Ocurrió un error al crear la publicidad.");
+        alert("El Id del Producto no existe")
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +105,7 @@ const ManagePublicity = () => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
     try {      
-      await axios.delete(`https://don-kampo-api.onrender.com/api/publicidad/${id}`);
+      await axios.delete(`http://localhost:8080/api/publicidad/${id}`);
       alert("Publicidad eliminada correctamente.");
       fetchAdvertisements();
     } catch (error) {
@@ -92,6 +119,7 @@ const ManagePublicity = () => {
     setNewAd({
       category: ad.category,
       title: ad.title,
+      related_product_id: ad.related_product_id,
       description: ad.description,
       photo_url: ad.photo_url, // Asignar la imagen actual
     });
@@ -99,21 +127,25 @@ const ManagePublicity = () => {
   };
   
   const editAdvertisement = async () => {
-    if (!newAd.title || !newAd.description) {
+    if (!newAd.title || !newAd.description || !newAd.related_product_id) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
   
+    const producto = await fetchgetProduct(parseInt(newAd.related_product_id));
+
+    if (producto.message) {
+      alert("Id del producto no existe")
+      return
+    }
     setIsLoading(true);
     try {
-      console.log(newAd);
-  
       const formData = new FormData();
   
       // Agregar campos si tienen valor
       formData.append("title", newAd.title);
       formData.append("description", newAd.description);
-  
+      
       // Incluir la foto nueva si existe, si no, incluir la imagen actual
       if (newAd.photo_url && newAd.photo_url instanceof File) {
         formData.append("photo_url", newAd.photo_url);
@@ -123,10 +155,11 @@ const ManagePublicity = () => {
   
       // La categoría no se modifica, por lo que puedes enviar la actual
       formData.append("category", editingAd.category);
-  
+      formData.append('related_product_id', editingAd.related_product_id)
+      
       // Enviar la petición PUT
       await axios.put(
-        `https://don-kampo-api.onrender.com/api/publicidad/${editingAd.advertisement_id}`,
+        `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -135,7 +168,7 @@ const ManagePublicity = () => {
   
       alert("Publicidad actualizada exitosamente.");
       setShowModal(false);
-      setNewAd({ category: "", title: "", description: "", photo_url: null });
+      setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
       fetchAdvertisements(); // Refresca la lista de anuncios
     } catch (error) {
       console.error("Error al editar la publicidad:", error);
@@ -180,6 +213,13 @@ const ManagePublicity = () => {
             name="title"
             placeholder="Título"
             value={newAd.title}
+            onChange={handleInputChange}
+          />
+          <input
+            type="number"
+            name="related_product_id"
+            placeholder="Id del Producto"
+            value={newAd.related_product_id}
             onChange={handleInputChange}
           />
           <textarea
@@ -240,10 +280,9 @@ const ManagePublicity = () => {
                 />
                 <div className="advertisement-info">
                   <h4>{ad.title}</h4>
-                  <p>
-                    <strong>Categoría:</strong> {ad.category}
-                  </p>
-                  <p>{ad.description}</p>
+                  <p><strong>Id Producto:</strong> {ad.related_product_id}</p>
+                  <p><strong>Categoría:</strong> {ad.category}</p>
+                  <p><strong>Descripcion:</strong> {ad.description}</p>
                 </div>
                 <div className="advertisement-actions">
                   <button
@@ -307,6 +346,13 @@ const ManagePublicity = () => {
               name="title"
               placeholder="Título"
               value={newAd.title}
+              onChange={handleInputChange}
+            />
+            <input
+              type="number"
+              name="related_product_id"
+              placeholder="Id del Producto"
+              value={newAd.related_product_id}
               onChange={handleInputChange}
             />
             <textarea

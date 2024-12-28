@@ -4,25 +4,25 @@ import { FaMobileAlt } from "react-icons/fa";
 
 const categories = [
   {
-    title: "Frutas nacionales",
+    title: "Frutas Nacionales",
     img: "/images/mangostino.webp",
-    link: "/products?category=Frutas",
+    link: "/products?category=Frutas Nacionales",
   },
   { title: "Verduras", 
     img: "/images/verdurasProducto.jpg", 
-    link: "/products?category=Verdura" },
+    link: "/products?category=verduras" },
   {
-    title: "Frutas importadas",
+    title: "Frutas Importadas",
     img: "/images/frutasImportadas.jpg",
-    link: "/products?category=Frutas Importadas",
+    link: "/products?category=frutas importadas",
   },
   { title: "Hortalizas", 
     img: "/images/hortalizas.jpg", 
-    link: "/products?category=Hortalizas" 
+    link: "/products?category=hortalizas" 
   },
-  { title: "Cosecha", 
+  { title: "Cosechas", 
     img: "/images/organicas.webp", 
-    link: "/products?category=Cosecha" 
+    link: "/products?category=cosechas" 
   },
 ];
 

@@ -21,95 +21,65 @@ const Checkout = () => {
   const [needsElectronicInvoice, setNeedsElectronicInvoice] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [companyNit, setCompanyNit] = useState("");
-  const [shippingCosts, setShippingCosts] = useState({});
-  const [discountedShippingCost, setDiscountedShippingCost] = useState(null);
-  const loginData = JSON.parse(localStorage.getItem("loginData")) || null;
-
-  useEffect(() => {
-    const fetchShippingCostsAndUser = async () => {
-      try {
-        // Fetch shipping costs
-        const response = await axios.get(
-          "https://don-kampo-api.onrender.com/api/customer-types"
-        );
-        const costs = response.data.reduce((acc, type) => {
-          acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
-          return acc;
-        }, {});
-        setShippingCosts(costs);
-
-        // Fetch user data solo si no se ha cargado antes
-        if (!userData && loginData?.user) {
-          const userResponse = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
-          );
-          const user = userResponse.data.user;
-          setUserData(user);
-
-          const hasOrders =
-            userResponse.data.orders && userResponse.data.orders.length > 0;
-          const shippingPercentage = costs[userType] || 0;
-
-          const totalValue = userResponse.data.cartTotal || 0;
-          const calculatedShippingCost =
-            (totalValue * shippingPercentage) / 100;
-
-          if (!hasOrders) {
-            setIsFirstOrder(true);
-            setDiscountedShippingCost(calculatedShippingCost / 2);
-          } else {
-            setDiscountedShippingCost(calculatedShippingCost);
-          }
-
-          setShippingCost(calculatedShippingCost);
-        }
-      } catch (error) {
-        message.error(
-          "Error al cargar los datos de usuario o costos de envío."
-        );
-        console.error(error);
-      }
-    };
-
-    fetchShippingCostsAndUser();
-  }, []); // Se ejecuta solo una vez
+  const [shippingCost, setShippingCost] = useState(5000);
 
   const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
   
   const navigate = useNavigate();
   const { width, height } = useWindowSize();
 
+  const loginData = JSON.parse(localStorage.getItem('loginData'))
   const userType = loginData?.user?.user_type;
-
-  const [shippingCost, setShippingCost] = useState(5000);
 
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
-  useEffect(() => {
-    if (!Object.keys(shippingCosts).length) {
-      const fetchShippingCosts = async () => {
-        try {
-          const response = await axios.get(
-            "https://don-kampo-api.onrender.com/api/customer-types"
-          );
-          const costs = response.data.reduce((acc, type) => {
-            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
-            return acc;
-          }, {});
-          setShippingCosts(costs);
-        } catch (error) {
-          message.error("Error al cargar los costos de envío.");
-          console.error(error);
-        }
-      };
+  // Función asíncrona para obtener y filtrar los pedidos
+  const fetchOrders = async (userEmail) => {
+    try {
+        // Realiza la solicitud fetch a la API de pedidos
+        const response = await axios.get('http://localhost:8080/api/orders');
 
-      fetchShippingCosts();
+        // Convierte la respuesta a formato JSON
+        const orders = response.data;        
+
+        // Filtra los pedidos donde 'items' no esté vacío
+        const purchaseOrders = orders.filter(order => {
+          const haveItems = order.items.length > 0
+          const sameEmail = order.userData.email === userEmail
+            
+          return haveItems && sameEmail;
+        });
+
+        return purchaseOrders;
+    } catch (error) {
+        console.error('Error al obtener o procesar los pedidos:', error);
+        // Dependiendo de tu caso de uso, podrías re-lanzar el error o manejarlo de otra manera
+        throw error;
     }
-  }, []); // Solo una vez
+  }
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    // Definir una función asíncrona dentro de useEffect
+    const initialize = async () => {
+      const loginData = JSON.parse(localStorage.getItem('loginData'));
       
+      if (loginData !== null) {
+        const userType = localStorage.getItem('userType').toLowerCase();
+        
+        if (userType === 'restaurante') {
+          setShippingCost(shippingCost / 2); // Usar función de actualización para evitar dependencias
+        } else if (userType === 'hogar') {
+          try {
+            const purchaseOrders = await fetchOrders(loginData.user.email);
+            if (purchaseOrders.length === 0) {
+              setShippingCost(0);
+            }
+          } catch (error) {
+            console.error('Error al obtener los pedidos filtrados:', error);
+          }
+        }
+      }
+
       if (loginData && loginData.user) {
         try {
           const response = await axios.get(
@@ -118,43 +88,32 @@ const Checkout = () => {
           const user = response.data.user;
           setUserData(user);
 
-          const hasOrders =
-            response.data.orders && response.data.orders.length > 0;
-          if (!hasOrders) {
-            setIsFirstOrder(true); // Marcamos que es el primer pedido
-            const userType = loginData.user.user_type.toLowerCase();
-            if (shippingCosts[userType] !== undefined) {
-              setShippingCost(shippingCosts[userType] / 2); // Aplica el descuento del 50%
-            } else {
-              setShippingCost(shippingCosts[userType]); // En caso de no encontrar el tipo de usuario, el costo es 0
-            }
-          } else {
-            // Si no es el primer pedido, aplicamos el costo regular
-            const userType = loginData.user.user_type.toLowerCase();
-            setShippingCost(shippingCosts[userType] || 0);
-          }
+          const hasOrders = response.data.orders && response.data.orders.length > 0;
+          setIsFirstOrder(!hasOrders); // Marcamos que es el primer pedido
         } catch (error) {
           message.error("Error al cargar los datos del usuario.");
           console.error(error);
         }
-      } else if (localStorage.getItem('userType') === 'Hogar') { setUserData({
-        user_name: 'anonimo',
-        lastname: 'anonimo',
-        email: 'anonimo',
-        phone: 'anonimo',
-        city: 'anonimo',
-        address: 'anonimo',
-        neighborhood: 'anonimo'}) }
+      } else if (localStorage.getItem('userType')?.toLowerCase() === 'hogar') { 
+        setUserData({
+          user_name: 'anonimo',
+          lastname: 'anonimo',
+          email: 'anonimo',
+          phone: 'anonimo',
+          city: 'anonimo',
+          address: 'anonimo',
+          neighborhood: 'anonimo'
+        });
+      }
       else {
         message.error("Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra.");
         navigate("/login");
       }
     };
 
-    if (Object.keys(shippingCosts).length) {
-      fetchUserData();
-    }
-  }, [shippingCosts, navigate]);
+    // Llamar a la función asíncrona
+    initialize();
+  }, []); // Dependencias: navigate y shippingCost si son necesarios
 
   useEffect(() => {
     const fetchCartDetails = async () => {
@@ -295,8 +254,8 @@ const Checkout = () => {
           variationId: product.selectedVariation.variation_id, // ID de la variación
           price: getPriceByUserType(product, product.selectedVariation),
         })),
-        total: calculateSubtotal() + (discountedShippingCost ?? shippingCost),
-        shippingCost: discountedShippingCost ?? shippingCost,
+        total: calculateSubtotal() + shippingCost,
+        shippingCost: shippingCost,
         shippingMethod: "Overnight",
         estimatedDelivery: estimatedDelivery,
         actual_delivery: currentDate,
@@ -340,7 +299,7 @@ const Checkout = () => {
     }
   };
 
-  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
+  const total = calculateSubtotal() + shippingCost;
 
   const generateOrderPDF = () => {
     const input = document.getElementById("order-summary-pdf");
@@ -494,10 +453,7 @@ const Checkout = () => {
               Envío:{" "}
               <span>
                 $
-                {(discountedShippingCost !== null
-                  ? discountedShippingCost
-                  : shippingCost
-                ).toLocaleString()}
+                {shippingCost.toLocaleString()}
               </span>
             </p>
             {isFirstOrder && (
