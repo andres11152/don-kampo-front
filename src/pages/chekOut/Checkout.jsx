@@ -37,7 +37,7 @@ const Checkout = () => {
   const fetchOrders = async (userEmail) => {
     try {
         // Realiza la solicitud fetch a la API de pedidos
-        const response = await axios.get('http://localhost:8080/api/orders');
+        const response = await axios.get('https://don-kampo-api.onrender.com/api/orders');
 
         // Convierte la respuesta a formato JSON
         const orders = response.data;        

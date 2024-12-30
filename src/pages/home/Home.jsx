@@ -59,7 +59,7 @@ const Home = () => {
   const fetchProducts = async (query) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/products?search=${query}`,
+        `https://don-kampo-api.onrender.com/api/products?search=${query}`,
         { withCredentials: true }
       );
   
