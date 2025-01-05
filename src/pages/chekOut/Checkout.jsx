@@ -108,7 +108,7 @@ const Checkout = () => {
         // Dependiendo de tu caso de uso, podrías re-lanzar el error o manejarlo de otra manera
         throw error;
     }
-  }, []); // Solo una vez
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -140,14 +140,17 @@ const Checkout = () => {
           message.error("Error al cargar los datos del usuario.");
           console.error(error);
         }
-      } else if (localStorage.getItem('userType') === 'Hogar') { setUserData({
-        user_name: 'anonimo',
-        lastname: 'anonimo',
-        email: 'anonimo',
-        phone: 'anonimo',
-        city: 'anonimo',
-        address: 'anonimo',
-        neighborhood: 'anonimo'}) }
+      } else if (localStorage.getItem('userType') === 'Hogar') { 
+        setUserData({
+          user_name: 'anonimo',
+          lastname: 'anonimo',
+          email: 'anonimo',
+          phone: 'anonimo',
+          city: 'anonimo',
+          address: 'anonimo',
+          neighborhood: 'anonimo'
+        });
+      }
       else {
         message.error("Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra.");
         navigate("/login");
@@ -269,349 +272,160 @@ const Checkout = () => {
   };
 
   const handleAddToCart = (product) => {
-    if (!product.selectedVariation) {
-      message.error("Por favor selecciona una variaci��n antes de añadir al carrito.");
+    if (!validateForm()) {
+      message.error("Por favor complete todos los campos del formulario.");
       return;
     }
     addToCart(product);
   };
 
-  const handleRemoveFromCart = (product) => {
-    if (!product.selectedVariation) {
-      console.error("La variación seleccionada no está definida.");
-      return;
-    }
-    removeOneFromCart(product);
-  };
+  const handleFormSubmit = () => {
+    const subtotal = calculateSubtotal();
+    const totalAmount = subtotal + shippingCost;
 
-  const handlePlaceOrder = async () => {
-    if (validateForm()) {
-      const currentDate = new Date();
-      currentDate.setDate(currentDate.getDate() + 1);
-      const estimatedDelivery = currentDate.toISOString();
+    // Simulate order processing logic here
 
-      const orderData = {
-        userId: loginData?.user?.id || '8739e2f0-5674-4b00-bee7-d83b47035573',
-        cartDetails: cartDetails.map((product) => ({
-          productId: product.product_id,
-          quantity: product.quantity,
-          variationId: product.selectedVariation.variation_id, // ID de la variación
-          price: getPriceByUserType(product, product.selectedVariation),
-        })),
-        total: calculateSubtotal() + (discountedShippingCost ?? shippingCost),
-        shippingCost: discountedShippingCost ?? shippingCost,
-        shippingMethod: "Overnight",
-        estimatedDelivery: estimatedDelivery,
-        actual_delivery: currentDate,
-        userData: {
-          user_name: userData.user_name,
-          lastname: userData.lastname,
-          email: userData.email,
-          phone: userData.phone,
-          city: userData.city,
-          address: userData.address,
-          neighborhood: userData.neighborhood,
-        },
-        needsElectronicInvoice,
-        companyName: needsElectronicInvoice ? companyName : "",
-        companyNit: needsElectronicInvoice ? companyNit : "",
-      };     
-      console.log(orderData);
-       
-
-      try {
-        const response = await axios.post(
-          "http://localhost:8080/api/orders/placeOrder",
-          orderData
-        );
-        if (response.status === 201) {
-          setOrderId(response.data.orderId);
-          setIsModalVisible(true);
-        } else {
-          message.error("Error al realizar el pedido. Inténtalo nuevamente.");
-          
+    Modal.confirm({
+      title: "Confirmación de Pedido",
+      content: (
+        <div>
+          <p>Subtotal: ${subtotal}</p>
+          <p>Envío: ${shippingCost}</p>
+          <p>Total: ${totalAmount}</p>
+        </div>
+      ),
+      onOk: async () => {
+        // Logic to process order
+        try {
+          await axios.post("http://localhost:8080/api/orders", {
+            user: userData,
+            items: cartDetails,
+            totalAmount,
+          });
+          clearCart();
+          message.success("Pedido realizado con éxito.");
+          setOrderId(Math.random().toString(36).substr(2, 9)); // Set order ID
+        } catch (error) {
+          message.error("Error al realizar el pedido.");
+          console.error(error);
         }
-      } catch (error) {
-        message.error("Error al realizar el pedido.");
-
-        console.error(error);
-      }
-    } else {
-      message.error(
-        "Por favor, complete todos los campos antes de realizar el pedido."
-      );
-    }
-  };
-
-  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
-
-  const generateOrderPDF = () => {
-    const input = document.getElementById("order-summary-pdf");
-    if (!input) {
-      message.error("No se pudo generar el PDF. Intenta nuevamente.");
-      return;
-    }
-
-    html2canvas(input).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF();
-
-      const imgWidth = 190;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const position = 10;
-
-      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
-      pdf.save(`Resumen_Pedido_${orderId}.pdf`);
-
-      clearCart();
-      message.success("El carrito ha sido vaciado después de generar el PDF.");
-      navigate("/products");
+      },
     });
   };
 
   return (
     <div>
-      <img id="fruits" src={fruits} alt="" />
       <Header />
       <div className="checkout-container">
         <h2>Finalizar Compra</h2>
-        <div className="checkout-content">
-          {userData ? (
-            <Form layout="vertical" className="checkout-form">
-              <Row gutter={16}>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Nombre">
-                    <Input
-                      name="user_name"
-                      value={userData.user_name}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Apellido">
-                    <Input
-                      name="lastname"
-                      value={userData.lastname}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Email">
-                    <Input
-                      name="email"
-                      value={userData.email}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Teléfono">
-                    <Input
-                      name="phone"
-                      value={userData.phone}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Ciudad">
-                    <Input
-                      name="city"
-                      value={userData.city}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Dirección">
-                    <Input
-                      name="address"
-                      value={userData.address}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Form.Item label="Barrio">
-                    <Input
-                      name="neighborhood"
-                      value={userData.neighborhood}
-                      onChange={handleInputChange}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} sm={12}>
-                  <Button
-                    type="primary"
-                    className="confirm-data-button"
-                    onClick={handleUpdateUser}
-                  >
-                    Confirmar Datos
-                  </Button>
-                </Col>
-              </Row>
-            </Form>
-          ) : (
-            <p>Cargando datos del usuario...</p>
-          )}
-          <div className="order-summary">
-            <h3>Resumen del Pedido</h3>
-            <Divider />
-            {cartDetails.map((product) => (
-              <div key={product.product_id} className="order-summary-item">
-                <span>
-                  {product.name} ({product.selectedVariation.quality} -{" "}
-                  {product.selectedVariation.quantity}) x {product.quantity}
-                </span>
-                <div className="quantity-controls">
-                  <Button onClick={() => handleRemoveFromCart(product, product.selectedVariation)}>
-                    -
-                  </Button>
-                  <span className="quantity-text">{product.quantity}</span>
-                  <Button
-                    onClick={() =>
-                      handleAddToCart(product, product.selectedVariation)
-                    }
-                  >
-                    +
-                  </Button>
-                </div>
-                <span>
-                  $
-                  {(
-                    getPriceByUserType(product, product.selectedVariation) *
-                    product.quantity
-                  ).toLocaleString()}
-                </span>
-              </div>
-            ))}
 
-            <Divider />
-            <p>
-              Subtotal: <span>${calculateSubtotal().toLocaleString()}</span>
-            </p>
-            <p>
-              Envío:{" "}
-              <span>
-                $
-                {(discountedShippingCost !== null
-                  ? discountedShippingCost
-                  : shippingCost
-                ).toLocaleString()}
-              </span>
-            </p>
-            {isFirstOrder && (
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#FF914D",
-                  marginTop: "5px",
-                }}
-              >
-                ¡Descuento aplicado al costo de envío por ser tu primer pedido!
-              </p>
-            )}
-            {userType === "restaurante" && (
-              <>
-                <Form.Item label="¿Necesita factura electrónica?">
-                  <Input
-                    type="checkbox"
-                    checked={needsElectronicInvoice}
-                    onChange={(e) =>
-                      setNeedsElectronicInvoice(e.target.checked)
-                    }
-                  />
-                </Form.Item>
-                {needsElectronicInvoice && (
-                  <>
-                    <Form.Item label="Nombre de la empresa">
-                      <Input
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                      />
-                    </Form.Item>
-                    <Form.Item label="NIT de la empresa">
-                      <Input
-                        value={companyNit}
-                        onChange={(e) => setCompanyNit(e.target.value)}
-                      />
-                    </Form.Item>
-                  </>
-                )}
-              </>
-            )}
-
-            <Divider />
-            <h4>
-              Total: <span>${total.toLocaleString()}</span>
-            </h4>
-
-            <Button
-              type="primary"
-              className="place-order-button"
-              onClick={handlePlaceOrder}
-              disabled={!validateForm()}
-            >
-              REALIZAR EL PEDIDO
-            </Button>
-
-            <Modal
-              title="Pedido Confirmado"
-              visible={isModalVisible}
-              onOk={() => {
-                setIsModalVisible(false);
-                navigate("/products");
-              }}
-              onCancel={() => setIsModalVisible(false)}
-              footer={[
-                <Button
-                  key="pdf"
-                  type="default"
-                  onClick={generateOrderPDF}
-                  style={{ backgroundColor: "#FF914D", color: "#fff" }}
-                >
-                  Descargar PDF
-                </Button>,
-              ]}
-            >
-              <div id="order-summary-pdf">
-                <p>
-                  ¡{userData?.user_name}, tu pedido ha sido realizado
-                  exitosamente!<br />Sera despachado {new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-                <p>
-                  ID de la orden: <strong>{orderId}</strong>
-                </p>
-                <Divider />
-                <h4>Resumen del Pedido</h4>
-                {cartDetails.map((product) => (
-                  <div key={product.product_id} className="order-summary-item">
-                    <span>
-                      {product.name} ({product.selectedVariation.quality} -{" "}
-                      {product.selectedVariation.quantity}) x {product.quantity}
-                    </span>
-                    <span>
-                      $
-                      {(
-                        getPriceByUserType(product, product.selectedVariation) *
-                        product.quantity
-                      ).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                <Divider />
-                <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-                <p>Envío: ${shippingCost}</p>
-                <h4>Total: ${total.toLocaleString()}</h4>
-              </div>
-            </Modal>
-          </div>
+        {/* Display Cart Details */}
+        <div className="cart-details">
+          {cartDetails.map((item) => (
+            <div key={item.id}>
+              <h4>{item.name}</h4>
+              <p>{item.quantity} x {item.selectedVariation.name}</p>
+              <p>${getPriceByUserType(item, item.selectedVariation)}</p>
+            </div>
+          ))}
         </div>
+
+        {/* Display Shipping Cost and Total */}
+        <div className="summary">
+          <p>Costo de Envío: ${shippingCost}</p>
+          <p>Total: ${calculateSubtotal() + shippingCost}</p>
+        </div>
+
+        {/* Form to Complete Order */}
+        <Form onFinish={handleFormSubmit}>
+          <Form.Item label="Nombre" name="user_name">
+            <Input
+              value={userData?.user_name || ""}
+              name="user_name"
+              onChange={handleInputChange}
+              placeholder="Nombre"
+            />
+          </Form.Item>
+
+          <Form.Item label="Apellido" name="lastname">
+            <Input
+              value={userData?.lastname || ""}
+              name="lastname"
+              onChange={handleInputChange}
+              placeholder="Apellido"
+            />
+          </Form.Item>
+
+          <Form.Item label="Email" name="email">
+            <Input
+              value={userData?.email || ""}
+              name="email"
+              onChange={handleInputChange}
+              placeholder="Email"
+            />
+          </Form.Item>
+
+          <Form.Item label="Teléfono" name="phone">
+            <Input
+              value={userData?.phone || ""}
+              name="phone"
+              onChange={handleInputChange}
+              placeholder="Teléfono"
+            />
+          </Form.Item>
+
+          <Form.Item label="Dirección" name="address">
+            <Input
+              value={userData?.address || ""}
+              name="address"
+              onChange={handleInputChange}
+              placeholder="Dirección"
+            />
+          </Form.Item>
+
+          <Form.Item label="Barrio" name="neighborhood">
+            <Input
+              value={userData?.neighborhood || ""}
+              name="neighborhood"
+              onChange={handleInputChange}
+              placeholder="Barrio"
+            />
+          </Form.Item>
+
+          <Form.Item label="Ciudad" name="city">
+            <Input
+              value={userData?.city || ""}
+              name="city"
+              onChange={handleInputChange}
+              placeholder="Ciudad"
+            />
+          </Form.Item>
+
+          {needsElectronicInvoice && (
+            <>
+              <Form.Item label="Nombre de la Empresa" name="companyName">
+                <Input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Nombre de la Empresa"
+                />
+              </Form.Item>
+              <Form.Item label="NIT" name="companyNit">
+                <Input
+                  value={companyNit}
+                  onChange={(e) => setCompanyNit(e.target.value)}
+                  placeholder="NIT"
+                />
+              </Form.Item>
+            </>
+          )}
+
+          <Button type="primary" htmlType="submit" disabled={!validateForm()}>
+            Finalizar Compra
+          </Button>
+        </Form>
+
       </div>
-      <BotonWhatsapp />
       <CustomFooter />
     </div>
   );
