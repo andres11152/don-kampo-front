@@ -101,7 +101,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/publicidad");
+        const response = await fetch("http://localhost:8080/api/publicidad");
         
         // Verificar si la respuesta es JSON
         const contentType = response.headers.get("content-type");
@@ -260,7 +260,7 @@ const Home = () => {
             tu mesa, promoviendo un consumo responsable y sostenible que
             apoya a nuestros agricultores y cuida del medio ambiente.
           </p>
-          <Button type="primary" size="50%" >Conoce más sobre nosotros</Button>
+          <Button  type="primary" size="50%" >Conoce más sobre nosotros</Button>
 
           <div />
         </section>

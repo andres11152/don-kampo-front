@@ -1,93 +1,250 @@
+/* Diseño general */
 .manage-products-container {
-    margin: 0 auto;
-    padding: 40px 80px;
-    font-family: Arial, sans-serif;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    display: grid;
-    gap: 20px;
-    max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 80px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  display: grid;
+  gap: 20px;
+  max-width: 1200px;
 }
-  
-  .manage-products-container h2 {
-    color: #ff7e00;
-    font-weight: bold;
-    margin-bottom: 20px;
-  }
 
-  .manage-products-container .manage-search {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-  }
-  .manage-products-container .manage-search button {
-    border: 2px solid var(--color-primary-hover);
-    color: var(--color-primary-hover);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .4px;
-    font-size: 14px;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  
-  .manage-products-container .manage-search button:hover {
-    background-color: var(--color-primary-hover);
-    color: white;
-  }
+.manage-products-container h2 {
+  color: #ff7e00;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 24px;
+}
 
-  .manage-products-container .manage-search i {
-    color: var(--color-primary-hover);
-    font-size: 24px;
-    cursor: pointer;
-    transition: .5s ease;
-  }
+.manage-products-container .manage-search {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  .manage-products-container .manage-search i:hover {
-    transform: rotate(45deg);
+.manage-products-container .manage-search button {
+  padding: 10px 20px;
+  border: 2px solid #ff7e00;
+  background-color: transparent;
+  color: #ff7e00;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.manage-products-container .manage-search button:hover {
+  background-color: #ff7e00;
+  color: white;
+}
+
+.manage-products-container .manage-search i {
+  color: #ff7e00;
+  font-size: 24px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.manage-products-container .manage-search i:hover {
+  transform: rotate(45deg);
+}
+
+.search-input {
+  margin-bottom: 16px;
+  width: 300px;
+}
+
+/* Estilo tabla */
+.manage-products-container .ant-table {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.manage-products-container .ant-table-thead > tr > th {
+  background-color: #ff7e00;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.ant-table tr > * {
+  text-align: center !important;
+}
+
+.manage-products-container .ant-btn-danger {
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+.manage-products-container .ant-btn-danger:hover {
+  background-color: #ff7875;
+  color: var(--btn-primary);
+}
+
+/* Modal de edición */
+/* Estilo general para el modal */
+.ant-modal {
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Cabecera del modal */
+.ant-modal-header {
+  background-color: #1890ff;
+  color: white;
+  font-weight: 600;
+  font-size: 1.3rem;
+  padding: 20px 30px;
+  border-radius: 12px 12px 0 0;
+  text-align: center;
+}
+
+/* Cuerpo del modal */
+.ant-modal-body {
+  background-color: #ffffff;
+  padding: 30px 40px;
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Footer del modal */
+.ant-modal-footer {
+  border-top: 1px solid #f0f2f5;
+  text-align: right;
+  padding: 20px 30px;
+  background-color: #f9f9f9;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Botón de cerrar */
+.ant-modal-close-x {
+  color: #ff4d4f;
+  font-size: 24px;
+  font-weight: bold;
+  transition: color 0.3s;
+}
+
+.ant-modal-close-x:hover {
+  color: #ff4d4f;
+}
+
+/* Fondo de sombra del modal */
+.ant-modal-mask {
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s ease;
+}
+
+/* Estilo de los botones dentro del modal */
+.ant-modal-footer button {
+  font-size: 1rem;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+/* Botón principal */
+.ant-modal-footer .ant-btn-primary {
+  background-color: var(--btn-primary);
+  color: var(--btn-primary);
+  border: none;
+}
+
+.ant-modal-footer .ant-btn-primary:hover {
+  background-color: #40a9ff;
+}
+
+/* Botón de cancelación */
+.ant-modal-footer .ant-btn-default {
+  background-color: #ff4d4f;
+  color: #333;
+  border: 1px solid #ff4d4f;
+}
+
+.ant-modal-footer .ant-btn-default:hover {
+  background-color: #ff4d4f;
+  border-color: #40a9ff;
+}
+
+/* Campos dentro del modal (inputs, selectores, etc.) */
+.ant-input, .ant-select-selector, .ant-input-number-input {
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  padding: 12px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.3s;
+}
+
+.ant-input:focus, .ant-select-focused .ant-select-selector, .ant-input-number-input:focus {
+  border-color: #1890ff;
+}
+
+.ant-form-item {
+  margin-bottom: 20px;
+}
+
+.ant-form-item-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.ant-form-item-extra {
+  font-size: 0.875rem;
+  color: #999;
+}
+
+/* Estilo de los mensajes de error en el modal */
+.ant-form-item-explain {
+  color: #ff4d4f;
+  font-size: 0.875rem;
+}
+
+/* Títulos secundarios dentro del modal */
+.ant-modal-body h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.ant-modal-body p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+
+/* Ajuste responsivo */
+@media (max-width: 768px) {
+  .manage-products-container {
+    padding: 20px;
   }
 
   .search-input {
-    margin-bottom: 16px;
-    width: 300px;
+    width: 100%;
   }
-  
-  .manage-products-container .ant-table {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .ant-table {
+    font-size: 14px;
   }
-  
-  .manage-products-container .ant-table-thead > tr > th {
-    background-color: #ff7e00;
-    color: white;
-    font-weight: bold;
-    text-align: center;
+
+  .ant-modal {
+    padding: 20px;
   }
-  
-  .ant-table tr > * { text-align: center !important; }
-  
-  .manage-products-container .ant-btn-danger {
-    border: 1px solid #ff4d4f;
-    color: #ff4d4f;
-    font-weight: bold;
+
+  .variation-container button {
+    width: 100%;
   }
-  
-  .manage-products-container .ant-btn-danger:hover {
-    background-color: #ff7875;
-    color: white;
-  }
-  
-  .manage-products-container .ant-input {
-    border-radius: 5px;
-    border: 1px solid #d9d9d9;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .manage-products-container .ant-input:focus {
-    border-color: #ff7e00;
-    box-shadow: 0 0 5px rgba(255, 126, 0, 0.5);
-  }
-  
+}

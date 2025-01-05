@@ -297,6 +297,11 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   width: 100%;
   border-radius: 5px;
   padding: 20px;
+  background-color: var(--color-secondary);
+}
+.info-section button:hover {
+  background-color: #ff914d;
+  border-color: #ff914d;
 }
 
 .ant-drawer-content {

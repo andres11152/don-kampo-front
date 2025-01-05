@@ -24,6 +24,7 @@ import "./ManageProducts.css";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import fruits from '../../assets/fruits.jpg'
+import { Select } from 'antd';
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -327,42 +328,57 @@ const ManageProducts = () => {
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           footer={null}
+          width={800}
         >
-          <Form form={form} onFinish={handleUpdateProduct} layout="vertical">
-            <Form.Item
-              label="Nombre"
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor ingresa el nombre del producto",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Descripción"
-              name="description"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor ingresa una descripción",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Categoría"
-              name="category"
-              rules={[
-                { required: true, message: "Por favor ingresa una categoría" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+          <Form 
+            form={form} 
+            onFinish={handleUpdateProduct} 
+            layout="horizontal"
+          >
+            {/* Nombre y Categoría */}
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  label="Nombre"
+                  name="name"
+                  rules={[{ required: true, message: "Por favor ingresa el nombre del producto" }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Categoría"
+                  name="category"
+                  rules={[{ required: true, message: "Por favor selecciona una categoría" }]}
+                >
+                  <Select placeholder="Selecciona una categoría">
+                    <Select.Option value="Frutas importadas">Frutas importadas</Select.Option>
+                    <Select.Option value="Verduras">Verduras</Select.Option>
+                    <Select.Option value="Frutas nacionales">Frutas nacionales</Select.Option>
+                    <Select.Option value="Cosechas">Cosechas</Select.Option>
+                    <Select.Option value="Hortalizas">Hortalizas</Select.Option>
+                    <Select.Option value="Promociones">Promociones</Select.Option>
+                    <Select.Option value="Otros">Otros</Select.Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
 
+            {/* Descripción */}
+            <Row gutter={[16, 16]}>
+              <Col span={24}>
+                <Form.Item
+                  label="Descripción"
+                  name="description"
+                  rules={[{ required: true, message: "Por favor ingresa una descripción" }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Variaciones */}
             <div>
               <h3>Variaciones</h3>
               {variations.map((variation, index) => (
@@ -372,101 +388,92 @@ const ManageProducts = () => {
                     marginBottom: "16px",
                     padding: "16px",
                     border: "1px solid #ddd",
+                    borderRadius: "8px",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                   }}
                 >
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item label={`Calidad (Variación ${index + 1})`}>
+                      <Form.Item label={`Calidad (Var ${index + 1})`}>
                         <Input
                           placeholder="Calidad"
                           value={variation.quality}
-                          onChange={(e) =>
-                            updateVariation(index, "quality", e.target.value)
-                          }
+                          onChange={(e) => updateVariation(index, "quality", e.target.value)}
                         />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item label={`Cantidad (Variación ${index + 1})`}>
+                      <Form.Item label={`Cantidad (Var ${index + 1})`}>
                         <Input
                           placeholder="Cantidad"
                           value={variation.quantity}
-                          onChange={(e) =>
-                            updateVariation(index, "quantity", e.target.value)
-                          }
+                          onChange={(e) => updateVariation(index, "quantity", e.target.value)}
                         />
                       </Form.Item>
                     </Col>
                   </Row>
+
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item
-                        label={`Precio Hogar (Variación ${index + 1})`}
-                      >
+                      <Form.Item label={`Precio Hogar (Var ${index + 1})`}>
                         <InputNumber
                           placeholder="Precio Hogar"
                           value={variation.price_home}
-                          onChange={(value) =>
-                            updateVariation(index, "price_home", value)
-                          }
+                          onChange={(value) => updateVariation(index, "price_home", value)}
                           style={{ width: "100%" }}
                         />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item
-                        label={`Precio Supermercado (Variación ${index + 1})`}
-                      >
+                      <Form.Item label={`Precio Supermercado (Var ${index + 1})`}>
                         <InputNumber
                           placeholder="Precio Supermercado"
                           value={variation.price_supermarket}
-                          onChange={(value) =>
-                            updateVariation(index, "price_supermarket", value)
-                          }
+                          onChange={(value) => updateVariation(index, "price_supermarket", value)}
                           style={{ width: "100%" }}
                         />
                       </Form.Item>
                     </Col>
                   </Row>
+
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item
-                        label={`Precio Restaurante (Variación ${index + 1})`}
-                      >
+                      <Form.Item label={`Precio Restaurante (Var ${index + 1})`}>
                         <InputNumber
                           placeholder="Precio Restaurante"
                           value={variation.price_restaurant}
-                          onChange={(value) =>
-                            updateVariation(index, "price_restaurant", value)
-                          }
+                          onChange={(value) => updateVariation(index, "price_restaurant", value)}
                           style={{ width: "100%" }}
                         />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item
-                        label={`Precio Fruver (Variación ${index + 1})`}
-                      >
+                      <Form.Item label={`Precio Fruver (Var ${index + 1})`}>
                         <InputNumber
                           placeholder="Precio Fruver"
                           value={variation.price_fruver}
-                          onChange={(value) =>
-                            updateVariation(index, "price_fruver", value)
-                          }
+                          onChange={(value) => updateVariation(index, "price_fruver", value)}
                           style={{ width: "100%" }}
                         />
                       </Form.Item>
                     </Col>
                   </Row>
+
                   <Button
                     type="danger"
                     onClick={() => removeVariation(index)}
-                    style={{ marginTop: "8px" }}
+                    style={{
+                      marginTop: "8px",
+                      backgroundColor: "#ff4d4f", // Color rojo
+                      color: "#fff", // Texto blanco
+                      border: "none", // Elimina el borde
+                    }}
                   >
                     Eliminar Variación
                   </Button>
                 </div>
               ))}
+
               <Button
                 type="dashed"
                 onClick={addVariation}
@@ -476,6 +483,7 @@ const ManageProducts = () => {
               </Button>
             </div>
 
+            {/* Botón Guardar Cambios */}
             <Form.Item>
               <Button type="primary" htmlType="submit" block>
                 Guardar Cambios
@@ -483,6 +491,7 @@ const ManageProducts = () => {
             </Form.Item>
           </Form>
         </Modal>
+
       </section>
       <BotonWhatsapp />
       <CustomFooter />

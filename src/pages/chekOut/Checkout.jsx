@@ -30,7 +30,7 @@ const Checkout = () => {
       try {
         // Fetch shipping costs
         const response = await axios.get(
-          "https://don-kampo-api.onrender.com/api/customer-types"
+          "http://localhost:8080/api/customer-types"
         );
         const costs = response.data.reduce((acc, type) => {
           acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
@@ -41,7 +41,7 @@ const Checkout = () => {
         // Fetch user data solo si no se ha cargado antes
         if (!userData && loginData?.user) {
           const userResponse = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
+            `http://localhost:8080/api/users/${loginData.user.id}`
           );
           const user = userResponse.data.user;
           setUserData(user);
@@ -85,25 +85,28 @@ const Checkout = () => {
 
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
-  useEffect(() => {
-    if (!Object.keys(shippingCosts).length) {
-      const fetchShippingCosts = async () => {
-        try {
-          const response = await axios.get(
-            "https://don-kampo-api.onrender.com/api/customer-types"
-          );
-          const costs = response.data.reduce((acc, type) => {
-            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
-            return acc;
-          }, {});
-          setShippingCosts(costs);
-        } catch (error) {
-          message.error("Error al cargar los costos de envío.");
-          console.error(error);
-        }
-      };
+  // Función asíncrona para obtener y filtrar los pedidos
+  const fetchOrders = async (userEmail) => {
+    try {
+        // Realiza la solicitud fetch a la API de pedidos
+        const response = await axios.get('http://localhost:8080/api/orders');
 
-      fetchShippingCosts();
+        // Convierte la respuesta a formato JSON
+        const orders = response.data;        
+
+        // Filtra los pedidos donde 'items' no esté vacío
+        const purchaseOrders = orders.filter(order => {
+          const haveItems = order.items.length > 0
+          const sameEmail = order.userData.email === userEmail
+            
+          return haveItems && sameEmail;
+        });
+
+        return purchaseOrders;
+    } catch (error) {
+        console.error('Error al obtener o procesar los pedidos:', error);
+        // Dependiendo de tu caso de uso, podrías re-lanzar el error o manejarlo de otra manera
+        throw error;
     }
   }, []); // Solo una vez
 
@@ -113,7 +116,7 @@ const Checkout = () => {
       if (loginData && loginData.user) {
         try {
           const response = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
+            `http://localhost:8080/api/users/${loginData.user.id}`
           );
           const user = response.data.user;
           setUserData(user);
@@ -164,7 +167,7 @@ const Checkout = () => {
             const [productId] = key.split('-');
             
             const response = await axios.get(
-              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -228,7 +231,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`,
+          `http://localhost:8080/api/updateusers/${loginData.user.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -318,7 +321,7 @@ const Checkout = () => {
 
       try {
         const response = await axios.post(
-          "https://don-kampo-api.onrender.com/api/orders/placeOrder",
+          "http://localhost:8080/api/orders/placeOrder",
           orderData
         );
         if (response.status === 201) {

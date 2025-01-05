@@ -450,7 +450,7 @@ const AdminProfile = () => {
 
   const openOrderModal = async (orderId) => {
     try {
-      const response = await axios.get(`/api/orders/${orderId}`);
+      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
       // Actualiza el estado con toda la respuesta (incluyendo order, items y shippingInfo)
       
       setSelectedOrder(response.data);

@@ -18,16 +18,39 @@ const ManagePublicity = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
 
   // Obtener todas las publicidades
+<<<<<<< Updated upstream
   const fetchAdvertisements = async () => {
     try {
-      const response = await axios.get("https://don-kampo-api.onrender.com/api/publicidad");
+      const response = await axios.get("http://localhost:8080/api/publicidad");
       setAdvertisements(response.data);
       setFilteredAdvertisements(response.data);
     } catch (error) {
       console.error("Error al obtener las publicidades:", error);
       alert("No se pudo cargar la lista de publicidades.");
+=======
+ // Obtener todas las publicidades
+ const fetchAdvertisements = async () => {
+  try {
+    setIsLoading(true);
+    const response = await axios.get("http://localhost:8080/api/publicidad");
+
+    // Verifica el tipo de respuesta
+    const contentType = response.headers['content-type'];
+    if (!contentType || !contentType.includes("application/json")) {
+      throw new TypeError(`La respuesta no es JSON. Tipo recibido: ${contentType}`);
+>>>>>>> Stashed changes
     }
-  };
+
+    const data = response.data;
+    setAdvertisements(data);
+    setFilteredAdvertisements(data);
+  } catch (error) {
+    console.error("Error al cargar los datos:", error);
+    alert("Hubo un problema al cargar las publicidades. Revise los logs.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchAdvertisements();
@@ -51,8 +74,25 @@ const ManagePublicity = () => {
     }));
   };
 
-  const createAdvertisement = async () => {
-    if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url) {
+  // Definición de fetchgetProduct (sin cambios)
+  const fetchgetProduct = async (id) => {    
+    try {
+      const response = await fetch(`http://localhost:8080/api/getproduct/${id}`);
+      
+      const productId = await response.json();  
+
+      // Si todo está bien, devuelve el producto
+      return productId;
+    } catch (error) {      
+      // Manejar el error aquí
+      // console.error("Error al obtener el producto:", error);
+      throw new Error("Producto no encontrado")
+    }
+  }
+
+  // Definición de createAdvertisement usando async/await
+  const createAdvertisement = async () => {    
+    if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url || !newAd.related_product_id) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
@@ -62,7 +102,7 @@ const ManagePublicity = () => {
       const formData = new FormData();
       Object.keys(newAd).forEach((key) => formData.append(key, newAd[key]));
 
-      await axios.post("https://don-kampo-api.onrender.com/api/publicidad", formData);
+      await axios.post("http://localhost:8080/api/publicidad", formData);
       alert("Publicidad creada exitosamente.");
       setNewAd({ category: "", title: "", description: "", photo_url: null });
       fetchAdvertisements();
@@ -78,7 +118,7 @@ const ManagePublicity = () => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
     try {      
-      await axios.delete(`https://don-kampo-api.onrender.com/api/publicidad/${id}`);
+      await axios.delete(`http://localhost:8080/api/publicidad/${id}`);
       alert("Publicidad eliminada correctamente.");
       fetchAdvertisements();
     } catch (error) {
@@ -126,7 +166,7 @@ const ManagePublicity = () => {
   
       // Enviar la petición PUT
       await axios.put(
-        `https://don-kampo-api.onrender.com/api/publicidad/${editingAd.advertisement_id}`,
+        `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -270,8 +310,8 @@ const ManagePublicity = () => {
       {showModal && modalImage && (
         <div className="modal">
           <div className="modal-content">
-            <img src={modalImage} alt="Publicidad" className="modal-image" />
             <button onClick={closeModal} className="close-button">X</button>
+            <img src={modalImage} alt="Publicidad" className="modal-image" />
           </div>
         </div>
       )}
@@ -280,8 +320,8 @@ const ManagePublicity = () => {
       {showModal && modalImage && (
         <div className="modal">
           <div className="modal-content">
-            <img src={modalImage} alt="Publicidad" className="modal-image" />
             <button onClick={closeModal} className="close-button">X</button>
+            <img src={modalImage} alt="Publicidad" className="modal-image" />
           </div>
         </div>
       )}

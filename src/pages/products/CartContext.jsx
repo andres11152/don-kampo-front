@@ -11,6 +11,7 @@ export const CartProvider = ({ children }) => {
   });
 
   const [quantities, setQuantities] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -38,26 +39,37 @@ export const CartProvider = ({ children }) => {
     0
   );
 
+  // Validar si la variación tiene un precio válido antes de agregar al carrito
+  const isValidVariation = (product) => {
+    if (!product?.selectedVariation) {
+      return false;
+    }
+    
+    const price = getPriceByUserType(product.selectedVariation);
+    return price > 0 && price !== null;
+  };
+
   const addToCart = (products) => {
     if (!Array.isArray(products)) {
       console.error("Error: 'products' debe ser un array.");
       products = [products];  // Si no es un array, lo convertimos en uno
     }
-  
+
     setCart((prevCart) => {
       const newCart = { ...prevCart };
-  
+
       products.forEach((product) => {
-        if (!product?.selectedVariation) {
-          console.error("Error: No hay variación seleccionada");
-          return;
+        // Validar si la variación es válida antes de añadir al carrito
+        if (!isValidVariation(product)) {
+          setErrorMessage("Una de las variaciones seleccionadas no está disponible.");
+          return;  // No añadir el producto al carrito
         }
-  
+
         const cartKey = `${product.product_id}-${product.selectedVariation.variation_id}`;
         const quantitySelected = quantities[product.product_id] || 1;
         const pricePerUnit = getPriceByUserType(product.selectedVariation);
         const totalPrice = pricePerUnit * quantitySelected;
-  
+
         if (newCart[cartKey]) {
           newCart[cartKey] = {
             ...newCart[cartKey],
@@ -74,11 +86,11 @@ export const CartProvider = ({ children }) => {
           };
         }
       });
-  
+
       return newCart;
     });
   };
-  
+
   const clearCart = () => {
     setCart({});
   };
@@ -143,6 +155,7 @@ export const CartProvider = ({ children }) => {
         cartCount,
         quantities,
         updateQuantity,
+        errorMessage, // Pasar el mensaje de error
       }}
     >
       {children}
