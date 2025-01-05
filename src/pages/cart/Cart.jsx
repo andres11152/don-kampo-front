@@ -24,7 +24,7 @@ const Cart = () => {
     const fetchShippingCosts = async () => {
       try {
         if (!isShippingCostsLoaded) {
-          const response = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
+          const response = await axios.get("http://localhost:8080/api/customer-types");
           const costs = response.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_percentage) / 100; // Asumimos que shipping_percentage es un porcentaje en formato entero
             return acc;
