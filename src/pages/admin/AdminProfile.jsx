@@ -25,6 +25,7 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 import "./AdminProfile.css";
 
+
 const { Option } = Select;
 
 const AdminProfile = () => {
@@ -506,6 +507,7 @@ const AdminProfile = () => {
     }
   };
 
+
   const renderUserTable = () => {
     const userColumns = [
       { title: "Nombre", dataIndex: "user_name", key: "user_name" },
@@ -583,93 +585,6 @@ const AdminProfile = () => {
     );
   };
 
-  const renderOrderTable = () => {
-    const orderColumns = [
-      { title: "ID de Orden", dataIndex: "id", key: "id" },
-      { title: "Cliente", dataIndex: "email", key: "email" },
-      {
-        title: "Fecha",
-        dataIndex: "order_date",
-        key: "order_date",
-        render: (date) => new Date(date).toLocaleDateString(),
-      },
-      { title: "Total", dataIndex: "total", key: "total" },
-      {
-        title: "Estado",
-        dataIndex: "status_id",
-        key: "status_id",
-        render: (status) =>
-          status === 1
-            ? "Pendiente"
-            : status === 2
-            ? "Enviado"
-            : status === 3
-            ? "Entregado"
-            : "Cancelado",
-      },
-      {
-        title: "Acciones",
-        key: "actions",
-        render: (_, order) => (
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Button onClick={() => openOrderModal(order.id)}>Detalles</Button>
-            <Select
-              defaultValue={order.status_id}
-              onChange={(newStatus) => updateOrderStatus(order.id, newStatus)}
-              style={{ width: 120 }}
-            >
-              <Option value={1}>Pendiente</Option>
-              <Option value={2}>Enviado</Option>
-              <Option value={3}>Entregado</Option>
-              <Option value={4}>Cancelado</Option>
-              <Option value={5}>Pagado</Option>
-            </Select>
-            <Popconfirm
-              title="¿Estás seguro de eliminar este pedido?"
-              onConfirm={() => deleteOrder(order.id)}
-              okText="Sí"
-              cancelText="No"
-            >
-              <Button danger>Eliminar</Button>
-            </Popconfirm>
-          </div>
-        ),
-      },
-    ];
-
-    return (
-      <Card title="Gestión de Pedidos" style={{ marginTop: "20px" }}>
-        <div style={{ marginBottom: "20px" }}>
-          <Select
-            placeholder="Filtrar por estado"
-            allowClear
-            onChange={handleStatusFilterChange}
-            style={{ width: 200 }}
-          >
-            <Option value={null}>Todos</Option>
-            <Option value={1}>Pendiente</Option>
-            <Option value={2}>Enviado</Option>
-            <Option value={3}>Entregado</Option>
-            <Option value={4}>Cancelado</Option>
-            <Option value={5}>Pagado</Option>
-          </Select>
-          <Button type="primary" onClick={exportFilteredOrdersToExcel}>
-            Descargar Excel
-          </Button>
-        </div>
-        <Spin spinning={loading}>
-          {" "}
-          {/* Muestra la rueda de carga mientras `loading` está activo */}
-          <Table
-            dataSource={filteredOrders}
-            columns={orderColumns}
-            rowKey="id"
-            pagination={{ pageSize: 5 }}
-          />
-        </Spin>
-      </Card>
-    );
-  };
 
   const renderPurchaseTable = () => {
     const orderColumns = [
@@ -881,7 +796,7 @@ const AdminProfile = () => {
         👤 Administra usuarios, 📦 gestiona pedidos, 🚚 configura precios de envíos y 🛒 Gestiona tus compras fácilmente. ¡Todo en un solo lugar! 🎯
         </p>
         {renderUserTable()}
-        {renderOrderTable()}
+        
         {renderPurchaseTable()}
 
         {/* Modal for User Details */}

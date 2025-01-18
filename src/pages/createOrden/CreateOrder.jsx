@@ -161,7 +161,14 @@ const CreateOrder = () => {
       return;
     }
 
-    const shippingCost = 5000;
+    // Determina el costo de envío según el tipo de usuario
+    const userType = selectedUserData.user_type.toLowerCase(); // Asegúrate de que esté en minúsculas
+    const shippingCostMap = {
+      standard: 5000,
+      express: 10000,
+    };
+    const shippingCost = shippingCostMap[shippingMethod] || 5000;
+
     const total =
       selectedProducts.reduce(
         (sum, product) => sum + product.quantity * product.price_home,
@@ -169,7 +176,7 @@ const CreateOrder = () => {
       ) + shippingCost;
 
     const orderData = {
-      userId: selectedUserData.id,
+      userId: selectedUserData.id,// Incluye el user_type en los datos de la orden
       userData: {
         user_name: selectedUserData.user_name,
         lastname: selectedUserData.lastname,
@@ -177,6 +184,7 @@ const CreateOrder = () => {
         phone: selectedUserData.phone,
         address: selectedUserData.address,
         city: selectedUserData.city,
+        user_type: selectedUserData.user_type, 
         neighborhood: selectedUserData.neighborhood,
       },
       cartDetails: selectedProducts.map(
@@ -190,7 +198,9 @@ const CreateOrder = () => {
       shippingCost,
       total,
       actual_delivery: new Date().toISOString(),
-      estimatedDelivery: new Date( Date.now() + 2 * 24 * 60 * 60 * 1000 ).toISOString(),
+      estimatedDelivery: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(),
     };
 
     setLoading(true);
@@ -225,9 +235,7 @@ const CreateOrder = () => {
           <Form.Item
             label="Usuario"
             name="userId"
-            rules={[
-              { required: true, message: "Por favor seleccione un usuario" },
-            ]}
+            rules={[{ required: true, message: "Por favor seleccione un usuario" }]}
           >
             <Select
               placeholder="Seleccione un usuario"
@@ -244,12 +252,7 @@ const CreateOrder = () => {
           <Form.Item
             label="Método de Envío"
             name="shippingMethod"
-            rules={[
-              {
-                required: true,
-                message: "Por favor seleccione un método de envío",
-              },
-            ]}
+            rules={[{ required: true, message: "Por favor seleccione un método de envío" }]}
           >
             <Select placeholder="Seleccione un método de envío">
               <Option value="standard">Estándar</Option>
@@ -267,39 +270,12 @@ const CreateOrder = () => {
             />
             <div className="products-list">
               {filteredProducts.map((product) => (
-                <div key={product.product_id} className="product-item">
-                  <p>{product.name}</p>
-                  <p>${product.price_home.toLocaleString()}</p>
-                  {selectedProducts.find(
-                    (p) => p.product_id === product.product_id
-                  ) ? (
-                    <div className="quantity-controls">
-                      <Button
-                        onClick={() => decrementQuantity(product.product_id)}
-                      >
-                        -
-                      </Button>
-                      <span className="quantity-text">
-                        {
-                          selectedProducts.find(
-                            (p) => p.product_id === product.product_id
-                          ).quantity
-                        }
-                      </span>
-                      <Button
-                        onClick={() => incrementQuantity(product.product_id)}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      type="primary"
-                      onClick={() => handleAddProduct(product.product_id, 1)}
-                    >
-                      Añadir
-                    </Button>
-                  )}
+                <div key={product.product_id} className="product-card">
+                  <h4>{product.name}</h4>
+                  <p>Precio: ${product.price_home}</p>
+                  <Button onClick={() => handleAddProduct(product.product_id, 1)}>
+                    Agregar al carrito
+                  </Button>
                 </div>
               ))}
             </div>
@@ -307,28 +283,27 @@ const CreateOrder = () => {
 
           <div className="selected-products">
             <h3>Productos Seleccionados</h3>
-            {selectedProducts.length > 0 ? (
-              selectedProducts.map((product) => (
-                <div key={product.product_id} className="selected-product-item">
-                  <p>
-                    {product.name} x {product.quantity}
-                  </p>
-                  <p>
-                    Total: $
-                    {(product.quantity * product.price_home).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>No hay productos seleccionados.</p>
-            )}
+            {selectedProducts.map((product) => (
+              <div key={product.product_id} className="selected-product">
+                <p>{product.name} - Cantidad: {product.quantity}</p>
+                <Button onClick={() => incrementQuantity(product.product_id)}>
+                  +
+                </Button>
+                <Button onClick={() => decrementQuantity(product.product_id)}>
+                  -
+                </Button>
+              </div>
+            ))}
           </div>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Crear Orden
-            </Button>
-          </Form.Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            style={{ marginTop: "16px" }}
+          >
+            Crear Orden
+          </Button>
         </Form>
       </div>
       <CustomFooter />

@@ -10,6 +10,7 @@ const ManagePublicity = () => {
     title: "",
     description: "",
     photo_url: null,
+    related_product_id: "", // Añadir campo related_product_id
   });
   const [isLoading, setIsLoading] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
@@ -18,8 +19,8 @@ const ManagePublicity = () => {
   const [categoryFilter, setCategoryFilter] = useState("");
 
   // Obtener todas las publicidades
-<<<<<<< Updated upstream
   const fetchAdvertisements = async () => {
+    setIsLoading(true);
     try {
       const response = await axios.get("http://localhost:8080/api/publicidad");
       setAdvertisements(response.data);
@@ -27,30 +28,10 @@ const ManagePublicity = () => {
     } catch (error) {
       console.error("Error al obtener las publicidades:", error);
       alert("No se pudo cargar la lista de publicidades.");
-=======
- // Obtener todas las publicidades
- const fetchAdvertisements = async () => {
-  try {
-    setIsLoading(true);
-    const response = await axios.get("http://localhost:8080/api/publicidad");
-
-    // Verifica el tipo de respuesta
-    const contentType = response.headers['content-type'];
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new TypeError(`La respuesta no es JSON. Tipo recibido: ${contentType}`);
->>>>>>> Stashed changes
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = response.data;
-    setAdvertisements(data);
-    setFilteredAdvertisements(data);
-  } catch (error) {
-    console.error("Error al cargar los datos:", error);
-    alert("Hubo un problema al cargar las publicidades. Revise los logs.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     fetchAdvertisements();
@@ -74,24 +55,8 @@ const ManagePublicity = () => {
     }));
   };
 
-  // Definición de fetchgetProduct (sin cambios)
-  const fetchgetProduct = async (id) => {    
-    try {
-      const response = await fetch(`http://localhost:8080/api/getproduct/${id}`);
-      
-      const productId = await response.json();  
-
-      // Si todo está bien, devuelve el producto
-      return productId;
-    } catch (error) {      
-      // Manejar el error aquí
-      // console.error("Error al obtener el producto:", error);
-      throw new Error("Producto no encontrado")
-    }
-  }
-
-  // Definición de createAdvertisement usando async/await
-  const createAdvertisement = async () => {    
+  // Función para crear publicidad
+  const createAdvertisement = async () => {
     if (!newAd.category || !newAd.title || !newAd.description || !newAd.photo_url || !newAd.related_product_id) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
@@ -104,7 +69,7 @@ const ManagePublicity = () => {
 
       await axios.post("http://localhost:8080/api/publicidad", formData);
       alert("Publicidad creada exitosamente.");
-      setNewAd({ category: "", title: "", description: "", photo_url: null });
+      setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
       fetchAdvertisements();
     } catch (error) {
       console.error("Error al crear la publicidad:", error);
@@ -117,7 +82,7 @@ const ManagePublicity = () => {
   const deleteAdvertisement = async (id) => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
-    try {      
+    try {
       await axios.delete(`http://localhost:8080/api/publicidad/${id}`);
       alert("Publicidad eliminada correctamente.");
       fetchAdvertisements();
@@ -133,50 +98,41 @@ const ManagePublicity = () => {
       category: ad.category,
       title: ad.title,
       description: ad.description,
-      photo_url: ad.photo_url, // Asignar la imagen actual
+      photo_url: ad.photo_url,
+      related_product_id: ad.related_product_id || "", // Asignar el product_id si existe
     });
     setShowModal(true);
   };
-  
+
   const editAdvertisement = async () => {
     if (!newAd.title || !newAd.description) {
       alert("Por favor, complete todos los campos antes de enviar.");
       return;
     }
-  
+
     setIsLoading(true);
     try {
-      console.log(newAd);
-  
       const formData = new FormData();
-  
-      // Agregar campos si tienen valor
       formData.append("title", newAd.title);
       formData.append("description", newAd.description);
-  
-      // Incluir la foto nueva si existe, si no, incluir la imagen actual
       if (newAd.photo_url && newAd.photo_url instanceof File) {
         formData.append("photo_url", newAd.photo_url);
       } else if (editingAd.photo_url) {
-        formData.append("photo_url", editingAd.photo_url); // Mantener la foto actual
+        formData.append("photo_url", editingAd.photo_url);
       }
-  
-      // La categoría no se modifica, por lo que puedes enviar la actual
-      formData.append("category", editingAd.category);
-  
-      // Enviar la petición PUT
+      formData.append("category", newAd.category);
+      formData.append("related_product_id", newAd.related_product_id);
+
       await axios.put(
         `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
         formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
-  
+
       alert("Publicidad actualizada exitosamente.");
       setShowModal(false);
-      setNewAd({ category: "", title: "", description: "", photo_url: null });
-      fetchAdvertisements(); // Refresca la lista de anuncios
+      setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
+      fetchAdvertisements();
     } catch (error) {
       console.error("Error al editar la publicidad:", error);
       alert("Ocurrió un error al editar la publicidad.");
@@ -184,17 +140,16 @@ const ManagePublicity = () => {
       setIsLoading(false);
     }
   };
-  
+
   const openImageModal = (imageUrl) => {
     setModalImage(imageUrl);
     setShowModal(true);
   };
-  
+
   const closeModal = () => {
     setShowModal(false);
     setModalImage(null);
   };
-  
 
   return (
     <section className="manage-publicity">
@@ -204,11 +159,7 @@ const ManagePublicity = () => {
         {/* Crear nueva publicidad */}
         <div className="create-advertisement">
           <h5>Crear Nueva Publicidad</h5>
-          <select
-            name="category"
-            value={newAd.category}
-            onChange={handleInputChange}
-          >
+          <select name="category" value={newAd.category} onChange={handleInputChange}>
             <option value="">Selecciona una categoría</option>
             <option value="hogar">Hogar</option>
             <option value="supermercado">Supermercado</option>
@@ -228,6 +179,13 @@ const ManagePublicity = () => {
             value={newAd.description}
             onChange={handleInputChange}
           />
+          <input
+            type="text"
+            name="related_product_id"
+            placeholder="ID del Producto Relacionado"
+            value={newAd.related_product_id}
+            onChange={handleInputChange}
+          />
           <div>
             <label htmlFor="fileInput" className="custom-file-upload">
               Subir imágenes
@@ -239,7 +197,7 @@ const ManagePublicity = () => {
               accept="image/*"
               placeholder="Subir imagen"
               onChange={handleInputChange}
-              style={{display: "none"}}
+              style={{ display: "none" }}
             />
           </div>
           <button
@@ -276,7 +234,7 @@ const ManagePublicity = () => {
                   src={ad.photo_url}
                   alt={ad.title}
                   className="advertisement-image"
-                  onClick={() => openImageModal(ad.photo_url)} // Al hacer clic se abre el modal con la imagen
+                  onClick={() => openImageModal(ad.photo_url)}
                 />
                 <div className="advertisement-info">
                   <h4>{ad.title}</h4>
@@ -307,15 +265,6 @@ const ManagePublicity = () => {
         </div>
       </div>
 
-      {showModal && modalImage && (
-        <div className="modal">
-          <div className="modal-content">
-            <button onClick={closeModal} className="close-button">X</button>
-            <img src={modalImage} alt="Publicidad" className="modal-image" />
-          </div>
-        </div>
-      )}
-
       {/* Modal para la imagen */}
       {showModal && modalImage && (
         <div className="modal">
@@ -331,11 +280,7 @@ const ManagePublicity = () => {
         <div className="modal">
           <div className="modal-content">
             <h3>Editar Publicidad</h3>
-            <select
-              name="category"
-              value={newAd.category}
-              onChange={handleInputChange}
-            >
+            <select name="category" value={newAd.category} onChange={handleInputChange}>
               <option value="">Selecciona una categoría</option>
               <option value="hogar">Hogar</option>
               <option value="supermercado">Supermercado</option>
@@ -356,10 +301,16 @@ const ManagePublicity = () => {
               onChange={handleInputChange}
             />
             <div className="buttons">
-              <button className="edit-button" onClick={editAdvertisement} disabled={isLoading}>
+              <button
+                className="edit-button"
+                onClick={editAdvertisement}
+                disabled={isLoading}
+              >
                 {isLoading ? "Actualizando..." : "Actualizar Publicidad"}
-              </button> 
-              <button onClick={closeModal} className="close-button">Cerrar</button>
+              </button>
+              <button onClick={closeModal} className="close-button">
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
