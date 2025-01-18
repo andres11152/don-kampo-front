@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
+import { Select ,Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -34,6 +34,7 @@ const Checkout = () => {
   const [shippingCosts, setShippingCosts] = useState({});
   const [discountedShippingCost, setDiscountedShippingCost] = useState(null);
   const loginData = JSON.parse(localStorage.getItem("loginData")) || null;
+
 
   useEffect(() => {
     const fetchShippingCostsAndUser = async () => {
@@ -95,6 +96,8 @@ const Checkout = () => {
 
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
+
+  
   useEffect(() => {
     if (!Object.keys(shippingCosts).length) {
       const fetchShippingCosts = async () => {
@@ -215,6 +218,7 @@ const Checkout = () => {
         return parseInt(selectedVariation.price_home) || 0;
     }
   };
+  
 
   const calculateSubtotal = () => {
     return cartDetails.reduce((total, product) => {
@@ -294,6 +298,17 @@ const Checkout = () => {
     }
     removeOneFromCart(product);
   };
+  
+  const getUserType = () => {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+  
+    if (user && user.user_type) {
+      return user.user_type;  
+    }
+  
+    return "hogar";
+  };
 
   const handlePlaceOrder = async () => {
     if (validateForm()) {
@@ -321,6 +336,7 @@ const Checkout = () => {
           phone: userData.phone,
           city: userData.city,
           address: userData.address,
+          user_type: loginData?.user?.user_type || getUserType(),
           neighborhood: userData.neighborhood,
         },
         needsElectronicInvoice,
@@ -428,12 +444,15 @@ const Checkout = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
-                  <Form.Item label="Ciudad">
-                    <Input
+                <Form.Item label="Ciudad">
+                    <Select
                       name="city"
                       value={userData.city}
-                      onChange={handleInputChange}
-                    />
+                      onChange={(value) => handleInputChange({ target: { name: 'city', value } })}
+                    >
+                      <Select.Option value="Chía">Chía</Select.Option>
+                      <Select.Option value="Cajicá">Cajicá</Select.Option>
+                    </Select>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>

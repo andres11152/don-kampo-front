@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Select, Button, message, Input } from "antd";
 import { jsPDF } from "jspdf";
-
 import axios from "axios";
-import Navbar from "../../components/General/Header";
-import CustomFooter from "../../components/General/Footer";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import fruits from '../../assets/fruits.jpg'
@@ -228,7 +225,6 @@ const CreateOrder = () => {
   return (
     <div>
       <img id="fruits" src={fruits} alt="" />
-      <Navbar />
       <div className="create-order-container">
         <h2>Crear Orden Manual</h2>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -306,7 +302,6 @@ const CreateOrder = () => {
           </Button>
         </Form>
       </div>
-      <CustomFooter />
     </div>
   );
 };

@@ -141,4 +141,10 @@
     padding: 10px;
     font-size: 14px;
   }
+  .checkout-form .ant-row > .ant-col {
+    margin-bottom: 0px;
+  }
+  .checkout-container h2{
+    margin-bottom: 0px;
+  }
 }
