@@ -83,7 +83,7 @@ const Checkout = () => {
     };
 
     fetchShippingCostsAndUser();
-  }, []); // Se ejecuta solo una vez
+  }, []); 
 
   const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
   
@@ -315,13 +315,16 @@ const Checkout = () => {
       const currentDate = new Date();
       currentDate.setDate(currentDate.getDate() + 1);
       const estimatedDelivery = currentDate.toISOString();
-
+  
+      // Asegúrate de que el campo 'user_type' tenga un valor válido.
+      const userType = loginData?.user?.user_type || getUserType() || "hogar";  // "hogar" es el valor predeterminado
+  
       const orderData = {
         userId: loginData?.user?.id || '8739e2f0-5674-4b00-bee7-d83b47035573',
         cartDetails: cartDetails.map((product) => ({
           productId: product.product_id,
           quantity: product.quantity,
-          variationId: product.selectedVariation.variation_id, // ID de la variación
+          variationId: product.selectedVariation.variation_id,
           price: getPriceByUserType(product, product.selectedVariation),
         })),
         total: calculateSubtotal() + (discountedShippingCost ?? shippingCost),
@@ -336,16 +339,16 @@ const Checkout = () => {
           phone: userData.phone,
           city: userData.city,
           address: userData.address,
-          user_type: loginData?.user?.user_type || getUserType(),
+          user_type: userType,  // Aquí aseguramos que el 'user_type' sea válido
           neighborhood: userData.neighborhood,
         },
         needsElectronicInvoice,
         companyName: needsElectronicInvoice ? companyName : "",
         companyNit: needsElectronicInvoice ? companyNit : "",
-      };     
-      console.log(orderData);
-       
-
+      };
+  
+      console.log(orderData); // Para depuración
+  
       try {
         const response = await axios.post(
           "https://don-kampo-api.onrender.com/api/orders/placeOrder",
@@ -356,19 +359,16 @@ const Checkout = () => {
           setIsModalVisible(true);
         } else {
           message.error("Error al realizar el pedido. Inténtalo nuevamente.");
-          
         }
       } catch (error) {
         message.error("Error al realizar el pedido.");
-
         console.error(error);
       }
     } else {
-      message.error(
-        "Por favor, complete todos los campos antes de realizar el pedido."
-      );
+      message.error("Por favor, complete todos los campos antes de realizar el pedido.");
     }
   };
+  
 
   const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
 
@@ -379,7 +379,7 @@ const Checkout = () => {
       return;
     }
 
-    html2canvas(input).then((canvas) => {
+      html2canvas(input).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF();
 

@@ -11,8 +11,8 @@ const OrderManagement = () => {
     const [loading, setLoading] = useState(false);
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
     const [filteredOrders, setFilteredOrders] = useState([]);
+    const [shippingCosts, setShippingCosts] = useState({});
     const [statusFilter, setStatusFilter] = useState(null);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
@@ -65,6 +65,9 @@ const OrderManagement = () => {
             console.error(error);
         }
     };
+
+   
+    
     
     const handleStatusFilterChange = (value) => {
         setStatusFilter(value);
@@ -191,51 +194,72 @@ const OrderManagement = () => {
         }
       };
 
-    const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
+      const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
         try {
             // Llamar a la API para obtener los detalles de la orden
             const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
             const orderData = response.data;
-
-            // Crear el PDF
+    
+            console.log("Datos de la orden:", orderData);
+    
+            // Llamar a la API para obtener los tipos de cliente y costos de envío
+            const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
+            const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
+                acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
+                return acc;
+            }, {});
+    
+            console.log("Tipos de cliente:", customerTypes);
+    
+            // Verificar si existe el campo user_type o type_name en userData
+            const userType = orderData.userData?.user_type?.toLowerCase() || orderData.userData?.type_name?.toLowerCase();
+    
+            if (!userType) {
+                throw new Error("El tipo de usuario (type_name o user_type) no está definido en los datos de la orden.");
+            }
+    
+            console.log("Tipo de usuario:", userType);
+    
+            // Obtener el porcentaje de envío y calcular el costo
+            const totalValue = orderData.order.total;
+            const shippingPercentage = customerTypes[userType] || 0;
+            let shippingCost = (totalValue * shippingPercentage) / 100;
+    
+            // Aplicar descuento si es la primera orden
+            if (orderData.isFirstOrder) {
+                shippingCost /= 2;
+            }
+    
+            // Crear el PDF (el resto del código permanece igual)
             const doc = new jsPDF();
             doc.setFontSize(10);
-
-            // Insertar el logo de la empresa (ajustar la ruta según tu archivo)
-            const logoUrl = '/images/1.png'; // Ruta correcta si la imagen está en la carpeta 'public'
-            doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30); // Ajusta la posición y el tamaño según sea necesario
-
-            // Información del remitente (dividida en partes)
-            const senderInfo = [
-                'Don Kampo S.A.S',
-                'Nit 901.865.742',
-                'Chía - Cundinamarca',
-                '3117366666'
-            ];
-
-            const pageWidth = doc.internal.pageSize.width; // Obtener el ancho de la página
-            const senderX = pageWidth - 50; // Ubicar el texto a la derecha, ajusta el margen derecho
-
-            // Insertar la información del remitente, cada línea en una fila separada
+    
+            // Insertar el logo de la empresa
+            const logoUrl = '/images/1.png';
+            doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30);
+    
+            // Información del remitente
+            const senderInfo = ['Don Kampo S.A.S', 'Nit 901.865.742', 'Chía - Cundinamarca', '3117366666'];
+            const pageWidth = doc.internal.pageSize.width;
+            const senderX = pageWidth - 50;
+    
             doc.setFont('helvetica', 'bold');
             senderInfo.forEach((line, index) => {
-                doc.text(line, senderX, 10 + (index * 5)); // Ajusta el valor de 5 según sea necesario para la separación entre líneas
+                doc.text(line, senderX, 10 + (index * 5));
             });
-
+    
             // Título del documento
             doc.text("Detalles de la Orden", 10, 35);
-
-            // Información de la orden con etiquetas en negrita
-            const yOffset = 40; // Posición inicial en el eje Y
-            const lineHeight = 5; // Distancia entre las líneas de texto
-
-            // ID de la Orden
+    
+            // Información de la orden
+            const yOffset = 40;
+            const lineHeight = 5;
+    
             doc.setFont('helvetica', 'bold');
             doc.text("ID de Orden:", 10, yOffset);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.order.id}`, 33, yOffset); // Valor de ID justo después de la etiqueta, sin desplazamiento en X
-
-            // Estado de la Orden
+            doc.text(`${orderData.order.id}`, 33, yOffset);
+    
             const status = orderData.order.status_id === 1
                 ? 'Pendiente'
                 : orderData.order.status_id === 2
@@ -246,73 +270,70 @@ const OrderManagement = () => {
             doc.setFont('helvetica', 'bold');
             doc.text("Estado:", 10, yOffset + lineHeight);
             doc.setFont('helvetica', 'normal');
-            doc.text(status, 33, yOffset + lineHeight); // Valor de Estado justo después de la etiqueta, sin desplazamiento en X
-
-            // Información del cliente
+            doc.text(status, 33, yOffset + lineHeight);
+    
             doc.setFont('helvetica', 'bold');
             doc.text("Cliente:", 10, yOffset + 2 * lineHeight);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.userData.user_name} ${orderData.userData.lastname}`, 33, yOffset + 2 * lineHeight); // Valor de Cliente justo después de la etiqueta
-
+            doc.text(`${orderData.userData.user_name} ${orderData.userData.lastname}`, 33, yOffset + 2 * lineHeight);
+    
             doc.setFont('helvetica', 'bold');
             doc.text("Correo:", 10, yOffset + 3 * lineHeight);
             doc.setFont('helvetica', 'normal');
-            doc.text(orderData.userData.email, 33, yOffset + 3 * lineHeight); // Valor de Correo justo después de la etiqueta
-
+            doc.text(orderData.userData.email, 33, yOffset + 3 * lineHeight);
+    
             doc.setFont('helvetica', 'bold');
             doc.text("Teléfono:", 10, yOffset + 4 * lineHeight);
             doc.setFont('helvetica', 'normal');
-            doc.text(orderData.userData.phone, 33, yOffset + 4 * lineHeight); // Valor de Teléfono justo después de la etiqueta
-
+            doc.text(orderData.userData.phone, 33, yOffset + 4 * lineHeight);
+    
             doc.setFont('helvetica', 'bold');
             doc.text("Dirección:", 10, yOffset + 5 * lineHeight);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 33, yOffset + 5 * lineHeight); // Valor de Dirección justo después de la etiqueta
-
-
-            // Datos de los productos
+            doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 33, yOffset + 5 * lineHeight);
+    
+            // Datos de los productos y la tabla (sin cambios)
             const productData = orderData.items.map((item) => ({
                 "Producto": `${item.product_name} (${item.variation.quality} ${item.variation.quantity})`,
                 "Cantidad": item.quantity,
                 "Precio Unitario": `$${item.variation.price_home.toLocaleString()}`,
                 "Total": `$${(item.quantity * item.variation.price_home).toLocaleString()}`
             }));
-
-            // Establecer las columnas para la tabla
+    
             const columns = [
                 { title: "Producto", dataKey: "Producto" },
                 { title: "Cantidad", dataKey: "Cantidad" },
                 { title: "Precio Unitario", dataKey: "Precio Unitario" },
                 { title: "Total", dataKey: "Total" }
             ];
-
-            // Usar autoTable para crear la tabla de productos con un fondo verde y texto blanco
+    
             autoTable(doc, {
-                head: [columns.map(col => col.title)], // Encabezado de la tabla
-                body: productData.map(item => Object.values(item)), // Filas de la tabla
-                startY: yOffset + 6 * lineHeight, // Posición inicial de la tabla
-                theme: 'grid', // Estilo de la tabla
-                margin: { top: 10 }, // Margen superior de la tabla
+                head: [columns.map(col => col.title)],
+                body: productData.map(item => Object.values(item)),
+                startY: yOffset + 6 * lineHeight,
+                theme: 'grid',
+                margin: { top: 10 },
                 styles: {
                     head: {
-                        fillColor: '#00983a', // Fondo verde para el encabezado
-                        textColor: '#ffffff'  // Texto blanco para el encabezado
+                        fillColor: '#00983a',
+                        textColor: '#ffffff'
                     },
                     body: {
-                        justify: 'center', // Alineación centrada para el cuerpo de la tabla
-                        textColor: '#000000'  // Texto negro para el cuerpo de la tabla
+                        justify: 'center',
+                        textColor: '#000000'
                     }
                 }
             });
+    
+            // Agregar el costo de envío al PDF
+            doc.text(`Valor envío: $${shippingCost.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 10);
+    
+            // Valor productos
+            doc.text(`Valor productos: $${orderData.order.total.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
 
-
-           /*
-
-            // Agregar al PDF
-            doc.text(`Valor envío: $${userType} `, 10, doc.autoTable.previous.finalY + 10); */
-
-            // Total de la orden
-            doc.text(`Total de la Orden: $${orderData.order.total.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
+            // Total de la Orden
+            const totalPedido = Math.floor(orderData.order.total + shippingCost); // Suma y elimina los decimales
+            doc.text(`Total Pedido: $${totalPedido.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 25);
 
             // Descargar el PDF
             doc.save(`Orden_${orderData.order.id}.pdf`);
@@ -320,6 +341,7 @@ const OrderManagement = () => {
             console.error("Error al generar el PDF:", error);
         }
     };
+    
 
     const orderColumns = [
         { title: 'ID de Orden', dataIndex: 'id', key: 'id' },
