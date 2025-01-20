@@ -228,7 +228,6 @@ const Cart = () => {
               <h3>Total del Carrito</h3>
               <Divider />
               <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-              <p>Envío: ${shippingCost.toLocaleString()}</p>
               <p>
                 <strong>Total: ${total.toLocaleString()}</strong>
               </p>

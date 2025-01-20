@@ -200,15 +200,12 @@ const OrderManagement = () => {
             const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
             const orderData = response.data;
     
-    
             // Llamar a la API para obtener los tipos de cliente y costos de envío
             const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
             const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
                 acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
                 return acc;
             }, {});
-    
-            console.log("Tipos de cliente:", customerTypes);
     
             // Verificar si existe el campo user_type o type_name en userData
             const userType = orderData.userData?.user_type?.toLowerCase() || orderData.userData?.type_name?.toLowerCase();
@@ -217,19 +214,24 @@ const OrderManagement = () => {
                 throw new Error("El tipo de usuario (type_name o user_type) no está definido en los datos de la orden.");
             }
     
-            console.log("Tipo de usuario:", userType);
-    
             // Obtener el porcentaje de envío y calcular el costo
-            const totalValue = orderData.order.total;
+            const subtotal = orderData.order.total;
             const shippingPercentage = customerTypes[userType] || 0;
-            let shippingCost = (totalValue * shippingPercentage) / 100;
     
-            // Aplicar descuento si es la primera orden
-            if (orderData.isFirstOrder) {
-                shippingCost /= 2;
+            let shippingCost = (subtotal * shippingPercentage) / 100;
+    
+            // Aplicar reglas específicas según el tipo de usuario y condiciones
+            if (userType === "hogar") {
+                if (!orderData.userData?.isLoggedIn) {
+                    shippingCost = 5000; // Hogar sin registrarse
+                } else if (orderData.isFirstOrder) {
+                    shippingCost = 0; // Hogar registrado en su primer pedido
+                }
+            } else if (userType === "restaurante" && orderData.isFirstOrder) {
+                shippingCost /= 2; // Restaurante en su primer pedido
             }
     
-            // Crear el PDF (el resto del código permanece igual)
+            // Crear el PDF
             const doc = new jsPDF();
             doc.setFontSize(10);
     
@@ -291,7 +293,7 @@ const OrderManagement = () => {
             doc.setFont('helvetica', 'normal');
             doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 33, yOffset + 5 * lineHeight);
     
-            // Datos de los productos y la tabla (sin cambios)
+            // Datos de los productos y la tabla
             const productData = orderData.items.map((item) => ({
                 "Producto": `${item.product_name} (${item.variation.quality} ${item.variation.quantity})`,
                 "Cantidad": item.quantity,
@@ -328,18 +330,19 @@ const OrderManagement = () => {
             doc.text(`Valor envío: $${shippingCost.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 10);
     
             // Valor productos
-            doc.text(`Valor productos: $${orderData.order.total.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
-
+            doc.text(`Valor productos: $${subtotal.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
+    
             // Total de la Orden
-            const totalPedido = Math.floor(orderData.order.total + shippingCost); // Suma y elimina los decimales
+            const totalPedido = Math.floor(subtotal + shippingCost); // Suma y elimina los decimales
             doc.text(`Total Pedido: $${totalPedido.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 25);
-
+    
             // Descargar el PDF
             doc.save(`Orden_${orderData.order.id}.pdf`);
         } catch (error) {
             console.error("Error al generar el PDF:", error);
         }
     };
+    
     
 
     const orderColumns = [

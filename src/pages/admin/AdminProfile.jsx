@@ -289,55 +289,68 @@ const AdminProfile = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/orders");
+        const response = await axios.get("http://localhost:8080/api/orders");
 
-      const dataOrders = response.data.map(item => ({
-        ...item.order,
-        email: item.userData?.email || ''
-      }));      
-      
-      const dataPurchaseOrders = response.data.flatMap(item => item.items)
-      // Agrupamos y sumamos las cantidades
-      const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
-        const key = `${product.product_id}-${product.product_variation_id}`;
-        
-        // Si no existe el producto, lo agregamos
-        if (!acc[key]) acc[key] = { ...product };
-        // Si ya existe, sumamos la cantidad
-        else { acc[key].quantity += product.quantity; }
+        // Filtrar órdenes pendientes (status_id = 1)
+        const pendingOrders = response.data.filter(item => item.order.status_id === 1);
 
-        return acc;
-      }, {});
-      // Convertimos el objeto de agrupación en un array
-      const uniquePurchaseProducts = Object.values(consolidatedProducts).map(product => {
-        const { variation } = product; // Extraemos el objeto variation
-        if (variation) {
-          // Traemos las propiedades al nivel superior
-          return {
-            id_producto: product.product_id,
-            cantidad: variation.quantity,
-            nombre_producto: product.product_name,
-            id_variacion: product.product_variation_id,
-            calidad: variation.quality,
-            total: product.quantity
-          };
-        }
-        return product; // Si no hay variation, devolvemos el producto sin cambios
-      });
-            
-      setPurchaseOrders(uniquePurchaseProducts)      
-      setOrders(dataOrders);
-      setFilteredOrders(dataOrders);
+        // Procesar datos de órdenes
+        const dataOrders = pendingOrders.map(item => ({
+            ...item.order,
+            email: item.userData?.email || ''
+        }));
+
+        // Procesar datos de productos de las órdenes pendientes
+        const dataPurchaseOrders = pendingOrders.flatMap(item => item.items);
+
+        // Agrupamos y sumamos las cantidades de los productos
+        const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
+            const key = `${product.product_id}-${product.product_variation_id}`;
+
+            // Si no existe el producto, lo agregamos
+            if (!acc[key]) {
+                acc[key] = { ...product };
+            } else {
+                // Si ya existe, sumamos la cantidad
+                acc[key].quantity += product.quantity;
+            }
+
+            return acc;
+        }, {});
+
+        // Convertimos el objeto de agrupación en un array
+        const uniquePurchaseProducts = Object.values(consolidatedProducts).map(product => {
+            const { variation } = product; // Extraemos el objeto variation
+            if (variation) {
+                // Traemos las propiedades al nivel superior
+                return {
+                    id_producto: product.product_id,
+                    cantidad: variation.quantity,
+                    nombre_producto: product.product_name,
+                    id_variacion: product.product_variation_id,
+                    calidad: variation.quality,
+                    total: product.quantity
+                };
+            }
+            return product; // Si no hay variation, devolvemos el producto sin cambios
+        });
+
+        // Actualizar el estado con las órdenes y productos filtrados
+        setPurchaseOrders(uniquePurchaseProducts);
+        setOrders(dataOrders);
+        setFilteredOrders(dataOrders);
     } catch (error) {
-      message.error("Error al cargar los pedidos.");
-      console.error(error);
+        message.error("Error al cargar los pedidos.");
+        console.error(error);
     }
-  };
+};
 
-  useEffect(() => {
+// Llamar a fetchOrders al montar el componente
+useEffect(() => {
     fetchUsers();
     fetchOrders();
-  }, []);
+}, []);
+
 
   const uploadProducts = async (products) => {
     setLoading(true);
@@ -613,46 +626,7 @@ const AdminProfile = () => {
     );
   };
   
-  const downloadSampleExcel = () => {
-    // Ejemplo con múltiples bloques de variaciones
-    const exampleData = [
-      {
-        Nombre: "Producto Ejemplo 1",
-        Descripción: "Descripción del producto 1",
-        Categoría: "Categoría 1",
-        Stock: 100,
-        // Variaciones para Producto 1 (p. ej. hasta 7)
-        ...createVariationColumns(7, [
-          { quality: "Alta", quantity: 15, price_home: 3, price_supermarket: 3.5, price_restaurant: 4, price_fruver: 4.5 },
-          { quality: "Media", quantity: 10, price_home: 2.5, price_supermarket: 3, price_restaurant: 3.5, price_fruver: 4 },
-          // Resto de variaciones aún están vacías para mostrar el formato
-        ])
-      },
-      {
-        Nombre: "Producto Ejemplo 2",
-        Descripción: "Descripción del producto 2",
-        Categoría: "Categoría 2",
-        Stock: 200,
-        // Variaciones para Producto 2 (p. ej. hasta 4)
-        ...createVariationColumns(4, [
-          { quality: "Alta", quantity: 15, price_home: 3.0, price_supermarket: 3.5, price_restaurant: 4.0, price_fruver: 4.5 },
-          // Resto de variaciones aún están vacías para mostrar el formato
-        ])
-      }
-    ];
   
-    // Crear un libro de trabajo
-    const workbook = XLSX.utils.book_new();
-  
-    // Convertir los datos a una hoja de trabajo
-    const worksheet = XLSX.utils.json_to_sheet(exampleData);
-  
-    // Agregar la hoja de trabajo al libro
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Productos Ejemplo");
-    
-    // Descargar el archivo Excel
-    XLSX.writeFile(workbook, "Productos_Ejemplo.xlsx");
-  };
   
   // Función de apoyo para crear columnas de variaciones dinámicamente
   const createVariationColumns = (maxVariations, variations) => {

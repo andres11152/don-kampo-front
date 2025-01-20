@@ -38,51 +38,55 @@ const Checkout = () => {
   useEffect(() => {
     const fetchShippingCostsAndUser = async () => {
       try {
-        // Fetch shipping costs
-        const response = await axios.get(
-          "https://don-kampo-api.onrender.com/api/customer-types"
-        );
+        // Obtener costos de envío
+        const response = await axios.get("http://localhost:8080/api/customer-types");
         const costs = response.data.reduce((acc, type) => {
-          acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
+          acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost); // Convertir a decimal
           return acc;
         }, {});
         setShippingCosts(costs);
-
-        // Fetch user data solo si no se ha cargado antes
-        if (!userData && loginData?.user) {
+  
+        if (loginData?.user) {
+          // Obtener datos del usuario
           const userResponse = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
+            `http://localhost:8080/api/users/${loginData.user.id}`
           );
           const user = userResponse.data.user;
           setUserData(user);
-
+  
           const hasOrders =
             userResponse.data.orders && userResponse.data.orders.length > 0;
-          const shippingPercentage = costs[userType] || 0;
-
-          const totalValue = userResponse.data.cartTotal || 0;
-          const calculatedShippingCost =
-            (totalValue * shippingPercentage) / 100;
-
+  
+          // Determinar tipo de usuario y porcentaje de envío
+          const userTypeKey = loginData?.user?.user_type?.toLowerCase() || "hogar";
+          const shippingPercentage = costs[userTypeKey] || 0;
+  
+          // Calcular subtotal dinámicamente
+          const subtotal = calculateSubtotal();
+  
+          // Calcular costo de envío
+          let calculatedShippingCost = (subtotal * shippingPercentage) / 100;
+  
+          // Aplicar descuento del 50% si es el primer pedido
           if (!hasOrders) {
             setIsFirstOrder(true);
-            setDiscountedShippingCost(calculatedShippingCost / 2);
-          } else {
-            setDiscountedShippingCost(calculatedShippingCost);
+            calculatedShippingCost /= 2;
           }
-
-          setShippingCost(calculatedShippingCost);
+  
+          // Actualizar costo de envío
+          setDiscountedShippingCost(calculatedShippingCost); // Para fines de visualización
+          setShippingCost(calculatedShippingCost); // Valor dinámico del costo
         }
       } catch (error) {
-        message.error(
-          "Error al cargar los datos de usuario o costos de envío."
-        );
+        message.error("Error al cargar los datos de usuario o costos de envío.");
         console.error(error);
       }
     };
-
+  
     fetchShippingCostsAndUser();
-  }, []);
+  }, [cartDetails]); // Escuchar cambios en el carrito
+  
+  
 
   const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
 
@@ -121,55 +125,66 @@ const Checkout = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (loginData && loginData.user) {
-        // Si el usuario está logueado
-        try {
+      try {
+        if (loginData && loginData.user) {
+          // Si el usuario está logueado
           const response = await axios.get(
             `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
           );
           const user = response.data.user;
           setUserData(user);
-
+  
           const hasOrders =
             response.data.orders && response.data.orders.length > 0;
-          if (!hasOrders) {
-            setIsFirstOrder(true); // Marcamos que es el primer pedido
-            const userType = loginData.user.user_type.toLowerCase();
-            if (shippingCosts[userType] !== undefined) {
-              setShippingCost(shippingCosts[userType] / 2); // Aplica el descuento del 50%
-            } else {
-              setShippingCost(shippingCosts[userType]); // En caso de no encontrar el tipo de usuario, el costo es 0
+  
+          const userTypeKey = loginData.user.user_type.toLowerCase(); // Tipo de usuario
+  
+          const subtotal = calculateSubtotal(); // Subtotal del carrito
+          const shippingPercentage = shippingCosts[userTypeKey] || 0;
+  
+          // Cálculo base del envío
+          let calculatedShippingCost = (subtotal * shippingPercentage) / 100;
+  
+          if (userTypeKey === "hogar") {
+            if (!hasOrders) {
+              // 100% de descuento si es el primer pedido
+              calculatedShippingCost = 0;
             }
-          } else {
-            // Si no es el primer pedido, aplicamos el costo regular
-            const userType = loginData.user.user_type.toLowerCase();
-            setShippingCost(shippingCosts[userType] || 0);
+          } else if (userTypeKey === "restaurante") {
+            if (!hasOrders) {
+              // 50% de descuento si es el primer pedido
+              calculatedShippingCost /= 2;
+            }
           }
-        } catch (error) {
-          message.error("Error al cargar los datos del usuario.");
-          console.error(error);
-        }
-      } else {
-        // Si el usuario no está logueado
-        const userType = localStorage.getItem("userType");
-        if (userType === "Hogar" || !userType) {
-          // Pedidos anónimos permitidos para "Hogar" o usuarios no definidos
-
-          setShippingCost(shippingCosts["hogar"] || 0);
+  
+          setIsFirstOrder(!hasOrders);
+          setShippingCost(calculatedShippingCost);
         } else {
-          // Forzamos inicio de sesión para otros tipos de usuarios
-          message.error(
-            "Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra."
-          );
-          navigate("/login");
+          // Si el usuario no está logueado
+          const userType = localStorage.getItem("userType");
+  
+          if (userType === "hogar" || !userType) {
+            // Costo fijo para usuarios no logueados tipo "hogar"
+            setShippingCost(5000);
+          } else {
+            // Forzar inicio de sesión para otros tipos de usuarios
+            message.error(
+              "Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra."
+            );
+            navigate("/login");
+          }
         }
+      } catch (error) {
+        message.error("Error al cargar los datos del usuario.");
+        console.error(error);
       }
     };
-
+  
     if (Object.keys(shippingCosts).length) {
       fetchUserData();
     }
-  }, [shippingCosts, navigate]);
+  }, [shippingCosts, cartDetails, loginData]);
+  
 
 
   useEffect(() => {
@@ -201,22 +216,22 @@ const Checkout = () => {
   }, [cart]);
 
   const getPriceByUserType = (product, selectedVariation) => {
-    if (!selectedVariation) return 0;
+  if (!selectedVariation) return 0; // Asegúrate de devolver 0 si no hay variación
+  const userType = loginData?.user?.user_type || "hogar";
+  switch (userType) {
+    case "hogar":
+      return parseInt(selectedVariation.price_home) || 0;
+    case "supermercado":
+      return parseInt(selectedVariation.price_supermarket) || 0;
+    case "restaurante":
+      return parseInt(selectedVariation.price_restaurant) || 0;
+    case "fruver":
+      return parseInt(selectedVariation.price_fruver) || 0;
+    default:
+      return parseInt(selectedVariation.price_home) || 0;
+  }
+};
 
-    const userType = loginData?.user?.user_type;
-    switch (userType) {
-      case "hogar":
-        return parseInt(selectedVariation.price_home) || 0;
-      case "supermercado":
-        return parseInt(selectedVariation.price_supermarket) || 0;
-      case "restaurante":
-        return parseInt(selectedVariation.price_restaurant) || 0;
-      case "fruver":
-        return parseInt(selectedVariation.price_fruver) || 0;
-      default:
-        return parseInt(selectedVariation.price_home) || 0;
-    }
-  };
 
 
   const calculateSubtotal = () => {
@@ -326,7 +341,7 @@ const Checkout = () => {
           variationId: product.selectedVariation.variation_id,
           price: getPriceByUserType(product, product.selectedVariation),
         })),
-        total: calculateSubtotal() + (discountedShippingCost ?? shippingCost),
+        total: calculateSubtotal() + (discountedShippingCost),
         shippingCost: discountedShippingCost ?? shippingCost,
         shippingMethod: "Overnight",
         estimatedDelivery: estimatedDelivery,
@@ -386,7 +401,7 @@ const Checkout = () => {
 
     doc.setFont('helvetica', 'bold');
     senderInfo.forEach((line, index) => {
-      doc.text(line, senderX, 10 + (index * 5));
+        doc.text(line, senderX, 10 + (index * 5));
     });
 
     // **Título del documento y fecha**
@@ -394,44 +409,71 @@ const Checkout = () => {
     doc.text("Detalles de la Orden", 10, 35);
     const orderDate = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     const deliveryDate = new Date(new Date().setDate(new Date().getDate() + 1))
-      .toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+        .toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 
     doc.setFontSize(10);
-    doc.text(`Fecha de la orden: ${orderDate}`, 10, 40);
-    doc.text(`Fecha de entrega: ${deliveryDate}`, 10, 45);
-    doc.text(`ID de la orden: ${orderId}`, 10, 50);
-    doc.text(`Cliente: ${userData.user_name} ${userData.lastname}`, 10, 55);
-    doc.text(`Correo: ${userData.email}`, 10, 60);
-    doc.text(`Teléfono: ${userData.phone}`, 10, 65);
-    doc.text(`Dirección: ${userData.address}, ${userData.neighborhood}, ${userData.city}`, 10, 70);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Fecha de la orden:", 10, 40);
+    doc.setFont('helvetica', 'normal');
+    doc.text(orderDate, 55, 40);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Fecha de entrega:", 10, 45);
+    doc.setFont('helvetica', 'normal');
+    doc.text(deliveryDate, 55, 45);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("ID de la orden:", 10, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${orderId}`, 55, 50);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Cliente:", 10, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${userData.user_name} ${userData.lastname}`, 55, 55);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Correo:", 10, 60);
+    doc.setFont('helvetica', 'normal');
+    doc.text(userData.email, 55, 60);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Teléfono:", 10, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(userData.phone, 55, 65);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Dirección:", 10, 70);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${userData.address}, ${userData.neighborhood}, ${userData.city}`, 55, 70);
 
     // **Configuración de la tabla con los productos**
     const tableColumns = [
-      { header: 'Producto', dataKey: 'description' },
-      { header: 'Precio Unitario', dataKey: 'unitPrice' },
-      { header: 'Cantidad', dataKey: 'quantity' },
-      { header: 'Subtotal', dataKey: 'subtotal' },
+        { header: 'Producto', dataKey: 'description' },
+        { header: 'Precio Unitario', dataKey: 'unitPrice' },
+        { header: 'Cantidad', dataKey: 'quantity' },
+        { header: 'Subtotal', dataKey: 'subtotal' },
     ];
 
     const tableData = cartDetails.map((product) => ({
-      description: `${product.name} (${product.selectedVariation.quality} - ${product.selectedVariation.quantity})`,
-      unitPrice: `$${getPriceByUserType(product, product.selectedVariation).toLocaleString()}`,
-      quantity: product.quantity,
-      subtotal: `$${(getPriceByUserType(product, product.selectedVariation) * product.quantity).toLocaleString()}`,
+        description: `${product.name} (${product.selectedVariation.quality} - ${product.selectedVariation.quantity})`,
+        unitPrice: `$${getPriceByUserType(product, product.selectedVariation).toLocaleString()}`,
+        quantity: product.quantity,
+        subtotal: `$${(getPriceByUserType(product, product.selectedVariation) * product.quantity).toLocaleString()}`,
     }));
 
     // **Renderizar la tabla**
     doc.autoTable({
-      columns: tableColumns,
-      body: tableData,
-      startY: 75, // Comienza justo después de la dirección
-      styles: { fontSize: 10 },
-      columnStyles: {
-        description: { cellWidth: 'auto' },
-        unitPrice: { halign: 'right' },
-        quantity: { halign: 'center' },
-        subtotal: { halign: 'right' },
-      },
+        columns: tableColumns,
+        body: tableData,
+        startY: 75, // Comienza justo después de la dirección
+        styles: { fontSize: 10 },
+        columnStyles: {
+            description: { cellWidth: 'auto' },
+            unitPrice: { halign: 'right' },
+            quantity: { halign: 'center' },
+            subtotal: { halign: 'right' },
+        },
     });
 
     // **Calcular posición final para totales**
@@ -439,10 +481,11 @@ const Checkout = () => {
 
     // **Agregar subtotales, envío y total al final**
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
     doc.text(`Subtotal: $${calculateSubtotal().toLocaleString()}`, 10, finalY);
     doc.text(`Envío: $${shippingCost.toLocaleString()}`, 10, finalY + 5);
     doc.setFontSize(14);
-    doc.text(`Total: $${total.toLocaleString()}`, 10, finalY + 10);
+    doc.text(`Total: $${(calculateSubtotal() + shippingCost).toLocaleString()}`, 10, finalY + 10);
 
     // **Guardar el PDF**
     doc.save(`Resumen_Pedido_${orderId}.pdf`);
@@ -451,7 +494,8 @@ const Checkout = () => {
     clearCart();
     message.success("El carrito ha sido vaciado después de generar el PDF.");
     navigate("/products");
-  };
+};
+
 
 
   return (
@@ -692,8 +736,8 @@ const Checkout = () => {
                 ))}
                 <Divider />
                 <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-                <p>Envío: ${shippingCost}</p>
-                <h4>Total: ${total.toLocaleString()}</h4>
+                <p>Envío: ${shippingCost.toLocaleString()}</p>
+                <h4>Total: ${(calculateSubtotal() + shippingCost).toLocaleString()}</h4>
               </div>
             </Modal>
           </div>
