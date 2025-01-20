@@ -200,10 +200,9 @@ const OrderManagement = () => {
             const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
             const orderData = response.data;
     
-            console.log("Datos de la orden:", orderData);
     
             // Llamar a la API para obtener los tipos de cliente y costos de envío
-            const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
+            const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
             const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
                 acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
                 return acc;

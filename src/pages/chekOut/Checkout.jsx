@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Select ,Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
+import { Select, Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
+import "jspdf-autotable";
 import axios from "axios";
 import Header from "../../components/General/Header";
 import CustomFooter from "../../components/General/Footer";
@@ -83,10 +82,10 @@ const Checkout = () => {
     };
 
     fetchShippingCostsAndUser();
-  }, []); 
+  }, []);
 
   const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
-  
+
   const navigate = useNavigate();
   const { width, height } = useWindowSize();
 
@@ -97,7 +96,7 @@ const Checkout = () => {
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
 
-  
+
   useEffect(() => {
     if (!Object.keys(shippingCosts).length) {
       const fetchShippingCosts = async () => {
@@ -130,7 +129,7 @@ const Checkout = () => {
           );
           const user = response.data.user;
           setUserData(user);
-  
+
           const hasOrders =
             response.data.orders && response.data.orders.length > 0;
           if (!hasOrders) {
@@ -155,7 +154,7 @@ const Checkout = () => {
         const userType = localStorage.getItem("userType");
         if (userType === "Hogar" || !userType) {
           // Pedidos anónimos permitidos para "Hogar" o usuarios no definidos
-          
+
           setShippingCost(shippingCosts["hogar"] || 0);
         } else {
           // Forzamos inicio de sesión para otros tipos de usuarios
@@ -166,12 +165,12 @@ const Checkout = () => {
         }
       }
     };
-  
+
     if (Object.keys(shippingCosts).length) {
       fetchUserData();
     }
   }, [shippingCosts, navigate]);
-  
+
 
   useEffect(() => {
     const fetchCartDetails = async () => {
@@ -179,7 +178,7 @@ const Checkout = () => {
         const productDetails = await Promise.all(
           Object.entries(cart).map(async ([key, item]) => {
             const [productId] = key.split('-');
-            
+
             const response = await axios.get(
               `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
             );
@@ -218,7 +217,7 @@ const Checkout = () => {
         return parseInt(selectedVariation.price_home) || 0;
     }
   };
-  
+
 
   const calculateSubtotal = () => {
     return cartDetails.reduce((total, product) => {
@@ -298,15 +297,15 @@ const Checkout = () => {
     }
     removeOneFromCart(product);
   };
-  
+
   const getUserType = () => {
 
     const user = JSON.parse(localStorage.getItem("user"));
-  
+
     if (user && user.user_type) {
-      return user.user_type;  
+      return user.user_type;
     }
-  
+
     return "hogar";
   };
 
@@ -315,10 +314,10 @@ const Checkout = () => {
       const currentDate = new Date();
       currentDate.setDate(currentDate.getDate() + 1);
       const estimatedDelivery = currentDate.toISOString();
-  
+
       // Asegúrate de que el campo 'user_type' tenga un valor válido.
       const userType = loginData?.user?.user_type || getUserType() || "hogar";  // "hogar" es el valor predeterminado
-  
+
       const orderData = {
         userId: loginData?.user?.id || '8739e2f0-5674-4b00-bee7-d83b47035573',
         cartDetails: cartDetails.map((product) => ({
@@ -346,9 +345,9 @@ const Checkout = () => {
         companyName: needsElectronicInvoice ? companyName : "",
         companyNit: needsElectronicInvoice ? companyNit : "",
       };
-  
+
       console.log(orderData); // Para depuración
-  
+
       try {
         const response = await axios.post(
           "https://don-kampo-api.onrender.com/api/orders/placeOrder",
@@ -368,34 +367,92 @@ const Checkout = () => {
       message.error("Por favor, complete todos los campos antes de realizar el pedido.");
     }
   };
-  
+
 
   const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
 
   const generateOrderPDF = () => {
-    const input = document.getElementById("order-summary-pdf");
-    if (!input) {
-      message.error("No se pudo generar el PDF. Intenta nuevamente.");
-      return;
-    }
+    const doc = new jsPDF();
+    doc.setFontSize(10);
 
-      html2canvas(input).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF();
+    // **Insertar el logo de la empresa**
+    const logoUrl = '/images/1.png';
+    doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30);
 
-      const imgWidth = 190;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const position = 10;
+    // **Información del remitente**
+    const senderInfo = ['Don Kampo S.A.S', 'Nit 901.865.742', 'Chía - Cundinamarca', '3117366666'];
+    const pageWidth = doc.internal.pageSize.width;
+    const senderX = pageWidth - 50;
 
-      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
-      pdf.save(`Resumen_Pedido_${orderId}.pdf`);
-
-      clearCart();
-      message.success("El carrito ha sido vaciado después de generar el PDF.");
-      navigate("/products");
+    doc.setFont('helvetica', 'bold');
+    senderInfo.forEach((line, index) => {
+      doc.text(line, senderX, 10 + (index * 5));
     });
+
+    // **Título del documento y fecha**
+    doc.setFontSize(14);
+    doc.text("Detalles de la Orden", 10, 35);
+    const orderDate = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const deliveryDate = new Date(new Date().setDate(new Date().getDate() + 1))
+      .toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    doc.setFontSize(10);
+    doc.text(`Fecha de la orden: ${orderDate}`, 10, 40);
+    doc.text(`Fecha de entrega: ${deliveryDate}`, 10, 45);
+    doc.text(`ID de la orden: ${orderId}`, 10, 50);
+    doc.text(`Cliente: ${userData.user_name} ${userData.lastname}`, 10, 55);
+    doc.text(`Correo: ${userData.email}`, 10, 60);
+    doc.text(`Teléfono: ${userData.phone}`, 10, 65);
+    doc.text(`Dirección: ${userData.address}, ${userData.neighborhood}, ${userData.city}`, 10, 70);
+
+    // **Configuración de la tabla con los productos**
+    const tableColumns = [
+      { header: 'Producto', dataKey: 'description' },
+      { header: 'Precio Unitario', dataKey: 'unitPrice' },
+      { header: 'Cantidad', dataKey: 'quantity' },
+      { header: 'Subtotal', dataKey: 'subtotal' },
+    ];
+
+    const tableData = cartDetails.map((product) => ({
+      description: `${product.name} (${product.selectedVariation.quality} - ${product.selectedVariation.quantity})`,
+      unitPrice: `$${getPriceByUserType(product, product.selectedVariation).toLocaleString()}`,
+      quantity: product.quantity,
+      subtotal: `$${(getPriceByUserType(product, product.selectedVariation) * product.quantity).toLocaleString()}`,
+    }));
+
+    // **Renderizar la tabla**
+    doc.autoTable({
+      columns: tableColumns,
+      body: tableData,
+      startY: 75, // Comienza justo después de la dirección
+      styles: { fontSize: 10 },
+      columnStyles: {
+        description: { cellWidth: 'auto' },
+        unitPrice: { halign: 'right' },
+        quantity: { halign: 'center' },
+        subtotal: { halign: 'right' },
+      },
+    });
+
+    // **Calcular posición final para totales**
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    // **Agregar subtotales, envío y total al final**
+    doc.setFontSize(12);
+    doc.text(`Subtotal: $${calculateSubtotal().toLocaleString()}`, 10, finalY);
+    doc.text(`Envío: $${shippingCost.toLocaleString()}`, 10, finalY + 5);
+    doc.setFontSize(14);
+    doc.text(`Total: $${total.toLocaleString()}`, 10, finalY + 10);
+
+    // **Guardar el PDF**
+    doc.save(`Resumen_Pedido_${orderId}.pdf`);
+
+    // **Limpiar el carrito y redirigir**
+    clearCart();
+    message.success("El carrito ha sido vaciado después de generar el PDF.");
+    navigate("/products");
   };
+
 
   return (
     <div>
@@ -444,7 +501,7 @@ const Checkout = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
-                <Form.Item label="Ciudad">
+                  <Form.Item label="Ciudad">
                     <Select
                       name="city"
                       value={userData.city}
@@ -604,7 +661,8 @@ const Checkout = () => {
                   style={{ backgroundColor: "#FF914D", color: "#fff" }}
                 >
                   Descargar PDF
-                </Button>,
+                </Button>
+
               ]}
             >
               <div id="order-summary-pdf">
