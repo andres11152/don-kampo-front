@@ -135,10 +135,10 @@ const Home = () => {
     <>
       <Header setShowInstallModal={setShowInstallModal} />
       <main>
-        <div className="search-bar">
+      <div className="search-bar">
           <AutoComplete
+            className="custom-search-bar" // Agregamos una clase personalizada
             options={searchResults.map((product) => {
-              // Obtener el mínimo y máximo de los precios en todas las variaciones
               const prices = product.variations.flatMap((variation) => [
                 variation.price_fruver,
                 variation.price_home,
@@ -150,28 +150,28 @@ const Home = () => {
               const maxPrice = Math.max(...prices);
 
               return {
-                value: product.name, // Usar "name" del backend
-                key: product.product_id, // Clave única
+                value: product.name,
+                key: product.product_id,
                 label: (
                   <div className="search-result-item">
                     <div>
                       <img
-                        src={product.photo_url} // Usar "photo_url" para la miniatura
-                        alt={product.name} // Usar "name" como alt
+                        src={product.photo_url}
+                        alt={product.name}
                         style={{ width: "50px", marginRight: "10px" }}
                       />
-                      <span>{product.name}</span> {/* Mostrar el nombre del producto */}
+                      <span>{product.name}</span>
                     </div>
                     <span className="range">
                       {minPrice === maxPrice
-                        ? `$${minPrice}` // Si los precios son iguales, mostrar solo uno
-                        : `$${minPrice} - $${maxPrice}`} {/* Mostrar el rango de precios */}
+                        ? `$${minPrice}`
+                        : `$${minPrice} - $${maxPrice}`}
                     </span>
                   </div>
                 ),
               };
             })}
-            style={{ width: '400px' }}
+            style={{ width: "500px" }} // Esto es opcional, el estilo puede ir en CSS
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."
@@ -187,6 +187,7 @@ const Home = () => {
             Buscar
           </Button>
         </div>
+
         {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>

@@ -123,6 +123,9 @@
     height: 30px; /* Tamaño fijo para los botones */
     min-width: 30px;
 }
+.ant-select{
+    width: 300px;
+}
 
 /* Hover para los botones */
 .quantity-button:hover {

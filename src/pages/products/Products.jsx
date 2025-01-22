@@ -315,97 +315,103 @@ const Products = () => {
 
       {currentProduct && (
         <Modal
-          title={currentProduct.name}
-          open={isVisible}
-          onCancel={handleCancelModal}
-          footer={null}
-          width={400}
+        title={currentProduct.name}
+        open={isVisible}
+        onCancel={handleCancelModal}
+        footer={null}
+        width={400}
+      >
+        <img
+          alt={currentProduct.name}
+          src={getBase64Image(currentProduct.photo_url)}
+          style={{ width: "100%", height: "300px", objectFit: "cover" }}
+        />
+      
+        <Select
+          placeholder="Selecciona calidad"
+          style={{ width: "100%", marginBottom: "8px" }} // Usamos width dinámico
+          onChange={(value) =>
+            handleVariationChange(currentProduct.product_id, "quality", value)
+          }
+          value={selectedVariations[currentProduct.product_id]?.quality}
         >
-          <img  
-            alt={currentProduct.name}
-            src={getBase64Image(currentProduct.photo_url)}
-            style={{ width: "100%", height: "300px", objectFit: "cover" }}
+          {currentProduct.variations.map((variation) => (
+            <Option key={variation.variation_id} value={variation.quality}>
+              {variation.quality}
+            </Option>
+          ))}
+        </Select>
+      
+        <Select
+          placeholder="Selecciona cantidad"
+          style={{ width: "100%", marginBottom: "8px" }} // Usamos width dinámico
+          onChange={(value) =>
+            handleVariationChange(currentProduct.product_id, "quantity", value)
+          }
+          value={selectedVariations[currentProduct.product_id]?.quantity}
+        >
+          {currentProduct.variations.map((variation) => (
+            <Option key={variation.variation_id} value={variation.quantity}>
+              {variation.quantity}
+            </Option>
+          ))}
+        </Select>
+      
+        <div className="quantity-controls" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
+          <input
+            type="number"
+            value={quantities[currentProduct.product_id] || 1}
+            onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
+            style={{
+              width: "50px",
+              textAlign: "center",
+              border: "1px solid #d9d9d9",
+              borderRadius: "4px",
+              padding: "4px",
+            }}
           />
-          <Select
-            placeholder="Selecciona calidad"
-            style={{ width: "200px", marginBottom: 8 }}
-            onChange={(value) =>
-              handleVariationChange(currentProduct.product_id, "quality", value)
-            }
-            value={selectedVariations[currentProduct.product_id]?.quality}
-          >
-            {currentProduct.variations.map((variation) => (
-              <Option key={variation.variation_id} value={variation.quality}>
-                {variation.quality}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Selecciona cantidad"
-            style={{ width: "200px", marginBottom: 8 }}
-            onChange={(value) =>
-              handleVariationChange(currentProduct.product_id, "quantity", value)
-            }
-            value={selectedVariations[currentProduct.product_id]?.quantity}
-          >
-            {currentProduct.variations.map((variation) => (
-              <Option key={variation.variation_id} value={variation.quantity}>
-                {variation.quantity}
-              </Option>
-            ))}
-          </Select>
-
-          <div className="quantity-controls">
-            <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
-            <input
-              type="number"
-              value={quantities[currentProduct.product_id] || 1}
-              onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
-              style={{ width: "50px", textAlign: "center" }}
-            />
-            <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
-          </div>
-
-            
-
-          <div className="product-price">
-            {selectedVariations[currentProduct.product_id]?.quality &&
-            selectedVariations[currentProduct.product_id]?.quantity ? (
-              <span>
-                Precio: $
-                {(
-                  getPriceByUserType(
-                    currentProduct.variations.find(
-                      (v) =>
-                        v.quality === selectedVariations[currentProduct.product_id]?.quality &&
-                        v.quantity === selectedVariations[currentProduct.product_id]?.quantity
-                    )
-                  ) * (quantities[currentProduct.product_id] || 1)
-                )
-                  .toFixed(2) // Aseguramos que tenga dos decimales
-                  .replace(/\.00$/, "") // Eliminamos ".00" si es el caso
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")} {/* Agregar separadores de miles */}
-              </span>
-            ) : (
-              <span>Selecciona calidad y cantidad para ver el precio!</span>
-            )}
-          </div>
-
-          <Button
-            type="primary"
-            onClick={() =>
-              handleAddToCart(currentProduct, quantities[currentProduct.product_id] || 1)
-            }
-            disabled={
-              !selectedVariations[currentProduct.product_id]?.quality ||
-              !selectedVariations[currentProduct.product_id]?.quantity
-            }
-            style={{ marginTop: 8 }}
-          >
-            Añadir al carrito
-          </Button>
-        </Modal>
+          <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
+        </div>
+      
+        <div className="product-price" style={{ marginTop: "8px", textAlign: "center" }}>
+          {selectedVariations[currentProduct.product_id]?.quality &&
+          selectedVariations[currentProduct.product_id]?.quantity ? (
+            <span>
+              Precio: $
+              {(
+                getPriceByUserType(
+                  currentProduct.variations.find(
+                    (v) =>
+                      v.quality === selectedVariations[currentProduct.product_id]?.quality &&
+                      v.quantity === selectedVariations[currentProduct.product_id]?.quantity
+                  )
+                ) * (quantities[currentProduct.product_id] || 1)
+              )
+                .toFixed(2) // Aseguramos que tenga dos decimales
+                .replace(/\.00$/, "") // Eliminamos ".00" si es el caso
+                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")} {/* Agregar separadores de miles */}
+            </span>
+          ) : (
+            <span>Selecciona calidad y cantidad para ver el precio!</span>
+          )}
+        </div>
+      
+        <Button
+          type="primary"
+          onClick={() =>
+            handleAddToCart(currentProduct, quantities[currentProduct.product_id] || 1)
+          }
+          disabled={
+            !selectedVariations[currentProduct.product_id]?.quality ||
+            !selectedVariations[currentProduct.product_id]?.quantity
+          }
+          style={{ marginTop: "8px", width: "100%" }} // Ajuste para botones dinámicos
+        >
+          Añadir al carrito
+        </Button>
+      </Modal>
+      
       )}
 
       <BotonWhatsapp />
