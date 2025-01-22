@@ -25,6 +25,7 @@ import "./ManageProducts.css";
 import UpdateOrderPrices from "../orders/UpdateOrdersPending";
 import UpdateMultipleProducts from "../createProduct/UpdateMultipleProducts";
 import OrderManagement from "../orders/Orders";
+import SalesReport from "../sales/SalesReport";
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -474,6 +475,9 @@ const ManageProducts = () => {
           </Tabs.TabPane>
           <Tabs.TabPane tab="Ordenes" key="5">
             <OrderManagement />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Ventas" key="6">
+           <SalesReport />
           </Tabs.TabPane>
         </Tabs>
       </section>

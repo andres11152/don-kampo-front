@@ -171,7 +171,7 @@ const Home = () => {
                 ),
               };
             })}
-            style={{ width: '90%' }}
+            style={{ width: '400px' }}
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."

@@ -11,6 +11,7 @@ import { useCart } from "../products/CartContext";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./Checkout.css";
 import fruits from '../../assets/fruits.jpg'
+import { useRef } from "react";
 
 const Checkout = () => {
   const [userData, setUserData] = useState({
@@ -106,7 +107,7 @@ const Checkout = () => {
       const fetchShippingCosts = async () => {
         try {
           const response = await axios.get(
-            "https://don-kampo-api.onrender.com/api/customer-types"
+            "http://localhost:8080/api/customer-types"
           );
           const costs = response.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
@@ -123,70 +124,7 @@ const Checkout = () => {
     }
   }, []); // Solo una vez
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        if (loginData && loginData.user) {
-          // Si el usuario está logueado
-          const response = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
-          );
-          const user = response.data.user;
-          setUserData(user);
-  
-          const hasOrders =
-            response.data.orders && response.data.orders.length > 0;
-  
-          const userTypeKey = loginData.user.user_type.toLowerCase(); // Tipo de usuario
-  
-          const subtotal = calculateSubtotal(); // Subtotal del carrito
-          const shippingPercentage = shippingCosts[userTypeKey] || 0;
-  
-          // Cálculo base del envío
-          let calculatedShippingCost = (subtotal * shippingPercentage) / 100;
-  
-          if (userTypeKey === "hogar") {
-            if (!hasOrders) {
-              // 100% de descuento si es el primer pedido
-              calculatedShippingCost = 0;
-            }
-          } else if (userTypeKey === "restaurante") {
-            if (!hasOrders) {
-              // 50% de descuento si es el primer pedido
-              calculatedShippingCost /= 2;
-            }
-          }
-  
-          setIsFirstOrder(!hasOrders);
-          setShippingCost(calculatedShippingCost);
-        } else {
-          // Si el usuario no está logueado
-          const userType = localStorage.getItem("userType");
-  
-          if (userType === "hogar" || !userType) {
-            // Costo fijo para usuarios no logueados tipo "hogar"
-            setShippingCost(5000);
-          } else {
-            // Forzar inicio de sesión para otros tipos de usuarios
-            message.error(
-              "Restaurante, Fruver y Supermercado deben iniciar sesión para realizar la compra."
-            );
-            navigate("/login");
-          }
-        }
-      } catch (error) {
-        message.error("Error al cargar los datos del usuario.");
-        console.error(error);
-      }
-    };
-  
-    if (Object.keys(shippingCosts).length) {
-      fetchUserData();
-    }
-  }, [shippingCosts, cartDetails, loginData]);
-  
-
-
+ 
   useEffect(() => {
     const fetchCartDetails = async () => {
       try {
@@ -195,7 +133,7 @@ const Checkout = () => {
             const [productId] = key.split('-');
 
             const response = await axios.get(
-              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -205,7 +143,10 @@ const Checkout = () => {
             };
           })
         );
-        setCartDetails(productDetails.filter(item => item !== null));
+        const newDetails = productDetails.filter(item => item !== null);
+        if (JSON.stringify(newDetails) !== JSON.stringify(cartDetails)) {
+          setCartDetails(newDetails);
+        }
       } catch (error) {
         message.error("Error al cargar los detalles del carrito.");
         console.error(error);
@@ -213,7 +154,9 @@ const Checkout = () => {
     };
 
     fetchCartDetails();
-  }, [cart]);
+  }, [cart])
+
+
 
   const getPriceByUserType = (product, selectedVariation) => {
   if (!selectedVariation) return 0; // Asegúrate de devolver 0 si no hay variación
@@ -260,7 +203,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`,
+          `http://localhost:8080/api/updateusers/${loginData.user.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -365,7 +308,7 @@ const Checkout = () => {
 
       try {
         const response = await axios.post(
-          "https://don-kampo-api.onrender.com/api/orders/placeOrder",
+          "http://localhost:8080/api/orders/placeOrder",
           orderData
         );
         if (response.status === 201) {

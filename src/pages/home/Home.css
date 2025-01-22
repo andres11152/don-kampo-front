@@ -129,7 +129,9 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
     margin: 0;
     line-height: 1.5;
 }
-
+.ant-select{
+    width: 500px !important;
+}
 
 .carousel-button {
     background-color: #ff914d;
@@ -315,6 +317,9 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   min-width: 200px !important;
   width: 90% !important;
  }
+ .ant-select{
+  width: 90% !important;
+}
 }
 
 .ant-modal-title {
@@ -363,6 +368,10 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 }
 .ant-card-meta-title{
     color: #00983a;
+}
+:where(.css-dev-only-do-not-override-1htoz2s).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #00983a;
+  text-shadow: 0 0 0.25px currentcolor;
 }
 
 /* Pantallas pequeñas (teléfonos) */

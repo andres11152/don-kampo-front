@@ -135,6 +135,10 @@
     color: #333;
     font-weight: bold;
 }
+.ant-modal-title {
+    color: #00983A  !important;
+    font-weight: bold;
+}
 .green-text {
     color: #00983A;
     font-weight: bold;

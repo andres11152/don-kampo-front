@@ -161,7 +161,7 @@ const Header = (props) => {
       {/* Drawer para menú en pantallas pequeñas */}
       <Drawer
         title="Menú"
-        placement="right"
+        placement="left"
         closable
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}

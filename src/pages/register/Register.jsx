@@ -71,7 +71,7 @@ const Register = () => {
           <div className="form-row">
             {/* Nombre */}
             <Form.Item
-              label="Nombre"
+              label="Nombres"
               name="user_name"
               rules={[{ required: true, message: "Por favor ingresa tu nombre" }]}
             >
@@ -80,7 +80,7 @@ const Register = () => {
 
             {/* Apellido */}
             <Form.Item
-              label="Apellido"
+              label="Apellidos"
               name="lastname"
               rules={[{ required: true, message: "Por favor ingresa tu apellido" }]}
             >
@@ -116,7 +116,7 @@ const Register = () => {
           <div className="form-row">
             {/* Ciudad */}
             <Form.Item
-              label="Ciudad"
+              label="Ciudad / Municipio"
               name="city"
               rules={[
                 { required: true, message: "Por favor selecciona tu ciudad" },
@@ -152,6 +152,10 @@ const Register = () => {
             rules={[
               { required: true, message: "Por favor ingresa una contraseña" },
               { min: 6, message: "La contraseña debe tener al menos 6 caracteres" },
+              {
+                pattern: /^(?=.*[a-zA-Z])(?=.*\d)[A-Za-z\d]{6,}$/,
+                message: "La contraseña debe ser alfanumérica",
+              },
             ]}
           >
             <Input.Password placeholder="Contraseña" />
