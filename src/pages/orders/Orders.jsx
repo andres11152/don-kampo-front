@@ -22,7 +22,7 @@ const OrderManagement = () => {
     }, []);
     const fetchOrders = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/api/orders");
+            const response = await axios.get("https://don-kampo-api.onrender.com/api/orders");
 
             // Procesar datos de órdenes
             const dataOrders = response.data.map(item => ({
@@ -90,7 +90,7 @@ const OrderManagement = () => {
             const responses = await Promise.all(
                 filteredOrders.map(async (order) => {
                     try {
-                        const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
+                        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${order.id}`);
                         console.log(response);
 
                         const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
@@ -172,7 +172,7 @@ const OrderManagement = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
           // Cambiamos la URL para incluir directamente el id y el nuevo estado
-          await axios.put(`http://localhost:8080/api/updatestatus/${orderId}/${newStatus}`);
+          await axios.put(`https://don-kampo-api.onrender.com/api/updatestatus/${orderId}/${newStatus}`);
           message.success("Estado del pedido actualizado correctamente.");
           fetchOrders(); // Refresca la lista de pedidos después de actualizar el estado
         } catch (error) {
@@ -185,7 +185,7 @@ const OrderManagement = () => {
     // Eliminar un pedido
     const deleteOrder = async (orderId) => {
         try {
-          await axios.delete(`http://localhost:8080/api/deleteorders/${orderId}`);
+          await axios.delete(`https://don-kampo-api.onrender.com/api/deleteorders/${orderId}`);
           message.success("Pedido eliminado correctamente.");
           fetchOrders();
         } catch (error) {
@@ -197,11 +197,11 @@ const OrderManagement = () => {
     const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
     try {
         // Llamar a la API para obtener los detalles de la orden
-        const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
         const orderData = response.data;
 
         // Llamar a la API para obtener los tipos de cliente y costos de envío
-        const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
+        const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
         const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
             return acc;
