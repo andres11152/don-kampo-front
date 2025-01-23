@@ -90,6 +90,9 @@
     border-radius: 6px;
     padding: 4px 12px;
   }
+  :where(.css-dev-only-do-not-override-1htoz2s).ant-col-6{
+    flex: 0 0 50%;
+  }
   
   /* Responsive Design */
   @media (max-width: 768px) {
