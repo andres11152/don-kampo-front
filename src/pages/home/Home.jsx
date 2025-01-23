@@ -242,7 +242,11 @@ const Home = () => {
                   hoverable
                   cover={<img alt={category.title} src={category.img} />}
                   className="category-card"
-                  onClick={() => handleCategoryClick(category.title)}
+                  onClick={(e) => {
+                    e.preventDefault(); 
+                    handleCategoryClick(category.title);
+                  }}
+                  
                 >
                   <Card.Meta title={category.title} />
                 </Card>
