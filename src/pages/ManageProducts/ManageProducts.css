@@ -1,3 +1,5 @@
+
+/* Contenedor principal */
 .manage-products-container {
   padding: 40px 60px;
   font-family: Arial, sans-serif;
@@ -6,6 +8,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Estilo para el título */
 .section-title {
   font-size: 24px;
   font-weight: bold;
@@ -13,106 +16,25 @@
   margin-bottom: 20px;
 }
 
-.manage-search {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  
-}
-.ant-selector{
-
-  width: 100px !important;
-  border-radius: 6px;
-}
-
-.search-input {
-  width: 300px;
-  border-radius: 6px;
-}
-
-.generate-excel-btn {
-  padding: 10px 20px;
-  border: 2px solid #4caf50;
-  background-color: transparent;
-  color: #4caf50;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.generate-excel-btn:hover {
-  background-color: #4caf50;
-  color: rgb(8, 128, 72);
-}
-.manage-search button, .create-product button{
-  color: #4caf50;
-}
-.refresh-icon {
-  font-size: 24px;
-  color: #007acc;
-  cursor: pointer;
-}
-:where(.css-dev-only-do-not-override-1x0dypw).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn{
-  color: white;
-  padding: 0 20px;
- 
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.product-table {
-  margin-top: 20px;
-}
-
-.edit-product-modal .ant-modal-header {
-  background-color: #4caf50;
-  color: white;
-}
-
-.variation-card {
-  padding: 20px;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.remove-variation-btn {
-  margin-top: 10px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-.add-variation-btn {
-  margin-top: 20px;
-  width: 100%;
-  border-radius: 6px;
-}
-
-.save-changes-btn {
-  background-color: #4caf50;
-  color: white;
-  font-weight: bold;
-  border-radius: 6px;
-}
-/* Estilo para el contenedor de las pestañas */
+/* Estilo del contenedor de pestañas */
 .manage-products-container .ant-tabs {
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  padding: 10px;
 }
 
 /* Pestaña activa */
 .manage-products-container .ant-tabs-tab.ant-tabs-tab-active {
-  color: #ffffff;
-  background-color: var(--color-primary); /* Usar el color principal del tema */
+  color: #ffffff !important;
+  background-color: var(--color-primary) !important;
+  font-weight: bold;
+  border-radius: 8px 8px 0 0;
+  transition: background-color 0.3s ease;
+}
+.ant-tabs-tab-btn{
+  color: #ffffff !important;
+
   font-weight: bold;
   border-radius: 8px 8px 0 0;
   transition: background-color 0.3s ease;
@@ -120,58 +42,121 @@
 
 /* Pestaña inactiva */
 .manage-products-container .ant-tabs-tab {
-  color: #146d2f;
-  background-color: #f7f7f7;
+  color: #ffffff;
+  background-color: var(--color-secondary);
   border-radius: 8px 8px 0 0;
-  font-weight: normal;
+  font-weight: bold;
+  margin-right: 10px;
   transition: background-color 0.3s ease;
 }
 
+/* Hover para pestañas inactivas */
 .manage-products-container .ant-tabs-tab:hover {
   background-color: var(--color-secondary-hover);
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
-/* Estilo del contenido de las pestañas */
-.manage-products-container .ant-tabs-content {
+/* Contenido de las pestañas */
+.manage-products-container .ant-tabs-content-holder {
   background-color: #ffffff;
   border-radius: 0 0 8px 8px;
   padding: 20px;
 }
 
-/* Ajustes adicionales para los botones dentro de las pestañas */
-.manage-products-container .ant-btn-primary {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
+/* Botón Generar Excel */
+.generate-excel-btn {
+  padding: 10px 20px;
+  border: 2px solid var(--color-primary);
+  background-color: var(--color-white);
+  color: var(--color-primary);
   font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.manage-products-container .ant-btn-primary:hover {
-  background-color: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-/* Estilo para el icono de la recarga */
-.manage-products-container .fa-solid.fa-rotate-right {
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 20px;
-  color: var(--color-secondary);
-  transition: color 0.3s ease;
+  transition: 0.3s;
 }
 
-.manage-products-container .fa-solid.fa-rotate-right:hover {
+.generate-excel-btn:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* Icono de recarga */
+.refresh-icon {
+  font-size: 24px;
+  color: var(--color-secondary);
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.refresh-icon:hover {
   color: var(--color-primary);
 }
 
-.ant-tabs .ant-tabs-tab+.ant-tabs-tab{
-  margin-left: 10px;
-  padding: 0 2rem;
+/* Botón Guardar Cambios */
+.save-changes-btn {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-weight: bold;
+  border-radius: 6px;
 }
 
-/* Pestañas en móviles y pantallas pequeñas */
-@media (max-width: 768px) {
-  .manage-products-container .ant-tabs-tab {
-    font-size: 14px;
-  }
+.save-changes-btn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* Botón para agregar variación */
+.add-variation-btn {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+.add-variation-btn:hover {
+  background-color: var(--color-secondary-hover);
+}
+
+/* Botón para eliminar variación */
+.remove-variation-btn {
+  background-color: #f44336;
+  color: var(--color-white);
+  font-weight: bold;
+  border-radius: 6px;
+}
+
+/* Estilo de tablas */
+.product-table {
+  margin-top: 20px;
+}
+
+.product-table .ant-table-thead > tr > th {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.product-table .ant-table-tbody > tr > td {
+  background-color: #ffffff;
+}
+
+.product-table .ant-table-row:hover {
+  background-color: var(--color-secondary);
+  color: var(--color-white);
+}
+
+/* Modal Editar Producto */
+.edit-product-modal .ant-modal-header {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Modal cuerpo */
+.edit-product-modal .ant-modal-body {
+  padding: 20px;
+}
+:where(.css-dev-only-do-not-override-1htoz2s).ant-tabs .ant-tabs-tab+.ant-tabs-tab{
+  margin-left: 10px;
+}
+.ant-tabs-tab-btn{
+  padding: 0 7px
 }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
-import { Upload, Button, message } from "antd";
+import { Upload, Button, message, Alert } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "./UpdateMultipleProducts.css";
@@ -156,13 +156,19 @@ const UpdateMultipleProducts = () => {
   return (
     
     <div className="update-multiple-products">
-      <h2>Actualización Multiple de Productos </h2>
-      <Upload {...uploadProps}>
-        <Button className="excel" icon={<UploadOutlined />}>
-          Actualizar múltiples productos (EXCEL)
-        </Button>
-      </Upload>
+      <h2>Actualización Múltiple de Productos</h2>
+        <Alert
+          message="El archivo Excel de actualización es el que se genera en Gestión de Productos."
+          type="info"
+          showIcon
+          style={{ marginBottom: '20px' }}
+        />
 
+        <Upload {...uploadProps}>
+          <Button className="excel" icon={<UploadOutlined />}>
+            Actualizar múltiples productos (EXCEL)
+          </Button>
+        </Upload>
       {isLoading && (
         <div className="isLoading">
           <div className={processExcel.status}>
