@@ -767,7 +767,7 @@ useEffect(() => {
       <div className="admin-profile-container">
         <h2>Bienvenido al Panel de Administración</h2>
         <p>
-        👤 Administra usuarios, 📦 gestiona pedidos, 🚚 configura precios de envíos y 🛒 Gestiona tus compras fácilmente. ¡Todo en un solo lugar! 🎯
+        👤 Administra usuarios, 🚚 precios de envíos, 🛒 compras y 📢 publicidad. ¡Todo en un solo lugar! 🎯
         </p>
         {renderUserTable()}
         
