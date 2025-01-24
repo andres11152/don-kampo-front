@@ -40,7 +40,7 @@ const Checkout = () => {
     const fetchShippingCostsAndUser = async () => {
       try {
         // Obtener costos de envío
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
+        const response = await axios.get("http://localhost:8080/api/customer-types");
         const costs = response.data.reduce((acc, type) => {
           acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost); // Convertir a decimal
           return acc;
@@ -50,7 +50,7 @@ const Checkout = () => {
         if (loginData?.user) {
           // Obtener datos del usuario
           const userResponse = await axios.get(
-            `https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`
+            `http://localhost:8080/api/users/${loginData.user.id}`
           );
           const user = userResponse.data.user;
           setUserData(user);
@@ -107,7 +107,7 @@ const Checkout = () => {
       const fetchShippingCosts = async () => {
         try {
           const response = await axios.get(
-            "https://don-kampo-api.onrender.com/api/customer-types"
+            "http://localhost:8080/api/customer-types"
           );
           const costs = response.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
@@ -133,7 +133,7 @@ const Checkout = () => {
             const [productId] = key.split('-');
 
             const response = await axios.get(
-              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -203,7 +203,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`,
+          `http://localhost:8080/api/updateusers/${loginData.user.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -308,7 +308,7 @@ const Checkout = () => {
 
       try {
         const response = await axios.post(
-          "https://don-kampo-api.onrender.com/api/orders/placeOrder",
+          "http://localhost:8080/api/orders/placeOrder",
           orderData
         );
         if (response.status === 201) {

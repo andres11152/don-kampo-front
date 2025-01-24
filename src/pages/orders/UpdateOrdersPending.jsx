@@ -10,7 +10,7 @@ const UpdateOrderPrices = () => {
     setLoading(true);
 
     try {
-      const response = await axios.put("https://don-kampo-api.onrender.com/api/orders/updatePrices");
+      const response = await axios.put("http://localhost:8080/api/orders/updatePrices");
       notification.success({
         message: "Éxito",
         description: response.data.msg || "Los precios se han actualizado correctamente.",

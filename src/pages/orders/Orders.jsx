@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Select, Popconfirm, Spin, message, Card } from 'antd';
+import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker } from 'antd';
 import { Option } from 'antd/es/mentions';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import "./Orders.css";
+
+const { RangePicker } = DatePicker;
 
 
 const OrderManagement = () => {
@@ -16,14 +18,16 @@ const OrderManagement = () => {
     const [shippingCosts, setShippingCosts] = useState({});
     const [dateFilter, setDateFilter] = useState(null);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+    const [statusFilter, setStatusFilter] = useState(null);
+    const [dateRange, setDateRange] = useState([null, null]);
 
     useEffect(() => {
-
         fetchOrders();
     }, []);
+
     const fetchOrders = async () => {
         try {
-            const response = await axios.get("https://don-kampo-api.onrender.com/api/orders");
+            const response = await axios.get("http://localhost:8080/api/orders");
 
             // Procesar datos de órdenes
             const dataOrders = response.data.map(item => ({
@@ -68,16 +72,42 @@ const OrderManagement = () => {
     };
 
     
-    const handleStatusFilterChange = (value) => {
-        setStatusFilter(value);
-        if (value === null) {
-            setFilteredOrders(orders); // Mostrar todos los pedidos si no hay filtro
-        } else {
-            const filtered = orders.filter((order) => order.status_id === value);
-            setFilteredOrders(filtered); // Filtrar por el estado seleccionado
-        }
-    };
 
+
+    useEffect(() => {
+        if (statusFilter === null) {
+            setFilteredOrders(orders); // Si no hay filtro, muestra todas las órdenes
+        } else {
+            const filtered = orders.filter((order) => order.status_id === statusFilter);
+            setFilteredOrders(filtered); // Filtra las órdenes según el estado seleccionado
+        }
+    }, [statusFilter, orders]); // Se ejecuta cuando cambia el filtro o las órdenes
+    
+    useEffect(() => {
+        let filtered = [...orders];
+
+        if (statusFilter !== null) {
+            filtered = filtered.filter(order => order.status_id === statusFilter);
+        }
+
+        if (dateRange[0] && dateRange[1]) {
+            const [start, end] = dateRange;
+            filtered = filtered.filter(order => {
+                const orderDate = new Date(order.order_date);
+                return orderDate >= start && orderDate <= end;
+            });
+        }
+
+        setFilteredOrders(filtered);
+    }, [statusFilter, dateRange, orders]);
+    
+    const handleStatusFilterChange = (value) => {
+        setStatusFilter(value); // Actualiza el estado del filtro
+    };
+    
+    const handleDateRangeChange = (dates) => {
+        setDateRange(dates || [null, null]);
+    };
 
 
     const exportFilteredOrdersToExcel = async () => {
@@ -91,7 +121,7 @@ const OrderManagement = () => {
             const responses = await Promise.all(
                 filteredOrders.map(async (order) => {
                     try {
-                        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${order.id}`);
+                        const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
                         console.log(response);
 
                         const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
@@ -173,7 +203,7 @@ const OrderManagement = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
           // Cambiamos la URL para incluir directamente el id y el nuevo estado
-          await axios.put(`https://don-kampo-api.onrender.com/api/updatestatus/${orderId}/${newStatus}`);
+          await axios.put(`http://localhost:8080/api/updatestatus/${orderId}/${newStatus}`);
           message.success("Estado del pedido actualizado correctamente.");
           fetchOrders(); // Refresca la lista de pedidos después de actualizar el estado
         } catch (error) {
@@ -186,7 +216,7 @@ const OrderManagement = () => {
     // Eliminar un pedido
     const deleteOrder = async (orderId) => {
         try {
-          await axios.delete(`https://don-kampo-api.onrender.com/api/deleteorders/${orderId}`);
+          await axios.delete(`http://localhost:8080/api/deleteorders/${orderId}`);
           message.success("Pedido eliminado correctamente.");
           fetchOrders();
         } catch (error) {
@@ -198,11 +228,11 @@ const OrderManagement = () => {
     const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
     try {
         // Llamar a la API para obtener los detalles de la orden
-        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
+        const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
         const orderData = response.data;
 
         // Llamar a la API para obtener los tipos de cliente y costos de envío
-        const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
+        const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
         const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
             return acc;
@@ -410,33 +440,37 @@ const OrderManagement = () => {
 
     return (
         <Card title="Gestión de Pedidos" style={{ marginTop: '20px' }}>
-            <div style={{ marginBottom: '20px' }}>
-                <Select
-                    placeholder="Filtrar por estado"
-                    allowClear
-                    onChange={handleStatusFilterChange}
-                    style={{ width: 200 }}
-                >
-                    <Option value={null}>Todos</Option>
-                    <Option value={1}>Pendiente</Option>
-                    <Option value={2}>Enviado</Option>
-                    <Option value={3}>Entregado</Option>
-                    <Option value={4}>Cancelado</Option>
-                    <Option value={5}>Pagado</Option>
-                </Select>
-                <Button type="primary" onClick={exportFilteredOrdersToExcel}>
-                    Descargar Excel
-                </Button>
-            </div>
-            <Spin spinning={loading}>
-                <Table
-                    dataSource={filteredOrders}
-                    columns={orderColumns}
-                    rowKey="id"
-                    pagination={{ pageSize: 5 }}
-                />
-            </Spin>
-        </Card>
+        <div style={{ marginBottom: '20px', display: 'flex', gap: '16px' }}>
+            <Select
+                placeholder="Filtrar por estado"
+                allowClear
+                onChange={handleStatusFilterChange}
+                style={{ width: 200 }}
+            >
+                <Option value={null}>Todos</Option>
+                <Option value={1}>Pendiente</Option>
+                <Option value={2}>Enviado</Option>
+                <Option value={3}>Entregado</Option>
+                <Option value={4}>Cancelado</Option>
+                <Option value={5}>Pagado</Option>
+            </Select>
+            <RangePicker
+                onChange={handleDateRangeChange}
+                format="YYYY-MM-DD"
+            />
+            <Button type="primary" onClick={exportFilteredOrdersToExcel}>
+                Descargar Excel
+            </Button>
+        </div>
+        <Spin spinning={loading}>
+            <Table
+                dataSource={filteredOrders}
+                columns={orderColumns}
+                rowKey="id"
+                pagination={{ pageSize: 5 }}
+            />
+        </Spin>
+    </Card>
     );
 };
 
