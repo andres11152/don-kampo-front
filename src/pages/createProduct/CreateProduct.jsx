@@ -262,7 +262,7 @@ const CreateProduct = () => {
               <Button
                 onClick={() => removeVariation(index)}
                 type="danger"
-                style={{ marginTop: 10 }}
+                style={{ marginTop: 10 , color: "#ff4d4f  " }}
               >
                 Eliminar Variación
               </Button>

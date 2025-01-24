@@ -12,7 +12,7 @@ body {
 /* Contenedor principal del formulario */
 .manage-products-container, .create-product {
   display: grid;
-  gap: 40px;
+  gap: 10px;
   max-width: 1200px;
   margin: 0 auto;
   border-radius: 10px;
@@ -39,7 +39,6 @@ h4 {
 /* Estilo de las secciones */
 .create-product .main-data, .create-product .variation-data {
   display: grid;
-  gap: 20px;
 }
 
 /* Entradas y campos del formulario */
@@ -64,7 +63,7 @@ h4 {
 
 /* Botones */
 .create-product button {
-  background-color: var(--color-primary);
+  background-color: var(--color-secondary);
   color: var(--color-white);
   padding: 10px;	
   font-weight: bold;
