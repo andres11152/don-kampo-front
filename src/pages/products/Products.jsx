@@ -81,42 +81,50 @@ const Products = () => {
   const filterProducts = useCallback(
     (category, query) => {
       const filtered = products.filter((product) => {
-        const matchesCategory = category === "Todas" || product.category === category;    
-        
+        const matchesCategory = category === "Todas" || product.category === category;
+  
+        // Normaliza el texto de búsqueda
         const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
+  
         return matchesCategory && matchesSearch;
       });
       setFilteredProducts(filtered);
-      setCurrentPage(1); // Reiniciar a la primera página
+      setCurrentPage(1); // Reinicia la paginación
     },
-    [products] // Dependencia de la lista de productos
+    [products]
   );
-
+  
   useEffect(() => {
-    // Obtener el parámetro de búsqueda de la URL
+    // Filtros iniciales basados en los parámetros de URL
     const urlParams = new URLSearchParams(window.location.search);
-    
+  
     const searchQueryFromUrl = urlParams.get("search") || "";
-    const categoryQueryFromUrl = urlParams.get("category") || "Todas"
+    const categoryQueryFromUrl = urlParams.get("category") || "Todas";
     const idQueryFromUrl = urlParams.get("id") || null;
-    
-    setSelectedCategory(categoryQueryFromUrl)
-    
-    idQueryFromUrl && 
-      openModal(products.filter(product => product.product_id == idQueryFromUrl)[0])
-    
+  
+    // Sincroniza la categoría y el texto de búsqueda
+    setSelectedCategory(categoryQueryFromUrl);
     setSearchQuery(searchQueryFromUrl);
+  
+    // Aplica los filtros iniciales
     filterProducts(categoryQueryFromUrl, searchQueryFromUrl);
-  }, [selectedCategory, filterProducts]);
-
+  
+    // Abre el modal si hay un producto específico en la URL
+    if (idQueryFromUrl) {
+      const product = products.find((p) => p.product_id == idQueryFromUrl);
+      if (product) openModal(product);
+    }
+  }, [products, filterProducts]);
+  
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
-    filterProducts(value, searchQuery);
+    filterProducts(value, searchQuery); // Aplica el filtro al cambiar categoría
   };
-
+  
   const handleSearchChange = (event) => {
     const query = event.target.value;
     setSearchQuery(query);
+    filterProducts(selectedCategory, query); // Aplica el filtro al buscar
   };
   
   const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

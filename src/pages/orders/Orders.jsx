@@ -7,13 +7,14 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import "./Orders.css";
 
+
 const OrderManagement = () => {
     const [loading, setLoading] = useState(false);
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [shippingCosts, setShippingCosts] = useState({});
-    const [statusFilter, setStatusFilter] = useState(null);
+    const [dateFilter, setDateFilter] = useState(null);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
     useEffect(() => {
@@ -66,8 +67,6 @@ const OrderManagement = () => {
         }
     };
 
-   
-    
     
     const handleStatusFilterChange = (value) => {
         setStatusFilter(value);
@@ -78,6 +77,8 @@ const OrderManagement = () => {
             setFilteredOrders(filtered); // Filtrar por el estado seleccionado
         }
     };
+
+
 
     const exportFilteredOrdersToExcel = async () => {
         const failedOrders = []; // Lista para almacenar los detalles de órdenes fallidas
