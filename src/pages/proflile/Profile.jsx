@@ -44,13 +44,13 @@ const Profile = () => {
       const loginData = JSON.parse(localStorage.getItem("loginData"));
       if (loginData && loginData.user) {
         try {
-          const response = await axios.get(`http://localhost:8080/api/users/${loginData.user.id}`);
+          const response = await axios.get(`https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`);
           const user = response.data.user;
           setUserData(user);
           form.setFieldsValue(user);
 
           // Cargar pedidos
-          const ordersResponse = await axios.get("http://localhost:8080/api/orders");
+          const ordersResponse = await axios.get("https://don-kampo-api.onrender.com/api/orders");
 
           const userOrders = ordersResponse.data.filter(
             (dataOrder) => dataOrder.order.customer_id === loginData.user.id
@@ -77,7 +77,7 @@ const Profile = () => {
     try {
       const values = form.getFieldsValue();
       const loginData = JSON.parse(localStorage.getItem("loginData"));
-      await axios.put(`http://localhost:8080/api/updateusers/${loginData.user.id}`, values);
+      await axios.put(`https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`, values);
       setUserData(values);
       message.success("Datos actualizados exitosamente.");
     } catch (error) {
@@ -88,7 +88,7 @@ const Profile = () => {
 
   const fetchOrderDetails = async (orderId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+      const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
 
       setSelectedOrder(response.data);
       setIsModalVisible(true);
@@ -167,12 +167,12 @@ const Profile = () => {
   const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
     try {
       // Llamar a la API para obtener los detalles de la orden
-      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+      const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
       const orderData = response.data;
 
 
       // Llamar a la API para obtener los tipos de cliente y costos de envío
-      const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
+      const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
       const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
         acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
         return acc;

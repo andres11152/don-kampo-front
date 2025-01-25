@@ -59,7 +59,7 @@ const Home = () => {
   const fetchProducts = async (query) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/products?search=${query}`,
+        `https://don-kampo-api.onrender.com/api/products?search=${query}`,
         { withCredentials: true }
       );
   
@@ -101,7 +101,7 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/publicidad");
+        const response = await fetch("https://don-kampo-api.onrender.com/api/publicidad");
         
         // Verificar si la respuesta es JSON
         const contentType = response.headers.get("content-type");

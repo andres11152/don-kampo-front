@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker } from 'antd';
+import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker, Modal, Alert } from 'antd';
 import { Option } from 'antd/es/mentions';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -20,6 +20,8 @@ const OrderManagement = () => {
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [statusFilter, setStatusFilter] = useState(null);
     const [dateRange, setDateRange] = useState([null, null]);
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [orderDetails, setOrderDetails] = useState(null);
 
     useEffect(() => {
         fetchOrders();
@@ -27,7 +29,7 @@ const OrderManagement = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/api/orders");
+            const response = await axios.get("https://don-kampo-api.onrender.com/api/orders");
 
             // Procesar datos de órdenes
             const dataOrders = response.data.map(item => ({
@@ -109,6 +111,94 @@ const OrderManagement = () => {
         setDateRange(dates || [null, null]);
     };
 
+    const showModal = async (order) => {
+        setSelectedOrder(order);
+        setIsModalVisible(true);
+
+        try {
+            const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${order.id}`);
+            setOrderDetails(response.data); // Almacenar los detalles de la orden
+        } catch (error) {
+            message.error("Error al cargar los detalles de la orden.");
+            console.error(error);
+        }
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+    };
+
+    const renderModalContent = () => {
+        if (!orderDetails) return null; // Si no hay detalles de la orden, no renderizar nada
+
+        const { order, items, userData } = orderDetails;
+
+        return (
+            <div>
+                <p><strong>ID de Orden:</strong> {order.id}</p>
+                <p><strong>Cliente:</strong> {userData.user_name} {userData.lastname}</p>
+                <p><strong>Correo:</strong> {userData.email}</p>
+                <p><strong>Teléfono:</strong> {userData.phone}</p>
+                <p><strong>Dirección:</strong> {userData.address}, {userData.neighborhood}, {userData.city}</p>
+                <p><strong>Fecha de Pedido:</strong> {new Date(order.order_date).toLocaleDateString()}</p>
+                <p><strong>Total (incluye envío):</strong> ${Math.floor(order.total).toLocaleString()}</p>
+                <p><strong>Estado:</strong> 
+                    {order.status_id === 1
+                        ? "Pendiente"
+                        : order.status_id === 2
+                            ? "Enviado"
+                            : order.status_id === 3
+                                ? "Entregado"
+                                : "Cancelado"}
+                </p>
+
+                <h3>Productos:</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                    <thead>
+                        <tr>
+                            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Producto</th>
+                            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Cantidad</th>
+                            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Precio Unitario</th>
+                            <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {items.map((item, index) => {
+                            const priceHome = parseFloat(item.variation.price_home);
+                            const unitPrice = Math.trunc(priceHome);
+                            const total = item.quantity * unitPrice;
+
+                            return (
+                                <tr key={index}>
+                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.product_name} ({item.variation.quality} {item.variation.quantity})</td>
+                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.quantity}</td>
+                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>${unitPrice.toLocaleString()}</td>
+                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>${total.toLocaleString()}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+                <Alert
+                    message="Información importante"
+                    description="El precio del envío se calcula automáticamente y se incluye en el PDF."
+                    type="warning"
+                    showIcon
+                    style={{
+                        marginTop: '16px',
+                        marginBottom: '16px',
+                        backgroundColor: '#fffbe6',
+                        padding: '4px 8px', // Padding más pequeño
+                        fontSize: '12px',   // Tamaño de fuente más pequeño
+                    }}
+                    className="small-alert" // Clase adicional para personalización
+                />
+            </div>
+            
+        );
+    };
+
+
 
     const exportFilteredOrdersToExcel = async () => {
         const failedOrders = []; // Lista para almacenar los detalles de órdenes fallidas
@@ -121,7 +211,7 @@ const OrderManagement = () => {
             const responses = await Promise.all(
                 filteredOrders.map(async (order) => {
                     try {
-                        const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
+                        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${order.id}`);
                         console.log(response);
 
                         const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
@@ -203,7 +293,7 @@ const OrderManagement = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
           // Cambiamos la URL para incluir directamente el id y el nuevo estado
-          await axios.put(`http://localhost:8080/api/updatestatus/${orderId}/${newStatus}`);
+          await axios.put(`https://don-kampo-api.onrender.com/api/updatestatus/${orderId}/${newStatus}`);
           message.success("Estado del pedido actualizado correctamente.");
           fetchOrders(); // Refresca la lista de pedidos después de actualizar el estado
         } catch (error) {
@@ -216,7 +306,7 @@ const OrderManagement = () => {
     // Eliminar un pedido
     const deleteOrder = async (orderId) => {
         try {
-          await axios.delete(`http://localhost:8080/api/deleteorders/${orderId}`);
+          await axios.delete(`https://don-kampo-api.onrender.com/api/deleteorders/${orderId}`);
           message.success("Pedido eliminado correctamente.");
           fetchOrders();
         } catch (error) {
@@ -228,11 +318,11 @@ const OrderManagement = () => {
     const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
     try {
         // Llamar a la API para obtener los detalles de la orden
-        const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+        const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
         const orderData = response.data;
 
         // Llamar a la API para obtener los tipos de cliente y costos de envío
-        const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
+        const customerTypeResponse = await axios.get("https://don-kampo-api.onrender.com/api/customer-types");
         const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
             acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
             return acc;
@@ -440,37 +530,53 @@ const OrderManagement = () => {
 
     return (
         <Card title="Gestión de Pedidos" style={{ marginTop: '20px' }}>
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '16px' }}>
-            <Select
-                placeholder="Filtrar por estado"
-                allowClear
-                onChange={handleStatusFilterChange}
-                style={{ width: 200 }}
+            <div style={{ marginBottom: '20px', display: 'flex', gap: '16px' }}>
+                <Select
+                    placeholder="Filtrar por estado"
+                    allowClear
+                    onChange={handleStatusFilterChange}
+                    style={{ width: 200 }}
+                >
+                    <Option value={null}>Todos</Option>
+                    <Option value={1}>Pendiente</Option>
+                    <Option value={2}>Enviado</Option>
+                    <Option value={3}>Entregado</Option>
+                    <Option value={4}>Cancelado</Option>
+                    <Option value={5}>Pagado</Option>
+                </Select>
+                <RangePicker
+                    onChange={handleDateRangeChange}
+                    format="YYYY-MM-DD"
+                />
+                <Button type="primary" onClick={exportFilteredOrdersToExcel}>
+                    Descargar Excel
+                </Button>
+            </div>
+            <Spin spinning={loading}>
+                <Table
+                    dataSource={filteredOrders}
+                    columns={orderColumns}
+                    rowKey="id"
+                    pagination={{ pageSize: 5 }}
+                    onRow={(record) => ({
+                        onClick: () => showModal(record),
+                    })}
+                />
+            </Spin>
+            <Modal
+                title="Detalles de la Orden"
+                visible={isModalVisible}
+                onCancel={handleCancel}
+                footer={[
+                    <Button onClick={() => fetchOrderDetailsAndGeneratePDF(order.id)}>
+                        Generar PDF
+                    </Button>,
+                ]}
+                width={800}
             >
-                <Option value={null}>Todos</Option>
-                <Option value={1}>Pendiente</Option>
-                <Option value={2}>Enviado</Option>
-                <Option value={3}>Entregado</Option>
-                <Option value={4}>Cancelado</Option>
-                <Option value={5}>Pagado</Option>
-            </Select>
-            <RangePicker
-                onChange={handleDateRangeChange}
-                format="YYYY-MM-DD"
-            />
-            <Button type="primary" onClick={exportFilteredOrdersToExcel}>
-                Descargar Excel
-            </Button>
-        </div>
-        <Spin spinning={loading}>
-            <Table
-                dataSource={filteredOrders}
-                columns={orderColumns}
-                rowKey="id"
-                pagination={{ pageSize: 5 }}
-            />
-        </Spin>
-    </Card>
+                {renderModalContent()}
+            </Modal>
+        </Card>
     );
 };
 

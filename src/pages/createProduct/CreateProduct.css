@@ -221,6 +221,16 @@ h4 {
   transition: all 0.3s ease;
   padding-top: 5px;
 }
-.manage-search button, .create-product button{
+.create-product button{
   color:#ffffff;
+}
+.manage-search button{
+  background-color: var(--color-primary-hover);
+  color: #ffffff;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+  border-radius: 8px;
+  border: none;
 }

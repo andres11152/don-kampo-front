@@ -34,7 +34,6 @@
 }
 .ant-tabs-tab-btn{
   color: #ffffff !important;
-
   font-weight: bold;
   border-radius: 8px 8px 0 0;
   transition: background-color 0.3s ease;
@@ -159,4 +158,7 @@
 }
 .ant-tabs-tab-btn{
   padding: 0 7px
+}
+:where(.css-1htoz2s).ant-tabs .ant-tabs-tab+.ant-tabs-tab{
+  margin-left: 10px;
 }

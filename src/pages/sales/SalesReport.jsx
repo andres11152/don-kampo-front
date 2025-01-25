@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import axios from "axios";
+import * as XLSX from "xlsx"; // Importar la librería xlsx
 import "./SalesReport.css";
 
 dayjs.extend(isBetween);
@@ -24,7 +25,7 @@ const SalesReport = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/orders");
+        const response = await axios.get("https://don-kampo-api.onrender.com/api/orders");
         setOrders(response.data);
       } catch (error) {
         console.error("Error al obtener los datos de las órdenes:", error);
@@ -66,6 +67,21 @@ const SalesReport = () => {
     }));
   };
 
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    const worksheetData = chartData.map((item) => ({
+      Fecha: item.name,
+      Total: item.total,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte de Ventas");
+
+    // Generar el archivo Excel
+    XLSX.writeFile(workbook, `Reporte_Ventas_${viewBy}.xlsx`);
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <h2>Reporte de Ventas</h2>
@@ -86,8 +102,8 @@ const SalesReport = () => {
           </Select>
         </Col>
         <Col span={6}>
-          <Button type="primary" onClick={() => console.log("Exportar datos")}>
-            Exportar
+          <Button type="primary" onClick={exportToExcel}>
+            Exportar a Excel
           </Button>
         </Col>
       </Row>

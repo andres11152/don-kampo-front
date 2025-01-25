@@ -41,7 +41,7 @@ const Products = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/products", {
+        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
           withCredentials: true,
         });
 
