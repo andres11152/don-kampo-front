@@ -28,12 +28,12 @@ const Products = () => {
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
 
   const { addToCart } = useCart();
-  const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type;
+  const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type || "hogar";
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
+        const response = await axios.get("http://localhost:8080/api/products", {
           withCredentials: true,
         });
 
@@ -166,7 +166,7 @@ const Products = () => {
   const handleAddToCart = (product) => {
     let selectedVariation;
 
-    if (userType === "hogar") {
+    if (userType === "hogar" ) {
       // Para "hogar", usar la primera variación
       selectedVariation = product.variations[0];
     } else {
