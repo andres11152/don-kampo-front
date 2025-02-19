@@ -72,66 +72,73 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (variations.length === 0 || variations.some((variation) =>
-      Object.values(variation).some((value) => value === "" || value === null || value === undefined)
-    )) {
-      message.error('Debe ingresar al menos una variación con todos los campos completos');
-      return;
-    }
-
     const isValues = Object.keys(values).every(
-      (key) => values[key] !== null && values[key] !== undefined && values[key] !== ""
+        (key) => values[key] !== null && values[key] !== undefined && values[key] !== ""
     );
 
     if (!isValues) {
-      message.error('No se ingresaron los datos del producto');
-      return;
+        message.error('No se ingresaron los datos del producto');
+        return;
+    }
+
+    // Validar que al menos una variación tenga un precio
+    const hasValidPrice = variations.some(variation => 
+        variation.price_home !== "" && variation.price_home !== null ||
+        variation.price_supermarket !== "" && variation.price_supermarket !== null ||
+        variation.price_restaurant !== "" && variation.price_restaurant !== null ||
+        variation.price_fruver !== "" && variation.price_fruver !== null
+    );
+
+    if (!hasValidPrice) {
+        message.error('Debe ingresar al menos un precio en alguna variación');
+        return;
     }
 
     const productData = {
-      name: values.name,
-      description: values.description,
-      category: values.category,
-      stock: 100,
-      variations: variations.map((variation) => ({
-        quality: variation.quality,
-        quantity: variation.quantity,
-        price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
-        price_supermarket: variation.price_supermarket === "" ? null : parseInt(variation.price_supermarket),
-        price_restaurant: variation.price_restaurant === "" ? null : parseInt(variation.price_restaurant),
-        price_fruver: variation.price_fruver === "" ? null : parseInt(variation.price_fruver),
-      })),
+        name: values.name,
+        description: values.description,
+        category: values.category,
+        stock: 100,
+        variations: variations.map((variation) => ({
+            quality: variation.quality || null,
+            quantity: variation.quantity || null,
+            price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
+            price_supermarket: variation.price_supermarket === "" ? null : parseInt(variation.price_supermarket),
+            price_restaurant: variation.price_restaurant === "" ? null : parseInt(variation.price_restaurant),
+            price_fruver: variation.price_fruver === "" ? null : parseInt(variation.price_fruver),
+        })),
     };
 
     const formData = new FormData();
     imageFile && formData.append("photo_url", imageFile);
 
     Object.keys(productData).forEach((key) => {
-      key === "variations" ? formData.append(key, JSON.stringify(productData[key])) : formData.append(key, productData[key]);
+        key === "variations" ? formData.append(key, JSON.stringify(productData[key])) : formData.append(key, productData[key]);
     });
 
     try {
-      const response = await axios.post("http://localhost:8080/api/createproduct", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+        const response = await axios.post("http://localhost:8080/api/createproduct", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
 
-      message.success(`Producto creado exitosamente con ID: ${response.data.product_id}`);
-      form.resetFields();
-      setImageFile(null);
-      setVariations([{
-        quality: "",
-        quantity: "",
-        price_home: "",
-        price_supermarket: "",
-        price_restaurant: "",
-        price_fruver: "",
-      }]);
-      setTimeout(() => window.location.reload(), 1500);
+        message.success(`Producto creado exitosamente con ID: ${response.data.product_id}`);
+        form.resetFields();
+        setImageFile(null);
+        setVariations([{
+            quality: "",
+            quantity: "",
+            price_home: "",
+            price_supermarket: "",
+            price_restaurant: "",
+            price_fruver: "",
+        }]);
+        setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-      message.error("Error al crear el producto.");
-      console.error(error);
+        message.error("Error al crear el producto.");
+        console.error(error);
     }
-  };
+};
+
 
   return (
     <form onSubmit={handleSubmit} className="create-product">

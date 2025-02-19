@@ -31,26 +31,21 @@ const categories = [
 const Home = () => {  
   const carouselRef = useRef(null);
   const [showInstallModal, setShowInstallModal] = useState(false)
-
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-
   const [isModalVisible, setIsModalVisible] = useState(() => {
     const storedValue = localStorage.getItem('modalShown');
     return storedValue !== null ? JSON.parse(storedValue) : true;
   });
-
-  const [userType, setUserType] = useState(() => {
-    const storedValue = localStorage.getItem("loginData");
-    return storedValue
-      ? JSON.parse(storedValue).user.user_type
-      : "Hogar"; // Default: "Hogar"
-  });
-  
+  const navigate = useNavigate(); 
+    
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const navigate = useNavigate();  
+
+  const [userType, setUserType] = useState(() => {
+    return localStorage.getItem("userType") || "Hogar"; // Default: "Hogar"
+  });
+  
   
   const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
 
@@ -102,34 +97,33 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const response = await fetch("http://localhost:8080/api/publicidad");
-        
-        // Verificar si la respuesta es JSON
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new TypeError("La respuesta no es JSON");
         }
-
         const responseData = await response.json();
-        const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase());
-
+        const publicityData = responseData.filter(
+          (item) => item.category.toLowerCase() === userType.toLowerCase()
+        );
         setPublicity(publicityData);
       } catch (error) {
-        console.error("Error al cargar los datos", error);
+        console.error("Error al cargar la publicidad:", error);
       }
     };
     fetchData();
-  }, [userType]);
+  }, [userType]); // Se vuelve a llamar cada vez que userType cambia
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();
 
   const handleNavigate = link => navigate(link);
 
-  const handleUserTypeChange = type => {
-    setUserType(type)
-    setIsModalVisible(!isModalVisible)
-    window.location.reload()
+  const handleUserTypeChange = (type) => {
+    localStorage.setItem("userType", type); // Guardar en una clave separada
+    setUserType(type);
+    setIsModalVisible(false);
   };
+  
 
   return (
     <>
