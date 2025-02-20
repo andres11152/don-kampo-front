@@ -139,9 +139,8 @@ const Header = (props) => {
             <a className={`${selectedKey === 'Productos' ? 'selected' : ''}`} href="/products" onClick={() => handleMenuClick('Productos')}><i className="fa-solid fa-grip" />Productos</a>
           </li>
           { isLoggedIn ? 
-            <>
-              { isAdmin && <li><a className={`${selectedKey === 'Agregar' ? 'selected' : ''}`} href="/createproduct" onClick={() => handleMenuClick('Agregar')}><i className="fa-solid fa-plus" /> Agregar Productos</a></li> }
-              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageproducts" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestionar Productos</a></li> }
+            <>  
+              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageproducts" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
               <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {loginData.user.user_name} </a></li>
               <li><a onClick={handleLogout}><i className="fa-solid fa-right-from-bracket" /> Cerrar Sesion </a></li>
             </>
@@ -160,7 +159,7 @@ const Header = (props) => {
       {/* Drawer para menú en pantallas pequeñas */}
       <Drawer
         title="Menú"
-        placement="right"
+        placement="left"
         closable
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}

@@ -57,6 +57,15 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   color: #ffffff;
   border-color: #00983a;
 }
+.custom-search-bar {
+  width: 600px !important; /* Ancho forzado solo para este AutoComplete */
+}
+
+.custom-search-bar .ant-input {
+  height: 40px; /* Ajustar la altura si es necesario */
+  font-size: 16px; /* Aumentar el tamaño de la fuente si lo deseas */
+}
+
 
 .modal-ok-button {
   background-color: #00983a;
@@ -129,7 +138,6 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
     margin: 0;
     line-height: 1.5;
 }
-
 
 .carousel-button {
     background-color: #ff914d;
@@ -297,6 +305,11 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   width: 100%;
   border-radius: 5px;
   padding: 20px;
+  background-color: var(--color-secondary);
+}
+.info-section button:hover {
+  background-color: #ff914d;
+  border-color: #ff914d;
 }
 
 .ant-drawer-content {
@@ -310,6 +323,9 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   min-width: 200px !important;
   width: 90% !important;
  }
+ .ant-select{
+  width: 90% !important;
+}
 }
 
 .ant-modal-title {
@@ -358,6 +374,10 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
 }
 .ant-card-meta-title{
     color: #00983a;
+}
+:where(.css-dev-only-do-not-override-1htoz2s).ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #00983a;
+  text-shadow: 0 0 0.25px currentcolor;
 }
 
 /* Pantallas pequeñas (teléfonos) */

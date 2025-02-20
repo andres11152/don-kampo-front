@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Select, Button, message, Input } from "antd";
 import { jsPDF } from "jspdf";
-
 import axios from "axios";
-import Navbar from "../../components/General/Header";
-import CustomFooter from "../../components/General/Footer";
 import "./CreateOrder.css";
 import { useNavigate } from "react-router-dom";
 import fruits from '../../assets/fruits.jpg'
@@ -65,7 +62,7 @@ const CreateOrder = () => {
 
   const fetchUserDetails = async (userId) => {
     try {
-      const response = await axios.get(`https://don-kampo-api.onrender.com/api/users/${userId}`);
+      const response = await axios.get(`http://localhost:8080/api/users/${userId}`);
       setSelectedUserData(response.data.user);
     } catch (error) {
       message.error("Error al cargar los datos del usuario.");
@@ -81,7 +78,7 @@ const CreateOrder = () => {
     // Fetch usuarios
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/users", {
+        const response = await axios.get("http://localhost:8080/api/users", {
           withCredentials: true,
         });
         setUsers(response.data);
@@ -94,7 +91,7 @@ const CreateOrder = () => {
     // Fetch productos
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
+        const response = await axios.get("http://localhost:8080/api/products", {
           withCredentials: true,
         });
         setProducts(response.data);
@@ -161,7 +158,14 @@ const CreateOrder = () => {
       return;
     }
 
-    const shippingCost = 5000;
+    // Determina el costo de envío según el tipo de usuario
+    const userType = selectedUserData.user_type.toLowerCase(); // Asegúrate de que esté en minúsculas
+    const shippingCostMap = {
+      standard: 5000,
+      express: 10000,
+    };
+    const shippingCost = shippingCostMap[shippingMethod] || 5000;
+
     const total =
       selectedProducts.reduce(
         (sum, product) => sum + product.quantity * product.price_home,
@@ -169,7 +173,7 @@ const CreateOrder = () => {
       ) + shippingCost;
 
     const orderData = {
-      userId: selectedUserData.id,
+      userId: selectedUserData.id,// Incluye el user_type en los datos de la orden
       userData: {
         user_name: selectedUserData.user_name,
         lastname: selectedUserData.lastname,
@@ -177,6 +181,7 @@ const CreateOrder = () => {
         phone: selectedUserData.phone,
         address: selectedUserData.address,
         city: selectedUserData.city,
+        user_type: selectedUserData.user_type, 
         neighborhood: selectedUserData.neighborhood,
       },
       cartDetails: selectedProducts.map(
@@ -190,12 +195,14 @@ const CreateOrder = () => {
       shippingCost,
       total,
       actual_delivery: new Date().toISOString(),
-      estimatedDelivery: new Date( Date.now() + 2 * 24 * 60 * 60 * 1000 ).toISOString(),
+      estimatedDelivery: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(),
     };
 
     setLoading(true);
     try {
-      const response = await axios.post("https://don-kampo-api.onrender.com/api/orders/placeOrder", orderData);
+      const response = await axios.post("http://localhost:8080/api/orders/placeOrder", orderData);
 
       if (response.status === 201) {
         message.success("Orden creada exitosamente.");
@@ -218,16 +225,13 @@ const CreateOrder = () => {
   return (
     <div>
       <img id="fruits" src={fruits} alt="" />
-      <Navbar />
       <div className="create-order-container">
         <h2>Crear Orden Manual</h2>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <Form.Item
             label="Usuario"
             name="userId"
-            rules={[
-              { required: true, message: "Por favor seleccione un usuario" },
-            ]}
+            rules={[{ required: true, message: "Por favor seleccione un usuario" }]}
           >
             <Select
               placeholder="Seleccione un usuario"
@@ -244,12 +248,7 @@ const CreateOrder = () => {
           <Form.Item
             label="Método de Envío"
             name="shippingMethod"
-            rules={[
-              {
-                required: true,
-                message: "Por favor seleccione un método de envío",
-              },
-            ]}
+            rules={[{ required: true, message: "Por favor seleccione un método de envío" }]}
           >
             <Select placeholder="Seleccione un método de envío">
               <Option value="standard">Estándar</Option>
@@ -267,39 +266,12 @@ const CreateOrder = () => {
             />
             <div className="products-list">
               {filteredProducts.map((product) => (
-                <div key={product.product_id} className="product-item">
-                  <p>{product.name}</p>
-                  <p>${product.price_home.toLocaleString()}</p>
-                  {selectedProducts.find(
-                    (p) => p.product_id === product.product_id
-                  ) ? (
-                    <div className="quantity-controls">
-                      <Button
-                        onClick={() => decrementQuantity(product.product_id)}
-                      >
-                        -
-                      </Button>
-                      <span className="quantity-text">
-                        {
-                          selectedProducts.find(
-                            (p) => p.product_id === product.product_id
-                          ).quantity
-                        }
-                      </span>
-                      <Button
-                        onClick={() => incrementQuantity(product.product_id)}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      type="primary"
-                      onClick={() => handleAddProduct(product.product_id, 1)}
-                    >
-                      Añadir
-                    </Button>
-                  )}
+                <div key={product.product_id} className="product-card">
+                  <h4>{product.name}</h4>
+                  <p>Precio: ${product.price_home}</p>
+                  <Button onClick={() => handleAddProduct(product.product_id, 1)}>
+                    Agregar al carrito
+                  </Button>
                 </div>
               ))}
             </div>
@@ -307,31 +279,29 @@ const CreateOrder = () => {
 
           <div className="selected-products">
             <h3>Productos Seleccionados</h3>
-            {selectedProducts.length > 0 ? (
-              selectedProducts.map((product) => (
-                <div key={product.product_id} className="selected-product-item">
-                  <p>
-                    {product.name} x {product.quantity}
-                  </p>
-                  <p>
-                    Total: $
-                    {(product.quantity * product.price_home).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p>No hay productos seleccionados.</p>
-            )}
+            {selectedProducts.map((product) => (
+              <div key={product.product_id} className="selected-product">
+                <p>{product.name} - Cantidad: {product.quantity}</p>
+                <Button onClick={() => incrementQuantity(product.product_id)}>
+                  +
+                </Button>
+                <Button onClick={() => decrementQuantity(product.product_id)}>
+                  -
+                </Button>
+              </div>
+            ))}
           </div>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              Crear Orden
-            </Button>
-          </Form.Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={loading}
+            style={{ marginTop: "16px" }}
+          >
+            Crear Orden
+          </Button>
         </Form>
       </div>
-      <CustomFooter />
     </div>
   );
 };

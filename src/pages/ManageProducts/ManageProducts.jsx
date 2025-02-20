@@ -13,17 +13,19 @@ import {
   Row,
   Col,
   InputNumber,
+  Tabs,
+  Select,
 } from "antd";
-import {
-  SearchOutlined,
-  DeleteOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
-import "./ManageProducts.css";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import fruits from '../../assets/fruits.jpg'
+import CreateProduct from "../createProduct/CreateProduct";
+import "./ManageProducts.css";
+import UpdateOrderPrices from "../orders/UpdateOrdersPending";
+import UpdateMultipleProducts from "../createProduct/UpdateMultipleProducts";
+import OrderManagement from "../orders/Orders";
+import SalesReport from "../sales/SalesReport";
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -51,9 +53,7 @@ const ManageProducts = () => {
       },
     ]);
   };
-  
 
-  // Función para eliminar una variación
   const removeVariation = (index) => {
     const updatedVariations = variations.filter((_, i) => i !== index);
     setVariations(updatedVariations);
@@ -65,11 +65,10 @@ const ManageProducts = () => {
     setVariations(updatedVariations);
   };
 
-  // Función para obtener los productos
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://don-kampo-api.onrender.com/api/products");
+      const response = await axios.get("http://localhost:8080/api/products");
       setProducts(response.data);
       message.success("Productos cargados correctamente.");
     } catch (error) {
@@ -80,54 +79,47 @@ const ManageProducts = () => {
     }
   };
 
-  // Función para eliminar un producto
   const deleteProduct = async (productId) => {
     try {
-      await axios.delete(`https://don-kampo-api.onrender.com/api/deleteproduct/${productId}`);
+      await axios.delete(`http://localhost:8080/api/deleteproduct/${productId}`);
       message.success("Producto eliminado correctamente.");
-      fetchProducts(); // Actualizar lista después de eliminar
+      fetchProducts();
     } catch (error) {
       message.error("Error al eliminar el producto.");
       console.error(error);
     }
   };
 
-  // Mostrar modal para editar un producto
   const showEditModal = (product) => {
     setSelectedProduct(product);
-    form.setFieldsValue(product); // Setear datos básicos del producto
-    setVariations(product.variations || []); // Cargar las variaciones existentes
+    form.setFieldsValue(product);
+    setVariations(product.variations || []);
     setIsModalVisible(true);
   };
-  
 
-  // Función para manejar la actualización de productos
   const handleUpdateProduct = async (values) => {
     try {
       const updatedProduct = {
         ...values,
-        variations, // Incluir variaciones
+        variations,
       };
-
       await axios.put(
-        `https://don-kampo-api.onrender.com/api/updateproduct/${selectedProduct.product_id}`,
+        `http://localhost:8080/api/updateproduct/${selectedProduct.product_id}`,
         updatedProduct
       );
       message.success("Producto actualizado correctamente.");
       setIsModalVisible(false);
-      fetchProducts(); // Refrescar lista después de actualizar
+      fetchProducts();
     } catch (error) {
       message.error("Error al actualizar el producto.");
       console.error(error);
     }
   };
 
-  // Filtrar productos por texto
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  // Columnas para la tabla
   const columns = [
     {
       title: "ID",
@@ -149,7 +141,6 @@ const ManageProducts = () => {
       dataIndex: "category",
       key: "category",
     },
-
     {
       title: "Acciones",
       key: "actions",
@@ -179,18 +170,16 @@ const ManageProducts = () => {
 
   const generateExcelFromProducts = async () => {
     try {
-      // Fetch products from the database
-      const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
+      const response = await axios.get("http://localhost:8080/api/products", {
         withCredentials: true,
       });
-  
+
       if (!response.data || !Array.isArray(response.data)) {
         throw new Error('No se pudieron obtener los productos correctamente.');
       }
-  
+
       const products = response.data;
-  
-      // Crear datos para la hoja Products
+
       const productSheetData = [['Id', 'Nombre', 'Descripcion', 'Categoria', 'Stock']];
       products.forEach((product) => {
         productSheetData.push([
@@ -201,8 +190,7 @@ const ManageProducts = () => {
           product.stock,
         ]);
       });
-  
-      // Crear tabla para la hoja Products
+
       const productSheet = XLSX.utils.aoa_to_sheet(productSheetData);
       productSheet['!ref'] = XLSX.utils.encode_range({
         s: { c: 0, r: 0 },
@@ -214,19 +202,15 @@ const ManageProducts = () => {
           e: { c: productSheetData[0].length - 1, r: 0 },
         }),
       };
-  
-      // Crear arreglo de variaciones agrupadas por índice
+
       const variations = [];
-  
       products.forEach((product) => {
         if (product.variations && product.variations.length > 0) {
           product.variations.forEach((variation, index) => {
-            // Asegurarse de que el array `variations` tenga el tamaño suficiente
             if (!variations[index]) {
               variations[index] = [];
             }
-  
-            // Agregar la variación al índice correspondiente
+
             variations[index].push({
               product_id: product.product_id,
               product_name: product.name,
@@ -241,20 +225,16 @@ const ManageProducts = () => {
           });
         }
       });
-  
-      // Crear libro de Excel
+
       const workbook = XLSX.utils.book_new();
-  
-      // Añadir hoja Products
       XLSX.utils.book_append_sheet(workbook, productSheet, 'Products');
-  
-      // Crear hojas de Variation
+
       variations.forEach((variationGroup, index) => {
         const variationSheetName = `Variation ${index + 1}`;
         const variationSheetData = [
           ['Id Product', 'Producto', 'Id Variation', 'Calidad', 'Cantidad', 'Hogar', 'Supermercado', 'Restaurant', 'Fruver'],
         ];
-  
+
         variationGroup.forEach((variation) => {
           variationSheetData.push([
             variation.product_id,
@@ -268,7 +248,7 @@ const ManageProducts = () => {
             variation.price_fruver,
           ]);
         });
-  
+
         const variationSheet = XLSX.utils.aoa_to_sheet(variationSheetData);
         variationSheet['!ref'] = XLSX.utils.encode_range({
           s: { c: 0, r: 0 },
@@ -280,209 +260,226 @@ const ManageProducts = () => {
             e: { c: variationSheetData[0].length - 1, r: 0 },
           }),
         };
-  
+
         XLSX.utils.book_append_sheet(workbook, variationSheet, variationSheetName);
       });
-  
-      // Generar archivo Excel
+
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  
-      // Descargar archivo Excel
       const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
       saveAs(blob, 'Products.xlsx');
-  
+
     } catch (error) {
       console.error('Error generando el archivo Excel:', error);
     }
   };
-  
+
   return (
     <>
-      <img id="fruits" src={fruits} alt="" />
       <Header />
       <section className="manage-products-container">
-        <h2>Gestión de Productos</h2>
+        <Tabs defaultActiveKey="1" >
+          <Tabs.TabPane tab="Gestión Productos" key="1" >
+          <h2>Gestionar Productos</h2>
 
-        <div className="manage-search">
-          <Input
-            placeholder="Buscar producto por nombre"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            prefix={<SearchOutlined />}
-            style={{ marginBottom: "16px", width: "300px" }}
-          />
+            <div className="manage-search">
+              <Input
+                placeholder="Buscar producto por nombre"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+                style={{ marginBottom: "16px", width: "300px" }}
+              />
+              <button onClick={generateExcelFromProducts}>Generar Excel</button>
+              <i onClick={fetchProducts} className="fa-solid fa-rotate-right" />
+            </div>
+            <Table
+              dataSource={filteredProducts}
+              columns={columns}
+              rowKey="product_id"
+              loading={loading}
+              pagination={{ pageSize: 10 }}
+            />
+            <Modal
+              title="Editar Producto"
+              visible={isModalVisible}
+              onCancel={() => setIsModalVisible(false)}
+              footer={null}
+              width={800}
+            >
+              <Form
+                form={form}
+                onFinish={handleUpdateProduct}
+                layout="horizontal"
+              >
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Nombre"
+                      name="name"
+                      rules={[{ required: true, message: "Por favor ingresa el nombre del producto" }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Categoría"
+                      name="category"
+                      rules={[{ required: true, message: "Por favor selecciona una categoría" }]}
+                    >
+                      <Select placeholder="Selecciona una categoría">
+                        <Select.Option value="Frutas importadas">Frutas importadas</Select.Option>
+                        <Select.Option value="Verduras">Verduras</Select.Option>
+                        <Select.Option value="Frutas nacionales">Frutas nacionales</Select.Option>
+                        <Select.Option value="Cosechas">Cosechas</Select.Option>
+                        <Select.Option value="Hortalizas">Hortalizas</Select.Option>
+                        <Select.Option value="Promociones">Promociones</Select.Option>
+                        <Select.Option value="Otros">Otros</Select.Option>
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-          <button onClick={generateExcelFromProducts}>Generar Excel</button>
-          <i onClick={fetchProducts} className="fa-solid fa-rotate-right" />
-        </div>
-        <Table
-          dataSource={filteredProducts}
-          columns={columns}
-          rowKey="product_id"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-        />
-        <Modal
-          title="Editar Producto"
-          visible={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
-          footer={null}
-        >
-          <Form form={form} onFinish={handleUpdateProduct} layout="vertical">
-            <Form.Item
-              label="Nombre"
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor ingresa el nombre del producto",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Descripción"
-              name="description"
-              rules={[
-                {
-                  required: true,
-                  message: "Por favor ingresa una descripción",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Categoría"
-              name="category"
-              rules={[
-                { required: true, message: "Por favor ingresa una categoría" },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+                <Row gutter={[16, 16]}>
+                  <Col span={24}>
+                    <Form.Item
+                      label="Descripción"
+                      name="description"
+                      rules={[{ required: true, message: "Por favor ingresa una descripción" }]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-            <div>
-              <h3>Variaciones</h3>
-              {variations.map((variation, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: "16px",
-                    padding: "16px",
-                    border: "1px solid #ddd",
-                  }}
-                >
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item label={`Calidad (Variación ${index + 1})`}>
-                        <Input
-                          placeholder="Calidad"
-                          value={variation.quality}
-                          onChange={(e) =>
-                            updateVariation(index, "quality", e.target.value)
-                          }
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item label={`Cantidad (Variación ${index + 1})`}>
-                        <Input
-                          placeholder="Cantidad"
-                          value={variation.quantity}
-                          onChange={(e) =>
-                            updateVariation(index, "quantity", e.target.value)
-                          }
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Hogar (Variación ${index + 1})`}
+                <div>
+                  <h3>Variaciones</h3>
+                  {variations.map((variation, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        marginBottom: "16px",
+                        padding: "16px",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                      }}
+                    >
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <Form.Item label={`Calidad (Var ${index + 1})`}>
+                            <Input
+                              placeholder="Calidad"
+                              value={variation.quality}
+                              onChange={(e) => updateVariation(index, "quality", e.target.value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label={`Cantidad (Var ${index + 1})`}>
+                            <Input
+                              placeholder="Cantidad"
+                              value={variation.quantity}
+                              onChange={(e) => updateVariation(index, "quantity", e.target.value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <Form.Item label={`Precio Hogar (Var ${index + 1})`}>
+                            <InputNumber
+                              placeholder="Precio Hogar"
+                              value={variation.price_home}
+                              onChange={(value) => updateVariation(index, "price_home", value)}
+                              style={{ width: "100%" }}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label={`Precio Supermercado (Var ${index + 1})`}>
+                            <InputNumber
+                              placeholder="Precio Supermercado"
+                              value={variation.price_supermarket}
+                              onChange={(value) => updateVariation(index, "price_supermarket", value)}
+                              style={{ width: "100%" }}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <Form.Item label={`Precio Restaurante (Var ${index + 1})`}>
+                            <InputNumber
+                              placeholder="Precio Restaurante"
+                              value={variation.price_restaurant}
+                              onChange={(value) => updateVariation(index, "price_restaurant", value)}
+                              style={{ width: "100%" }}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={12}>
+                          <Form.Item label={`Precio Fruver (Var ${index + 1})`}>
+                            <InputNumber
+                              placeholder="Precio Fruver"
+                              value={variation.price_fruver}
+                              onChange={(value) => updateVariation(index, "price_fruver", value)}
+                              style={{ width: "100%" }}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+
+                      <Button
+                        type="danger"
+                        onClick={() => removeVariation(index)}
+                        style={{
+                          marginTop: "8px",
+                          backgroundColor: "#ff4d4f", // Color rojo
+                          color: "#fff", // Texto blanco
+                          border: "none", // Elimina el borde
+                        }}
                       >
-                        <InputNumber
-                          placeholder="Precio Hogar"
-                          value={variation.price_home}
-                          onChange={(value) =>
-                            updateVariation(index, "price_home", value)
-                          }
-                          style={{ width: "100%" }}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Supermercado (Variación ${index + 1})`}
-                      >
-                        <InputNumber
-                          placeholder="Precio Supermercado"
-                          value={variation.price_supermarket}
-                          onChange={(value) =>
-                            updateVariation(index, "price_supermarket", value)
-                          }
-                          style={{ width: "100%" }}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Restaurante (Variación ${index + 1})`}
-                      >
-                        <InputNumber
-                          placeholder="Precio Restaurante"
-                          value={variation.price_restaurant}
-                          onChange={(value) =>
-                            updateVariation(index, "price_restaurant", value)
-                          }
-                          style={{ width: "100%" }}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Fruver (Variación ${index + 1})`}
-                      >
-                        <InputNumber
-                          placeholder="Precio Fruver"
-                          value={variation.price_fruver}
-                          onChange={(value) =>
-                            updateVariation(index, "price_fruver", value)
-                          }
-                          style={{ width: "100%" }}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                        Eliminar Variación
+                      </Button>
+                    </div>
+                  ))}
+
                   <Button
-                    type="danger"
-                    onClick={() => removeVariation(index)}
-                    style={{ marginTop: "8px" }}
+                    type="dashed"
+                    onClick={addVariation}
+                    style={{ marginTop: "16px", width: "100%" }}
                   >
-                    Eliminar Variación
+                    Agregar Variación
                   </Button>
                 </div>
-              ))}
-              <Button
-                type="dashed"
-                onClick={addVariation}
-                style={{ marginTop: "16px", width: "100%" }}
-              >
-                Agregar Variación
-              </Button>
-            </div>
 
-            <Form.Item>
-              <Button type="primary" htmlType="submit" block>
-                Guardar Cambios
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" block>
+                    Guardar Cambios
+                  </Button>
+                </Form.Item>
+              </Form>
+            </Modal>
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Creación Productos" key="2">
+            <CreateProduct />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Actualización Productos" key="3">
+            <UpdateMultipleProducts />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Actualización Ordenes" key="4">
+            <UpdateOrderPrices />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Ordenes" key="5">
+            <OrderManagement />
+          </Tabs.TabPane>
+          <Tabs.TabPane tab="Ventas" key="6">
+           <SalesReport />
+          </Tabs.TabPane>
+        </Tabs>
       </section>
       <BotonWhatsapp />
       <CustomFooter />

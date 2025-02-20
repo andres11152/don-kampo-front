@@ -15,17 +15,11 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("Todas");
-
-  // Obtener el parámetro de búsqueda de la URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const searchQueryFromUrl = urlParams.get("search") || "";
-
-  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedVariations, setSelectedVariations] = useState({});
   const [quantities, setQuantities] = useState({});
   const [isVisible, setIsModalVisible] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null);  
-
+  const [currentProduct, setCurrentProduct] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
@@ -33,15 +27,13 @@ const Products = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
 
-  const { addToCart } = useCart();  // Importamos addToCart de CartContext
+  const { addToCart } = useCart();
+  const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type || "hogar";
 
-  const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type;
-
-  // Obtener productos y categorías
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("https://don-kampo-api.onrender.com/api/products", {
+        const response = await axios.get("http://localhost:3000/api/products", {
           withCredentials: true,
         });
 
@@ -59,11 +51,10 @@ const Products = () => {
           setProducts(updatedProducts);
           setFilteredProducts(updatedProducts);
 
-          // Extraer categorías únicas
           const uniqueCategories = [
             ...new Set(updatedProducts.map((product) => product.category)),
           ];
-          setCategories(["Todas", ...uniqueCategories]); // Agregar "Todas" como opción
+          setCategories(["Todas", ...uniqueCategories]);
         } else {
           throw new Error("Datos de productos incorrectos o vacíos");
         }
@@ -81,24 +72,27 @@ const Products = () => {
   const filterProducts = useCallback(
     (category, query) => {
       const filtered = products.filter((product) => {
+<<<<<<< HEAD
         const matchesCategory = category === "Todas" || product.category.toLowerCase() === category.toLowerCase();    
         
+=======
+        const matchesCategory = category === "Todas" || product.category === category;
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
         const matchesSearch = normalizeString(product.name).includes(normalizeString(query));
         return matchesCategory && matchesSearch;
       });
       setFilteredProducts(filtered);
-      setCurrentPage(1); // Reiniciar a la primera página
+      setCurrentPage(1);
     },
-    [products] // Dependencia de la lista de productos
+    [products]
   );
 
   useEffect(() => {
-    // Obtener el parámetro de búsqueda de la URL
     const urlParams = new URLSearchParams(window.location.search);
-    
     const searchQueryFromUrl = urlParams.get("search") || "";
-    const categoryQueryFromUrl = urlParams.get("category") || "Todas"
+    const categoryQueryFromUrl = urlParams.get("category") || "Todas";
     const idQueryFromUrl = urlParams.get("id") || null;
+<<<<<<< HEAD
     
     setSelectedCategory(categoryQueryFromUrl)
     
@@ -110,6 +104,18 @@ const Products = () => {
     setSearchQuery(searchQueryFromUrl);
     filterProducts(categoryQueryFromUrl, searchQueryFromUrl);
   }, [filterProducts, products]);
+=======
+
+    setSelectedCategory(categoryQueryFromUrl);
+    setSearchQuery(searchQueryFromUrl);
+    filterProducts(categoryQueryFromUrl, searchQueryFromUrl);
+
+    if (idQueryFromUrl) {
+      const product = products.find((p) => p.product_id == idQueryFromUrl);
+      if (product) openModal(product);
+    }
+  }, [products, filterProducts]);
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
 
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
@@ -119,17 +125,19 @@ const Products = () => {
   const handleSearchChange = (event) => {
     const query = event.target.value;
     setSearchQuery(query);
+    filterProducts(selectedCategory, query);
   };
-  
-  const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  useEffect(() => { 
-    filterProducts(selectedCategory, searchQuery);
-  }, [selectedCategory, searchQuery, filterProducts]);
+  const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const getBase64Image = (photoUrl) => photoUrl || `${import.meta.env.PUBLIC_URL}/images/icon.png`;
 
   const getPriceByUserType = (variation) => {
+    if (!variation) {
+      console.error("Variation is undefined");
+      return 0; // Fallback price if variation is undefined
+    }
+
     let price;
     switch (userType) {
       case "hogar":
@@ -175,54 +183,61 @@ const Products = () => {
   };
 
   const handleAddToCart = (product) => {
-    // Buscar la variación seleccionada en función de las opciones elegidas por el usuario
-    const selectedVariation = product.variations.find(
-      (v) =>
-        v.quality === selectedVariations[product.product_id]?.quality &&
-        v.quantity === selectedVariations[product.product_id]?.quantity
-    );
-  
+    let selectedVariation;
+
+    if (userType === "hogar" ) {
+      // Para "hogar", usar la primera variación
+      selectedVariation = product.variations[0];
+    } else {
+      // Para otros tipos de usuario, usar la variación seleccionada
+      selectedVariation = product.variations.find(
+        (v) =>
+          v.quality === selectedVariations[product.product_id]?.quality &&
+          v.quantity === selectedVariations[product.product_id]?.quantity
+      );
+
+      if (!selectedVariation) {
+        message.error("Por favor selecciona una calidad y cantidad.");
+        return;
+      }
+    }
+
     if (!selectedVariation) {
-      message.error("Por favor selecciona una calidad y cantidad.");
+      message.error("No se encontró una variación válida para este producto.");
       return;
     }
-  
-    // Obtener la cantidad seleccionada desde el estado `quantities`
-    const multiplier = quantities[product.product_id] || 1; // Asegurarse de que haya una cantidad seleccionada
-    const totalPrice = getPriceByUserType(selectedVariation) * multiplier; // Precio total basado en la cantidad
-    
-    // Crear un array de productos a agregar al carrito (el número de productos será igual al valor de `multiplier`)
+
+    const multiplier = quantities[product.product_id] || 1;
+    const totalPrice = getPriceByUserType(selectedVariation) * multiplier;
+
     const productsToAdd = Array.from({ length: multiplier }, () => ({
       ...product,
       selectedVariation: {
         ...selectedVariation,
-        quantity: 1, // Cada unidad tiene su propia cantidad de 1
+        quantity: 1,
       },
-      totalPrice: getPriceByUserType(selectedVariation), // El precio de cada unidad
+      totalPrice: getPriceByUserType(selectedVariation),
     }));
-  
-    // Agregar al carrito
-    addToCart(productsToAdd); // Pasamos el array de productos con las unidades
-  
-    // Limpiar las selecciones de variaciones y cantidades en el estado
+
+    addToCart(productsToAdd);
+
     setSelectedVariations((prev) => {
       const updatedVariations = { ...prev };
-      delete updatedVariations[product.product_id]; // Limpiar la variación seleccionada
+      delete updatedVariations[product.product_id];
       return updatedVariations;
     });
-  
+
     setQuantities((prev) => {
       const updatedQuantities = { ...prev };
-      delete updatedQuantities[product.product_id]; // Limpiar la cantidad seleccionada
+      delete updatedQuantities[product.product_id];
       return updatedQuantities;
     });
-  
-    setIsModalVisible(false); // Cerrar el modal después de añadir al carrito
+
+    setIsModalVisible(false);
   };
 
   const openModal = (product) => {
     setCurrentProduct(product);
-    
     setIsModalVisible(true);
   };
 
@@ -232,7 +247,7 @@ const Products = () => {
   };
 
   const handleInputChange = (productId, value) => {
-    const newValue = Math.max(1, parseInt(value) || 1); // Asegurarse de que el valor sea mínimo 1
+    const newValue = Math.max(1, parseInt(value) || 1);
     setQuantities((prev) => ({
       ...prev,
       [productId]: newValue,
@@ -247,7 +262,7 @@ const Products = () => {
           placeholder="Filtrar por categoría"
           style={{ width: 200, marginRight: 16 }}
           onChange={handleCategoryChange}
-          value={selectedCategory || "Todas"}
+          value={selectedCategory}
           allowClear
           size="large"
         >
@@ -273,34 +288,53 @@ const Products = () => {
           <p>Cargando productos...</p>
         ) : (
           <>
-            {currentProducts.map((product) => (
-              <Card
-                key={product.product_id}
-                className="product-card"
-                hoverable
-                onClick={() => openModal(product)}
-                cover={
-                  <img
-                    alt={product.name}
-                    src={getBase64Image(product.photo_url)}
-                    style={{
-                      objectFit: "cover",
-                      width: "100%",
-                      height: "250px",
-                    }}
-                  />
-                }
-              >
-                <div className="product-info">
-                  <h3 className="product-name">{product.name}</h3>
-                  <p className="product-category">{product.category}</p>
-                  <p className="product-description">{product.description}</p>
-                  <Button type="primary" onClick={() => openModal(product)}>
-                    Ver variaciones
-                  </Button>
-                </div>
-              </Card>
-            ))}
+            {currentProducts.map((product) => {
+              const firstVariation = product.variations[0];
+              const price = firstVariation ? getPriceByUserType(firstVariation) : 0;
+
+              return (
+                <Card
+                  key={product.product_id}
+                  className="product-card"
+                  hoverable
+                  onClick={() => openModal(product)}
+                  cover={
+                    <img
+                      alt={product.name}
+                      src={getBase64Image(product.photo_url)}
+                      style={{
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "250px",
+                      }}
+                    />
+                  }
+                >
+                  <div className="product-info">
+                    <h3 className="product-name">{product.name}</h3>
+                    <p className="product-category">{product.category}</p>
+                    <p className="product-description">{product.description}</p>
+                    {userType === "hogar" && firstVariation && (
+                      <div className="product-variation-info">
+                        <p>
+                          <strong>Cantidad:</strong> {firstVariation.quantity}
+                        </p>
+                        <p>
+                          <strong>Precio:</strong> $
+                          {price
+                            .toFixed(2)
+                            .replace(/\.00$/, "")
+                            .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                        </p>
+                      </div>
+                    )}
+                    <Button type="primary" onClick={() => openModal(product)}>
+                      Ver detalles
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
           </>
         )}
       </div>
@@ -316,98 +350,120 @@ const Products = () => {
       )}
 
       {currentProduct && (
-        <Modal
-          title={currentProduct.name}
-          open={isVisible}
-          onCancel={handleCancelModal}
-          footer={null}
-          width={400}
-        >
-          <img  
-            alt={currentProduct.name}
-            src={getBase64Image(currentProduct.photo_url)}
-            style={{ width: "100%", height: "300px", objectFit: "cover" }}
-          />
-          <Select
-            placeholder="Selecciona calidad"
-            style={{ width: "200px", marginBottom: 8 }}
-            onChange={(value) =>
-              handleVariationChange(currentProduct.product_id, "quality", value)
-            }
-            value={selectedVariations[currentProduct.product_id]?.quality}
+          <Modal
+            title={currentProduct.name}
+            open={isVisible}
+            onCancel={handleCancelModal}
+            footer={null}
+            width={400}
           >
-            {currentProduct.variations.map((variation) => (
-              <Option key={variation.variation_id} value={variation.quality}>
-                {variation.quality}
-              </Option>
-            ))}
-          </Select>
-
-          <Select
-            placeholder="Selecciona cantidad"
-            style={{ width: "200px", marginBottom: 8 }}
-            onChange={(value) =>
-              handleVariationChange(currentProduct.product_id, "quantity", value)
-            }
-            value={selectedVariations[currentProduct.product_id]?.quantity}
-          >
-            {currentProduct.variations.map((variation) => (
-              <Option key={variation.variation_id} value={variation.quantity}>
-                {variation.quantity}
-              </Option>
-            ))}
-          </Select>
-
-          <div className="quantity-controls">
-            <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
-            <input
-              type="number"
-              value={quantities[currentProduct.product_id] || 1}
-              onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
-              style={{ width: "50px", textAlign: "center" }}
+            <img
+              alt={currentProduct.name}
+              src={getBase64Image(currentProduct.photo_url)}
+              style={{ width: "100%", height: "300px", objectFit: "cover" }}
             />
-            <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
-          </div>
 
-            
+            {userType !== "hogar" && (
+              <>
+                <Select
+                  placeholder="Calidad"
+                  style={{ width: "100%", marginBottom: "8px" }}
+                  value={selectedVariations[currentProduct.product_id]?.quality}
+                  onChange={(value) =>
+                    handleVariationChange(currentProduct.product_id, "quality", value)
+                  }
+                >
+                  {currentProduct.variations.map((variation) => (
+                    <Option key={variation.variation_id} value={variation.quality}>
+                      {variation.quality}
+                    </Option>
+                  ))}
+                </Select>
 
-          <div className="product-price">
-            {selectedVariations[currentProduct.product_id]?.quality &&
-            selectedVariations[currentProduct.product_id]?.quantity ? (
-              <span>
-                Precio: $
-                {(
-                  getPriceByUserType(
-                    currentProduct.variations.find(
-                      (v) =>
-                        v.quality === selectedVariations[currentProduct.product_id]?.quality &&
-                        v.quantity === selectedVariations[currentProduct.product_id]?.quantity
-                    )
-                  ) * (quantities[currentProduct.product_id] || 1)
-                )
-                  .toFixed(2) // Aseguramos que tenga dos decimales
-                  .replace(/\.00$/, "") // Eliminamos ".00" si es el caso
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")} {/* Agregar separadores de miles */}
-              </span>
-            ) : (
-              <span>Selecciona calidad y cantidad para ver el precio!</span>
+                <Select
+                  placeholder="Cantidad"
+                  style={{ width: "100%", marginBottom: "8px" }}
+                  value={selectedVariations[currentProduct.product_id]?.quantity}
+                  onChange={(value) =>
+                    handleVariationChange(currentProduct.product_id, "quantity", value)
+                  }
+                >
+                  {currentProduct.variations.map((variation) => (
+                    <Option key={variation.variation_id} value={variation.quantity}>
+                      {variation.quantity}
+                    </Option>
+                  ))}
+                </Select>
+              </>
             )}
-          </div>
 
-          <Button
-            type="primary"
-            onClick={() =>
-              handleAddToCart(currentProduct, quantities[currentProduct.product_id] || 1)
-            }
-            disabled={
-              !selectedVariations[currentProduct.product_id]?.quality ||
-              !selectedVariations[currentProduct.product_id]?.quantity
-            }
-            style={{ marginTop: 8 }}
-          >
-            Añadir al carrito
-          </Button>
-        </Modal>
+            {userType === "hogar" && currentProduct.variations[0] && (
+              <div style={{ marginBottom: "8px" }}>
+                <p>
+                  <strong>Cantidad:</strong> {currentProduct.variations[0].quantity}
+                </p>
+              </div>
+            )}
+
+            <div className="quantity-controls" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
+              <input
+                type="number"
+                value={quantities[currentProduct.product_id] || 1}
+                onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
+                style={{
+                  width: "50px",
+                  textAlign: "center",
+                  border: "1px solid #d9d9d9",
+                  borderRadius: "4px",
+                  padding: "4px",
+                }}
+              />
+              <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
+            </div>
+
+            <div className="product-price" style={{ marginTop: "8px", textAlign: "center" }}>
+              {userType === "hogar" && currentProduct.variations[0] ? (
+                <span>
+                  Precio: $
+                  {(
+                    getPriceByUserType(currentProduct.variations[0]) *
+                    (quantities[currentProduct.product_id] || 1)
+                  )
+                    .toFixed(2)
+                    .replace(/\.00$/, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                </span>
+              ) : selectedVariations[currentProduct.product_id]?.quality &&
+                selectedVariations[currentProduct.product_id]?.quantity ? (
+                <span>
+                  Precio: $
+                  {(
+                    getPriceByUserType(
+                      currentProduct.variations.find(
+                        (v) =>
+                          v.quality === selectedVariations[currentProduct.product_id]?.quality &&
+                          v.quantity === selectedVariations[currentProduct.product_id]?.quantity
+                      )
+                    ) * (quantities[currentProduct.product_id] || 1)
+                  )
+                    .toFixed(2)
+                    .replace(/\.00$/, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                </span>
+              ) : (
+                <span>Selecciona calidad y cantidad para ver el precio!</span>
+              )}
+            </div>
+
+            <Button
+              type="primary"
+              onClick={() => handleAddToCart(currentProduct)}
+              style={{ marginTop: "8px", width: "100%" }}
+            >
+              Añadir al carrito
+            </Button>
+          </Modal>
       )}
 
       <BotonWhatsapp />

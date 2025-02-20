@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Select, Button } from "antd";
 
 const { Option } = Select;
@@ -16,8 +16,28 @@ const ProductModal = ({
   getPriceByUserType,
   handleAddToCart,
 }) => {
+  const [errorMessage, setErrorMessage] = useState('');
+
   const getBase64Image = (photoUrl) =>
     photoUrl || `${process.env.PUBLIC_URL}/images/icon.png`;
+
+  const handleAddProduct = (product) => {
+    const selectedVariation = selectedVariations[product.product_id];
+    const price = getPriceByUserType(
+      product.variations.find(
+        (v) =>
+          v.quality === selectedVariation?.quality &&
+          v.quantity === selectedVariation?.quantity
+      )
+    );
+
+    if (!price || price === 0) {
+      setErrorMessage("¡Lo sentimos! Esta variación no está disponible.");
+    } else {
+      setErrorMessage('');
+      handleAddToCart(product);
+    }
+  };
 
   return (
     <Modal
@@ -100,11 +120,15 @@ const ProductModal = ({
             )}
           </div>
 
+          {errorMessage && (
+            <div style={{ color: "red", marginTop: "10px", textAlign: "center" }}>
+              {errorMessage}
+            </div>
+          )}
+
           <Button
             type="primary"
-            onClick={() =>
-              handleAddToCart(product, quantities[product.product_id] || 1)
-            }
+            onClick={() => handleAddProduct(product)}
             disabled={
               !selectedVariations[product.product_id]?.quality ||
               !selectedVariations[product.product_id]?.quantity

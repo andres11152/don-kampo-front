@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
+import { Select, Form, Input, Button, message, Divider, Modal, Row, Col } from "antd";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
+import "jspdf-autotable";
 import axios from "axios";
 import Header from "../../components/General/Header";
 import CustomFooter from "../../components/General/Footer";
@@ -12,19 +11,90 @@ import { useCart } from "../products/CartContext";
 import useWindowSize from "react-use/lib/useWindowSize";
 import "./Checkout.css";
 import fruits from '../../assets/fruits.jpg'
+import { useRef } from "react";
 
 const Checkout = () => {
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState({
+    user_name: "",
+    lastname: "",
+    email: "",
+    phone: "",
+    city: "",
+    address: "",
+    neighborhood: "",
+    companyName: "",
+    companyNit: "",
+  });
   const [cartDetails, setCartDetails] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [needsElectronicInvoice, setNeedsElectronicInvoice] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [companyNit, setCompanyNit] = useState("");
+<<<<<<< HEAD
   const [shippingCost, setShippingCost] = useState(5000);
+=======
+  const [shippingCosts, setShippingCosts] = useState({});
+  const [discountedShippingCost, setDiscountedShippingCost] = useState(null);
+  const loginData = JSON.parse(localStorage.getItem("loginData")) || null;
+
+
+  useEffect(() => {
+    const fetchShippingCostsAndUser = async () => {
+      try {
+        // Obtener costos de envío
+        const response = await axios.get("http://localhost:8080/api/customer-types");
+        const costs = response.data.reduce((acc, type) => {
+          acc[type.type_name.toLowerCase()] = parseFloat(type.shipping_cost); // Convertir a decimal
+          return acc;
+        }, {});
+        setShippingCosts(costs);
+  
+        if (loginData?.user) {
+          // Obtener datos del usuario
+          const userResponse = await axios.get(
+            `http://localhost:8080/api/users/${loginData.user.id}`
+          );
+          const user = userResponse.data.user;
+          setUserData(user);
+  
+          const hasOrders =
+            userResponse.data.orders && userResponse.data.orders.length > 0;
+  
+          // Determinar tipo de usuario y porcentaje de envío
+          const userTypeKey = loginData?.user?.user_type?.toLowerCase() || "hogar";
+          const shippingPercentage = costs[userTypeKey] || 0;
+  
+          // Calcular subtotal dinámicamente
+          const subtotal = calculateSubtotal();
+  
+          // Calcular costo de envío
+          let calculatedShippingCost = (subtotal * shippingPercentage) / 100;
+  
+          // Aplicar descuento del 50% si es el primer pedido
+          if (!hasOrders) {
+            setIsFirstOrder(true);
+            calculatedShippingCost /= 2;
+          }
+  
+          // Actualizar costo de envío
+          setDiscountedShippingCost(calculatedShippingCost); // Para fines de visualización
+          setShippingCost(calculatedShippingCost); // Valor dinámico del costo
+        }
+      } catch (error) {
+        message.error("Error al cargar los datos de usuario o costos de envío.");
+        console.error(error);
+      }
+    };
+  
+    fetchShippingCostsAndUser();
+  }, [cartDetails]); // Escuchar cambios en el carrito
+  
+  
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
 
   const { cart, clearCart, addToCart, removeOneFromCart } = useCart();
-  
+
   const navigate = useNavigate();
   const { width, height } = useWindowSize();
 
@@ -33,11 +103,33 @@ const Checkout = () => {
 
   const [isFirstOrder, setIsFirstOrder] = useState(false);
 
+<<<<<<< HEAD
   // Función asíncrona para obtener y filtrar los pedidos
   const fetchOrders = async (userEmail) => {
     try {
         // Realiza la solicitud fetch a la API de pedidos
         const response = await axios.get('https://don-kampo-api.onrender.com/api/orders');
+=======
+
+
+  useEffect(() => {
+    if (!Object.keys(shippingCosts).length) {
+      const fetchShippingCosts = async () => {
+        try {
+          const response = await axios.get(
+            "http://localhost:8080/api/customer-types"
+          );
+          const costs = response.data.reduce((acc, type) => {
+            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
+            return acc;
+          }, {});
+          setShippingCosts(costs);
+        } catch (error) {
+          message.error("Error al cargar los costos de envío.");
+          console.error(error);
+        }
+      };
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
 
         // Convierte la respuesta a formato JSON
         const orders = response.data;        
@@ -58,6 +150,7 @@ const Checkout = () => {
     }
   }
 
+<<<<<<< HEAD
   useEffect(() => {
     // Definir una función asíncrona dentro de useEffect
     const initialize = async () => {
@@ -115,15 +208,18 @@ const Checkout = () => {
     initialize();
   }, []); // Dependencias: navigate y shippingCost si son necesarios
 
+=======
+ 
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
   useEffect(() => {
     const fetchCartDetails = async () => {
       try {
         const productDetails = await Promise.all(
           Object.entries(cart).map(async ([key, item]) => {
             const [productId] = key.split('-');
-            
+
             const response = await axios.get(
-              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -133,7 +229,10 @@ const Checkout = () => {
             };
           })
         );
-        setCartDetails(productDetails.filter(item => item !== null));
+        const newDetails = productDetails.filter(item => item !== null);
+        if (JSON.stringify(newDetails) !== JSON.stringify(cartDetails)) {
+          setCartDetails(newDetails);
+        }
       } catch (error) {
         message.error("Error al cargar los detalles del carrito.");
         console.error(error);
@@ -141,25 +240,28 @@ const Checkout = () => {
     };
 
     fetchCartDetails();
-  }, [cart]);
+  }, [cart])
+
+
 
   const getPriceByUserType = (product, selectedVariation) => {
-    if (!selectedVariation) return 0;
+  if (!selectedVariation) return 0; // Asegúrate de devolver 0 si no hay variación
+  const userType = loginData?.user?.user_type || "hogar";
+  switch (userType) {
+    case "hogar":
+      return parseInt(selectedVariation.price_home) || 0;
+    case "supermercado":
+      return parseInt(selectedVariation.price_supermarket) || 0;
+    case "restaurante":
+      return parseInt(selectedVariation.price_restaurant) || 0;
+    case "fruver":
+      return parseInt(selectedVariation.price_fruver) || 0;
+    default:
+      return parseInt(selectedVariation.price_home) || 0;
+  }
+};
 
-    const userType = loginData?.user?.user_type;
-    switch (userType) {
-      case "hogar":
-        return parseInt(selectedVariation.price_home) || 0;
-      case "supermercado":
-        return parseInt(selectedVariation.price_supermarket) || 0;
-      case "restaurante":
-        return parseInt(selectedVariation.price_restaurant) || 0;
-      case "fruver":
-        return parseInt(selectedVariation.price_fruver) || 0;
-      default:
-        return parseInt(selectedVariation.price_home) || 0;
-    }
-  };
+
 
   const calculateSubtotal = () => {
     return cartDetails.reduce((total, product) => {
@@ -187,7 +289,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`,
+          `http://localhost:8080/api/updateusers/${loginData.user.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -240,22 +342,41 @@ const Checkout = () => {
     removeOneFromCart(product);
   };
 
+  const getUserType = () => {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (user && user.user_type) {
+      return user.user_type;
+    }
+
+    return "hogar";
+  };
+
   const handlePlaceOrder = async () => {
     if (validateForm()) {
       const currentDate = new Date();
       currentDate.setDate(currentDate.getDate() + 1);
       const estimatedDelivery = currentDate.toISOString();
 
+      // Asegúrate de que el campo 'user_type' tenga un valor válido.
+      const userType = loginData?.user?.user_type || getUserType() || "hogar";  // "hogar" es el valor predeterminado
+
       const orderData = {
         userId: loginData?.user?.id || '8739e2f0-5674-4b00-bee7-d83b47035573',
         cartDetails: cartDetails.map((product) => ({
           productId: product.product_id,
           quantity: product.quantity,
-          variationId: product.selectedVariation.variation_id, // ID de la variación
+          variationId: product.selectedVariation.variation_id,
           price: getPriceByUserType(product, product.selectedVariation),
         })),
+<<<<<<< HEAD
         total: calculateSubtotal() + shippingCost,
         shippingCost: shippingCost,
+=======
+        total: calculateSubtotal() + (discountedShippingCost),
+        shippingCost: discountedShippingCost ?? shippingCost,
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
         shippingMethod: "Overnight",
         estimatedDelivery: estimatedDelivery,
         actual_delivery: currentDate,
@@ -266,18 +387,19 @@ const Checkout = () => {
           phone: userData.phone,
           city: userData.city,
           address: userData.address,
+          user_type: userType,  // Aquí aseguramos que el 'user_type' sea válido
           neighborhood: userData.neighborhood,
         },
         needsElectronicInvoice,
         companyName: needsElectronicInvoice ? companyName : "",
         companyNit: needsElectronicInvoice ? companyNit : "",
-      };     
-      console.log(orderData);
-       
+      };
+
+      console.log(orderData); // Para depuración
 
       try {
         const response = await axios.post(
-          "https://don-kampo-api.onrender.com/api/orders/placeOrder",
+          "http://localhost:8080/api/orders/placeOrder",
           orderData
         );
         if (response.status === 201) {
@@ -285,46 +407,134 @@ const Checkout = () => {
           setIsModalVisible(true);
         } else {
           message.error("Error al realizar el pedido. Inténtalo nuevamente.");
-          
         }
       } catch (error) {
         message.error("Error al realizar el pedido.");
-
         console.error(error);
       }
     } else {
-      message.error(
-        "Por favor, complete todos los campos antes de realizar el pedido."
-      );
+      message.error("Por favor, complete todos los campos antes de realizar el pedido.");
     }
   };
 
+<<<<<<< HEAD
   const total = calculateSubtotal() + shippingCost;
+=======
+
+  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
 
   const generateOrderPDF = () => {
-    const input = document.getElementById("order-summary-pdf");
-    if (!input) {
-      message.error("No se pudo generar el PDF. Intenta nuevamente.");
-      return;
-    }
+    const doc = new jsPDF();
+    doc.setFontSize(10);
 
-    html2canvas(input).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF();
+    // **Insertar el logo de la empresa**
+    const logoUrl = '/images/1.png';
+    doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30);
 
-      const imgWidth = 190;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const position = 10;
+    // **Información del remitente**
+    const senderInfo = ['Don Kampo S.A.S', 'Nit 901.865.742', 'Chía - Cundinamarca', '3117366666'];
+    const pageWidth = doc.internal.pageSize.width;
+    const senderX = pageWidth - 50;
 
-      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
-      pdf.save(`Resumen_Pedido_${orderId}.pdf`);
-
-      clearCart();
-      message.success("El carrito ha sido vaciado después de generar el PDF.");
-      navigate("/products");
+    doc.setFont('helvetica', 'bold');
+    senderInfo.forEach((line, index) => {
+        doc.text(line, senderX, 10 + (index * 5));
     });
-  };
+
+    // **Título del documento y fecha**
+    doc.setFontSize(14);
+    doc.text("Detalles de la Orden", 10, 35);
+    const orderDate = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const deliveryDate = new Date(new Date().setDate(new Date().getDate() + 1))
+        .toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Fecha de la orden:", 10, 40);
+    doc.setFont('helvetica', 'normal');
+    doc.text(orderDate, 55, 40);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Fecha de entrega:", 10, 45);
+    doc.setFont('helvetica', 'normal');
+    doc.text(deliveryDate, 55, 45);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("ID de la orden:", 10, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${orderId}`, 55, 50);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Cliente:", 10, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${userData.user_name} ${userData.lastname}`, 55, 55);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Correo:", 10, 60);
+    doc.setFont('helvetica', 'normal');
+    doc.text(userData.email, 55, 60);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Teléfono:", 10, 65);
+    doc.setFont('helvetica', 'normal');
+    doc.text(userData.phone, 55, 65);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text("Dirección:", 10, 70);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${userData.address}, ${userData.neighborhood}, ${userData.city}`, 55, 70);
+
+    // **Configuración de la tabla con los productos**
+    const tableColumns = [
+        { header: 'Producto', dataKey: 'description' },
+        { header: 'Precio Unitario', dataKey: 'unitPrice' },
+        { header: 'Cantidad', dataKey: 'quantity' },
+        { header: 'Subtotal', dataKey: 'subtotal' },
+    ];
+
+    const tableData = cartDetails.map((product) => ({
+        description: `${product.name} (${product.selectedVariation.quality} - ${product.selectedVariation.quantity})`,
+        unitPrice: `$${getPriceByUserType(product, product.selectedVariation).toLocaleString()}`,
+        quantity: product.quantity,
+        subtotal: `$${(getPriceByUserType(product, product.selectedVariation) * product.quantity).toLocaleString()}`,
+    }));
+
+    // **Renderizar la tabla**
+    doc.autoTable({
+        columns: tableColumns,
+        body: tableData,
+        startY: 75, // Comienza justo después de la dirección
+        styles: { fontSize: 10 },
+        columnStyles: {
+            description: { cellWidth: 'auto' },
+            unitPrice: { halign: 'right' },
+            quantity: { halign: 'center' },
+            subtotal: { halign: 'right' },
+        },
+    });
+
+    // **Calcular posición final para totales**
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    // **Agregar subtotales, envío y total al final**
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Subtotal: $${calculateSubtotal().toLocaleString()}`, 10, finalY);
+    doc.text(`Envío: $${shippingCost.toLocaleString()}`, 10, finalY + 5);
+    doc.setFontSize(14);
+    doc.text(`Total: $${(calculateSubtotal() + shippingCost).toLocaleString()}`, 10, finalY + 10);
+
+    // **Guardar el PDF**
+    doc.save(`Resumen_Pedido_${orderId}.pdf`);
+
+    // **Limpiar el carrito y redirigir**
+    clearCart();
+    message.success("El carrito ha sido vaciado después de generar el PDF.");
+    navigate("/products");
+};
+
+
 
   return (
     <div>
@@ -374,11 +584,14 @@ const Checkout = () => {
                 </Col>
                 <Col xs={24} sm={12}>
                   <Form.Item label="Ciudad">
-                    <Input
+                    <Select
                       name="city"
                       value={userData.city}
-                      onChange={handleInputChange}
-                    />
+                      onChange={(value) => handleInputChange({ target: { name: 'city', value } })}
+                    >
+                      <Select.Option value="Chía">Chía</Select.Option>
+                      <Select.Option value="Cajicá">Cajicá</Select.Option>
+                    </Select>
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
@@ -527,7 +740,8 @@ const Checkout = () => {
                   style={{ backgroundColor: "#FF914D", color: "#fff" }}
                 >
                   Descargar PDF
-                </Button>,
+                </Button>
+
               ]}
             >
               <div id="order-summary-pdf">
@@ -557,8 +771,8 @@ const Checkout = () => {
                 ))}
                 <Divider />
                 <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-                <p>Envío: ${shippingCost}</p>
-                <h4>Total: ${total.toLocaleString()}</h4>
+                <p>Envío: ${shippingCost.toLocaleString()}</p>
+                <h4>Total: ${(calculateSubtotal() + shippingCost).toLocaleString()}</h4>
               </div>
             </Modal>
           </div>

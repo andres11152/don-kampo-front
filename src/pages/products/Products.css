@@ -123,6 +123,9 @@
     height: 30px; /* Tamaño fijo para los botones */
     min-width: 30px;
 }
+.ant-select{
+    width: 300px;
+}
 
 /* Hover para los botones */
 .quantity-button:hover {
@@ -133,6 +136,10 @@
 .quantity-text {
     font-size: 14px;
     color: #333;
+    font-weight: bold;
+}
+.ant-modal-title {
+    color: #00983A  !important;
     font-weight: bold;
 }
 .green-text {

@@ -29,6 +29,7 @@ const categories = [
 
 const Home = () => {  
   const carouselRef = useRef(null);
+<<<<<<< HEAD
   const [showInstallModal, setShowInstallModal] = useState(true)
 
   const [isModalVisible, setIsModalVisible] = useState(localStorage.getItem("loginData") === null ? true : false);
@@ -46,11 +47,24 @@ const Home = () => {
     } else { return 'Hogar' }
   });
 
+=======
+  const [showInstallModal, setShowInstallModal] = useState(false)
+  const [isModalVisible, setIsModalVisible] = useState(() => {
+    const storedValue = localStorage.getItem('modalShown');
+    return storedValue !== null ? JSON.parse(storedValue) : true;
+  });
+  const navigate = useNavigate(); 
+    
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
   const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const navigate = useNavigate();  
+
+  const [userType, setUserType] = useState(() => {
+    return localStorage.getItem("userType") || "Hogar"; // Default: "Hogar"
+  });
+  
   
   const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
 
@@ -59,7 +73,7 @@ const Home = () => {
   const fetchProducts = async (query) => {
     try {
       const response = await axios.get(
-        `https://don-kampo-api.onrender.com/api/products?search=${query}`,
+        `http://localhost:8080/api/products?search=${query}`,
         { withCredentials: true }
       );
   
@@ -101,45 +115,53 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/publicidad");
-        
-        // Verificar si la respuesta es JSON
+        const response = await fetch("http://localhost:8080/api/publicidad");
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           throw new TypeError("La respuesta no es JSON");
         }
-
         const responseData = await response.json();
-        const publicityData = responseData.filter(publicity => publicity.category === userType.toLowerCase());
-
+        const publicityData = responseData.filter(
+          (item) => item.category.toLowerCase() === userType.toLowerCase()
+        );
         setPublicity(publicityData);
         
       } catch (error) {
-        console.error("Error al cargar los datos", error);
+        console.error("Error al cargar la publicidad:", error);
       }
     };
     fetchData();
-  }, [userType]);
+  }, [userType]); // Se vuelve a llamar cada vez que userType cambia
 
   const handleNext = () => carouselRef.current.next();
   const handlePrev = () => carouselRef.current.prev();
 
   const handleNavigate = link => navigate(link);
 
+<<<<<<< HEAD
   const handleUserTypeChange = type => {
     setUserType(type)
     localStorage.setItem('userType', type)
     setIsModalVisible(!isModalVisible)
   };
   
+=======
+  const handleUserTypeChange = (type) => {
+    localStorage.setItem("userType", type); // Guardar en una clave separada
+    setUserType(type);
+    setIsModalVisible(false);
+  };
+  
+
+>>>>>>> 55f0f98f736df32f05e7638482fd282ee8e44739
   return (
     <>
       <Header setShowInstallModal={setShowInstallModal} />
       <main>
-        <div className="search-bar">
+      <div className="search-bar">
           <AutoComplete
+            className="custom-search-bar" // Agregamos una clase personalizada
             options={searchResults.map((product) => {
-              // Obtener el mínimo y máximo de los precios en todas las variaciones
               const prices = product.variations.flatMap((variation) => [
                 variation.price_fruver,
                 variation.price_home,
@@ -151,28 +173,28 @@ const Home = () => {
               const maxPrice = Math.max(...prices);
 
               return {
-                value: product.name, // Usar "name" del backend
-                key: product.product_id, // Clave única
+                value: product.name,
+                key: product.product_id,
                 label: (
                   <div className="search-result-item">
                     <div>
                       <img
-                        src={product.photo_url} // Usar "photo_url" para la miniatura
-                        alt={product.name} // Usar "name" como alt
+                        src={product.photo_url}
+                        alt={product.name}
                         style={{ width: "50px", marginRight: "10px" }}
                       />
-                      <span>{product.name}</span> {/* Mostrar el nombre del producto */}
+                      <span>{product.name}</span>
                     </div>
                     <span className="range">
                       {minPrice === maxPrice
-                        ? `$${minPrice}` // Si los precios son iguales, mostrar solo uno
-                        : `$${minPrice} - $${maxPrice}`} {/* Mostrar el rango de precios */}
+                        ? `$${minPrice}`
+                        : `$${minPrice} - $${maxPrice}`}
                     </span>
                   </div>
                 ),
               };
             })}
-            style={{ width: '90%' }}
+            style={{ width: "500px" }} // Esto es opcional, el estilo puede ir en CSS
             onSelect={handleSelect}
             onSearch={handleSearchChange}
             placeholder="Buscar productos, categorías, etc."
@@ -188,6 +210,7 @@ const Home = () => {
             Buscar
           </Button>
         </div>
+
         {/* Carrusel principal */}
         <div className="carousel-wrapper">
           <Carousel autoplay className="home-carousel" ref={carouselRef}>
@@ -242,7 +265,11 @@ const Home = () => {
                   hoverable
                   cover={<img alt={category.title} src={category.img} />}
                   className="category-card"
-                  onClick={() => handleCategoryClick(category.title)}
+                  onClick={(e) => {
+                    e.preventDefault(); 
+                    handleCategoryClick(category.title);
+                  }}
+                  
                 >
                   <Card.Meta title={category.title} />
                 </Card>
@@ -261,7 +288,7 @@ const Home = () => {
             tu mesa, promoviendo un consumo responsable y sostenible que
             apoya a nuestros agricultores y cuida del medio ambiente.
           </p>
-          <Button type="primary" size="50%" >Conoce más sobre nosotros</Button>
+          <Button  type="primary" size="50%" >Conoce más sobre nosotros</Button>
 
           <div />
         </section>

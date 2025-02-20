@@ -19,8 +19,10 @@ import CustomFooter from "../../components/General/Footer";
 import BotonWhatsapp from "../../components/General/BotonWhatsapp";
 import axios from "axios";
 import * as XLSX from "xlsx";
-import "./UserProfile.css";
 import fruits from '../../assets/fruits.jpg'
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import "./Profile.css";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -42,40 +44,40 @@ const Profile = () => {
       const loginData = JSON.parse(localStorage.getItem("loginData"));
       if (loginData && loginData.user) {
         try {
-          const response = await axios.get(`https://don-kampo-api.onrender.com/api/users/${loginData.user.id}`);
+          const response = await axios.get(`http://localhost:8080/api/users/${loginData.user.id}`);
           const user = response.data.user;
           setUserData(user);
           form.setFieldsValue(user);
-  
+
           // Cargar pedidos
-          const ordersResponse = await axios.get("https://don-kampo-api.onrender.com/api/orders");
-          
+          const ordersResponse = await axios.get("http://localhost:8080/api/orders");
+
           const userOrders = ordersResponse.data.filter(
             (dataOrder) => dataOrder.order.customer_id === loginData.user.id
           );
-          
+
           const userIdOrders = userOrders.map(order => order.order)
-          
+
           setOrders(userIdOrders);
           setFilteredOrders(userIdOrders);
-          
+
         } catch (error) {
           message.error("Error al cargar los datos.");
-          console.error(error); 
+          console.error(error);
         };
       } else {
         message.error("Debe iniciar sesión para ver su perfil.");
       }
     };
-  
+
     fetchUserData();
-  }, [form]);  
+  }, [form]);
 
   const handleSaveChanges = async () => {
     try {
       const values = form.getFieldsValue();
       const loginData = JSON.parse(localStorage.getItem("loginData"));
-      await axios.put(`https://don-kampo-api.onrender.com/api/updateusers/${loginData.user.id}`, values);
+      await axios.put(`http://localhost:8080/api/updateusers/${loginData.user.id}`, values);
       setUserData(values);
       message.success("Datos actualizados exitosamente.");
     } catch (error) {
@@ -86,8 +88,8 @@ const Profile = () => {
 
   const fetchOrderDetails = async (orderId) => {
     try {
-      const response = await axios.get(`https://don-kampo-api.onrender.com/api/orders/${orderId}`);
-      
+      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+
       setSelectedOrder(response.data);
       setIsModalVisible(true);
     } catch (error) {
@@ -142,24 +144,171 @@ const Profile = () => {
       const matchTerm =
         order.id.toString().includes(term) ||
         renderStatus(order.status_id).props.text.toLowerCase().includes(term);
-  
+
       const matchDate =
         !range ||
         range.length === 0 ||
         (new Date(order.order_date) >= range[0].startOf("day").toDate() &&
           new Date(order.order_date) <= range[1].endOf("day").toDate());
-  
+
       return matchTerm && matchDate;
     });
     setFilteredOrders(filtered);
   };
-  
+
 
   const handleExportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredOrders);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos");
     XLSX.writeFile(workbook, "Historial_Pedidos.xlsx");
+  };
+
+  const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
+    try {
+      // Llamar a la API para obtener los detalles de la orden
+      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
+      const orderData = response.data;
+
+
+      // Llamar a la API para obtener los tipos de cliente y costos de envío
+      const customerTypeResponse = await axios.get("http://localhost:8080/api/customer-types");
+      const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
+        acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
+        return acc;
+      }, {});
+
+      console.log("Tipos de cliente:", customerTypes);
+
+      // Verificar si existe el campo user_type o type_name en userData
+      const userType = orderData.userData?.user_type?.toLowerCase() || orderData.userData?.type_name?.toLowerCase();
+
+      if (!userType) {
+        throw new Error("El tipo de usuario (type_name o user_type) no está definido en los datos de la orden.");
+      }
+
+      console.log("Tipo de usuario:", userType);
+
+      // Obtener el porcentaje de envío y calcular el costo
+      const totalValue = orderData.order.total;
+      const shippingPercentage = customerTypes[userType] || 0;
+      let shippingCost = (totalValue * shippingPercentage) / 100;
+
+      // Aplicar descuento si es la primera orden
+      if (orderData.isFirstOrder) {
+        shippingCost /= 2;
+      }
+
+      // Crear el PDF (el resto del código permanece igual)
+      const doc = new jsPDF();
+      doc.setFontSize(10);
+
+      // Insertar el logo de la empresa
+      const logoUrl = '/images/1.png';
+      doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30);
+
+      // Información del remitente
+      const senderInfo = ['Don Kampo S.A.S', 'Nit 901.865.742', 'Chía - Cundinamarca', '3117366666'];
+      const pageWidth = doc.internal.pageSize.width;
+      const senderX = pageWidth - 50;
+
+      doc.setFont('helvetica', 'bold');
+      senderInfo.forEach((line, index) => {
+        doc.text(line, senderX, 10 + (index * 5));
+      });
+
+      // Título del documento
+      doc.text("Detalles de la Orden", 10, 35);
+
+      // Información de la orden
+      const yOffset = 40;
+      const lineHeight = 5;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("ID de Orden:", 10, yOffset);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${orderData.order.id}`, 33, yOffset);
+
+      const status = orderData.order.status_id === 1
+        ? 'Pendiente'
+        : orderData.order.status_id === 2
+          ? 'Enviado'
+          : orderData.order.status_id === 3
+            ? 'Entregado'
+            : 'Cancelado';
+      doc.setFont('helvetica', 'bold');
+      doc.text("Estado:", 10, yOffset + lineHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.text(status, 33, yOffset + lineHeight);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("Cliente:", 10, yOffset + 2 * lineHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${orderData.userData.user_name} ${orderData.userData.lastname}`, 33, yOffset + 2 * lineHeight);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("Correo:", 10, yOffset + 3 * lineHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.text(orderData.userData.email, 33, yOffset + 3 * lineHeight);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("Teléfono:", 10, yOffset + 4 * lineHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.text(orderData.userData.phone, 33, yOffset + 4 * lineHeight);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text("Dirección:", 10, yOffset + 5 * lineHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 33, yOffset + 5 * lineHeight);
+
+      // Datos de los productos y la tabla (sin cambios)
+      const productData = orderData.items.map((item) => ({
+        "Producto": `${item.product_name} (${item.variation.quality} ${item.variation.quantity})`,
+        "Cantidad": item.quantity,
+        "Precio Unitario": `$${item.variation.price_home.toLocaleString()}`,
+        "Total": `$${(item.quantity * item.variation.price_home).toLocaleString()}`
+      }));
+
+      const columns = [
+        { title: "Producto", dataKey: "Producto" },
+        { title: "Cantidad", dataKey: "Cantidad" },
+        { title: "Precio Unitario", dataKey: "Precio Unitario" },
+        { title: "Total", dataKey: "Total" }
+      ];
+
+      autoTable(doc, {
+        head: [columns.map(col => col.title)],
+        body: productData.map(item => Object.values(item)),
+        startY: yOffset + 6 * lineHeight,
+        theme: 'grid',
+        margin: { top: 10 },
+        styles: {
+          head: {
+            fillColor: '#00983a',
+            textColor: '#ffffff'
+          },
+          body: {
+            justify: 'center',
+            textColor: '#000000'
+          }
+        }
+      });
+
+      // Agregar el costo de envío al PDF
+      doc.text(`Valor envío: $${shippingCost.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 10);
+
+      // Valor productos
+      doc.text(`Valor productos: $${orderData.order.total.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
+
+      // Total de la Orden
+      const totalPedido = Math.floor(orderData.order.total + shippingCost); // Suma y elimina los decimales
+      doc.text(`Total Pedido: $${totalPedido.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 25);
+
+      // Descargar el PDF
+      doc.save(`Orden_${orderData.order.id}.pdf`);
+    } catch (error) {
+      console.error("Error al generar el PDF:", error);
+    }
   };
 
   const renderWelcome = () => (
@@ -276,7 +425,16 @@ const Profile = () => {
         title: "Acciones",
         key: "actions",
         render: (_, record) => (
-          <Button onClick={() => fetchOrderDetails(record.id)}>Detalles</Button>
+          <>          
+              <Divider type="vertical" />
+              <Button
+                type="link"
+                className="link-button-2"
+                onClick={() => fetchOrderDetailsAndGeneratePDF(record.id)}
+              >
+                Generar PDF
+              </Button>
+          </>
         ),
       },
     ];

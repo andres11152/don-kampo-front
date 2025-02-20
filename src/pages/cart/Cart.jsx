@@ -43,20 +43,20 @@ const Cart = () => {
   }
 
   useEffect(() => {
-    const loginData = JSON.parse(localStorage.getItem('loginData'))
-    
-    if (loginData !== null) {
-      const userType = localStorage.getItem('userType').toLowerCase()
-      if (userType === 'restaurante') {
-        setShippingCost(shippingCost / 2)
-      } else if (userType === 'hogar' ) {
-        fetchOrders(loginData.user.email)
-          .then(purchaseOrders => {
-            if (purchaseOrders.length === 0) { setShippingCost(0) }
-          })
-          .catch(error => {
-              console.error('Error al obtener los pedidos filtrados:', error);
-          });
+    const fetchShippingCosts = async () => {
+      try {
+        if (!isShippingCostsLoaded) {
+          const response = await axios.get("http://localhost:8080/api/customer-types");
+          const costs = response.data.reduce((acc, type) => {
+            acc[type.type_name.toLowerCase()] = parseInt(type.shipping_percentage) / 100; // Asumimos que shipping_percentage es un porcentaje en formato entero
+            return acc;
+          }, {});
+          setShippingCosts(costs);
+          setIsShippingCostsLoaded(true);
+        }
+      } catch (error) {
+        message.error("Error al cargar los costos de envío.");
+        console.error(error);
       }
     }
   }, [])
@@ -72,7 +72,7 @@ const Cart = () => {
             const [productId] = key.split('-');
             
             const response = await axios.get(
-              `https://don-kampo-api.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -239,7 +239,6 @@ const Cart = () => {
               <h3>Total del Carrito</h3>
               <Divider />
               <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-              <p>Envío: ${shippingCost.toLocaleString()}</p>
               <p>
                 <strong>Total: ${total.toLocaleString()}</strong>
               </p>
