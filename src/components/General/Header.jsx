@@ -10,9 +10,9 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useCart } from "../../pages/products/CartContext"; // Importa el hook de contexto de carrito
-import "./General.css";
-import  InstallPrompt from "../../pages/install/InstallPrompt";
+import { useCart } from "components/Products/CartContext"; // Importa el hook de contexto de carrito
+import "css/General.css";
+import  InstallPrompt from "components/InstallPrompt";
 import { FaMobileAlt } from "react-icons/fa";
 
 const Header = (props) => {

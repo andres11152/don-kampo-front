@@ -1,0 +1,163 @@
+import React, { useEffect, useState } from "react";
+import Header from "components/General/Header";
+import CustomFooter from "components/General/Footer";
+import { useCart } from "components/Products/CartContext";
+import { Card, Button, message, Divider } from "antd";
+import { DeleteOutlined } from '@ant-design/icons'; // Icono de la papelera (basura)
+import BotonWhatsapp from "components/General/BotonWhatsapp";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+import getFetch from "utils/getFetch";
+import { getShippingCost, getPrice, isAmountCheckout } from "utils/getDataByUserType";
+
+import "css/Cart.css";
+import fruits from 'assets/fruits.jpg'
+
+const Cart = () => {
+  const { cart, removeFromCart, addToCart } = useCart();
+  const [cartDetails, setCartDetails] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [shippingCost, setShippingCost] = useState(0);
+
+  useEffect(() => {
+    getFetch('customer-types', '')
+      .then(fetchedShippingCosts => setShippingCost(getShippingCost(fetchedShippingCosts)))
+      .catch(error => {
+        message.error("Error al cargar los costos de envío.")
+        console.error(error)
+      })
+  }, [])
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCartDetails = async () => {
+      setLoading(true);
+      try {
+        const productDetails = await Promise.all(
+          Object.entries(cart).map(async ([key, item]) => {
+            const [productId] = key.split('-');
+            
+            const response = await axios.get(
+              `http://localhost:8080/api/getproduct/${productId}`
+            );
+
+            return {
+              ...response.data,
+              quantity: item.quantity,
+              selectedVariation: item.selectedVariation
+            };
+          })
+        );
+
+        setCartDetails(productDetails.filter(item => item !== null));
+      } catch (error) {
+        message.error("Error al cargar los detalles del carrito.");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCartDetails();
+  }, [cart]);
+
+  const calculateSubtotal = () => {
+    return cartDetails.reduce((total, product) => { 
+      return getPrice(product.selectedVariation) * product.quantity
+    }, 0);
+  };
+
+  const total = calculateSubtotal() + shippingCost;
+
+  const handleAddToCart = product => 
+    product.selectedVariation 
+      ? addToCart(product)
+      : message.error("Por favor selecciona una variaci��n antes de añadir al carrito.")
+
+      
+  const handleCheckout = () => {
+        
+    if (cartDetails.length) {
+      const { isAmount, content } = isAmountCheckout(total)
+
+      isAmount ? navigate("/checkout") : message.warning(content)
+    } else {
+      message.warning("No tienes productos en el carrito.")
+    }
+  }
+
+  return (
+    <>
+      <img id="fruits" src={fruits} alt="" />
+      <Header />
+      <div className="cart-container">
+        <h2 className="cart-title">Resumen del Carrito</h2>
+        {loading ? (
+          <p>Cargando...</p>
+        ) : cartDetails.length === 0 ? (
+          <p className="empty-cart-message">El carrito está vacío.</p>
+        ) : (
+          <div className="cart-content">
+            <div className="cart-items">
+              { cartDetails.map(product => {
+                const { category, product_id: id, photo_url: photo, selectedVariation: variation, name, quantity } = product
+                return (
+                  <Card key={`${id}-${variation.variation_id}`} className="cart-item">
+                    <div className="cart-item-layout">
+                      <div className="cart-item-details">
+                        <img
+                          alt={name}
+                          src={photo}
+                          style={{
+                            width: "100px",
+                            height: "100px",
+                            objectFit: "cover",
+                          }}
+                        />
+                        <div>
+                          <h4>{name}</h4>
+                          <p>Categoría: {category}</p>
+                          <p>Calidad: {variation?.quality}</p>
+                          <p>Cantidad: {variation?.quantity}</p>
+                          <p>Precio: ${getPrice(variation).toLocaleString()}</p>
+                          <p>Subtotal: ${(getPrice(variation) * quantity).toLocaleString()}</p>
+                        </div>
+                      </div>
+                      <div className="cart-item-quantity">
+                        <Button onClick={() => removeFromCart({product})}>-</Button>
+                        <span>{quantity}</span>
+                        <Button onClick={() => handleAddToCart(product)}>+</Button>
+                      </div>
+                      <div className="cart-item-delete">
+                        <Button danger icon={<DeleteOutlined />} onClick={() => removeFromCart({product, deleteAll:true})}/>
+                      </div>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+            <div className="cart-summary">
+              <h3>Total del Carrito</h3>
+              <Divider />
+              <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
+              <p><strong>Total: ${total.toLocaleString()}</strong></p>
+              <Button
+                type="primary"
+                className="checkout-button"
+                onClick={handleCheckout}
+              >
+                Finalizar Compra
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+      <BotonWhatsapp />
+      <CustomFooter />
+    </>
+  );
+};
+
+export default Cart;

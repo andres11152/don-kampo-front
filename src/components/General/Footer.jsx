@@ -1,5 +1,5 @@
 import React from "react";
-import "./General.css";
+import "css/General.css";
 import { FaMobileAlt } from "react-icons/fa";
 
 const categories = [

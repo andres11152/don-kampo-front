@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
 
 export default defineConfig({
   plugins: [
@@ -43,10 +44,18 @@ export default defineConfig({
         secure: false, // Desactiva la verificación de certificado
       },
     },
-  },  
+  },
   build: {
     chunkSizeWarningLimit: 1500, // Aumenta el límite del tamaño de chunk a 1500 KB
     outDir: 'dist', // Asegura que la salida se realice en la carpeta dist
     sourcemap: true, // Incluye mapas de fuente para depuración en producción
+  },
+  resolve: {
+    alias: {
+      'css': path.resolve(__dirname, 'src/css'),
+      'utils': path.resolve(__dirname, 'src/utils'),
+      'assets': path.resolve(__dirname, 'src/assets'),
+      'components': path.resolve(__dirname, 'src/components'),
+    },
   },
 });

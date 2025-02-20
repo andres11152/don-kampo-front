@@ -5,20 +5,19 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Login from "./pages/login/Login";
-import Register from "./pages/register/Register";
-import Products from "./pages/products/Products";
-import Cart from "./pages/cart/Cart.jsx";
-import Checkout from "./pages/chekOut/Checkout.jsx";
-import CreateProduct from "./pages/createProduct/CreateProduct.jsx";
-import Profile from "./pages/proflile/Profile.jsx";
-import AdminProfile from "./pages/admin/AdminProfile.jsx";
-import CreateOrder from "./pages/createOrder/CreateOrder.jsx";
-import ManageProducts from "./pages/ManageProducts/ManageProducts.jsx";
-import Home from "./pages/home/Home.jsx";
-
-
-import { CartProvider } from "./pages/products/CartContext.jsx";
+import Login from "components/Login";
+import Register from "components/Register";
+import Products from "components/Products/Products";
+import Cart from "components/Cart.jsx";
+import Checkout from "components/Checkout.jsx";
+import CreateProduct from "components/CreateProduct/CreateProduct.jsx";
+import Profile from "components/Profile.jsx";
+import AdminProfile from "components/Admin/AdminProfile.jsx";
+import CreateOrder from "components/CreateOrder.jsx";
+import ManageProducts from "components/ManageProducts.jsx";
+import Home from "components/Home.jsx";
+import { CartProvider } from "components/Products/CartContext.jsx";
+import TermsAndConditions from "components/TermsAndConditions";
 
 const App = () => {
   const [userType, setUserType] = useState(null);
@@ -56,6 +55,7 @@ const App = () => {
           <Route path="/products" element={<Products />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
 
           {/* Rutas protegidas para usuarios admin */}
           <Route

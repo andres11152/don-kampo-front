@@ -16,14 +16,15 @@ import {
   Upload,
   Progress,
 } from "antd";
-import Navbar from "../../components/navbar/Navbar";
-import CustomFooter from "../../components/footer/Footer";
-
+import Navbar from "components/General/Header";
+import CustomFooter from "components/General/Footer";
+import ManagePublicity from "./ManagePublicity";
 import { SearchOutlined } from "@ant-design/icons";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import BotonWhatsapp from "components/General/BotonWhatsapp";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "css/AdminProfile.css";
+
 
 const { Option } = Select;
 
@@ -31,6 +32,7 @@ const AdminProfile = () => {
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [purchaseOrders, setPurchaseOrders] = useState([])
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isUserModalVisible, setIsUserModalVisible] = useState(false);
@@ -38,106 +40,6 @@ const AdminProfile = () => {
   const [globalSearchText, setGlobalSearchText] = useState("");
   const [products, setProducts] = useState([]); // Datos cargados del Excel
   const [progress, setProgress] = useState(0); // Progreso del envío
-
-  const [shippingCosts, setShippingCosts] = useState({
-    hogar: 0,
-    fruver: 0,
-    supermercado: 0,
-    restaurante: 0,
-  });
-
-  const [loadingShipping, setLoadingShipping] = useState(false);
-
-  const handleExcelUpload = (file) => {
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const data = new Uint8Array(event.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-      const formattedData = jsonData.map((row, index) => {
-        let variations = [];
-        try {
-          if (row["Variaciones"]) {
-            // Procesar las variaciones como un JSON válido
-            variations = JSON.parse(`[${row["Variaciones"]}]`);
-          }
-        } catch (error) {
-          console.error("Error al procesar las variaciones:", error);
-          message.error(
-            `Error en la fila ${index + 1}: Variaciones mal formateadas.`
-          );
-        }
-
-        return {
-          key: index,
-          name: row["Nombre"] || "",
-          description: row["Descripción"] || "",
-          category: row["Categoría"] || "",
-          stock: parseInt(row["Stock"] || "0", 10),
-          variations, // Variaciones procesadas
-          imageFile: null,
-        };
-      });
-
-      setProducts(formattedData);
-      message.success("Archivo cargado correctamente.");
-    };
-
-    reader.readAsArrayBuffer(file);
-    return false; // Evitar la carga automática del archivo
-  };
-
-  const handleSendToAPI = async () => {
-    setLoading(true);
-    setProgress(0);
-
-    try {
-      for (let i = 0; i < products.length; i++) {
-        const product = products[i];
-        const formData = new FormData();
-        if (product.imageFile) {
-          formData.append("photo_url", product.imageFile);
-        } else {
-          message.warning(
-            `El producto ${product.name} no tiene imagen. Saltando...`
-          );
-          continue;
-        }
-        formData.append("name", product.name);
-        formData.append("description", product.description);
-        formData.append("category", product.category);
-        formData.append("stock", product.stock);
-
-        // Asegurarse de enviar las variaciones correctamente como una cadena JSON
-        formData.append("variations", JSON.stringify(product.variations));
-
-        const response = await axios.post(
-          "http://localhost:8080",
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-
-        if (response.status === 200) {
-          setProgress(Math.round(((i + 1) / products.length) * 100));
-          message.success(`Producto ${product.name} enviado correctamente.`);
-        }
-      }
-
-      message.success("Todos los productos se enviaron correctamente.");
-    } catch (error) {
-      console.error("Error al enviar productos:", error);
-      message.error("Ocurrió un error al enviar los productos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const columns = [
     { title: "Nombre", dataIndex: "name", key: "name" },
     { title: "Descripción", dataIndex: "description", key: "description" },
@@ -171,16 +73,141 @@ const AdminProfile = () => {
     },
   ];
 
-  const handleImageUpload = (file, key) => {
-    const updatedProducts = products.map((product) => {
-      if (product.key === key) {
-        return { ...product, imageFile: file }; // Asocia el archivo binario con el producto
-      }
-      return product;
-    });
+  const [shippingCosts, setShippingCosts] = useState({
+    hogar: 0,
+    fruver: 0,
+    supermercado: 0,
+    restaurante: 0,
+  });
 
-    setProducts(updatedProducts);
-    message.success(`Imagen cargada para el producto con clave: ${key}`);
+  const [loadingShipping, setLoadingShipping] = useState(false);
+
+  const fetchShippingCosts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/customer-types");
+      const costs = response.data.reduce((acc, type) => {
+        acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
+        return acc;
+      }, {});
+      setShippingCosts(costs); // Actualiza el estado con los datos cargados
+    } catch (error) {
+      message.error("Error al cargar los costos de envío.");
+      console.error(error);
+    }
+  };
+
+  const updateShippingCosts = async (values) => {
+    setLoadingShipping(true);
+    try {
+      await axios.put("http://localhost:8080/api/customer-types/shipping-costs", values);
+      message.success("Costos de envío actualizados exitosamente.");
+      fetchShippingCosts(); // Refresca los datos
+    } catch (error) {
+      message.error("Error al actualizar los costos de envío.");
+      console.error(error);
+    } finally {
+      setLoadingShipping(false);
+    }
+  };
+
+  useEffect(() => { fetchShippingCosts(); }, []);
+  useEffect(() => { formDelivery.setFieldsValue(shippingCosts); }, [shippingCosts]);
+
+  const handleExcelUpload = (file) => {
+    const reader = new FileReader();
+  
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+  
+      const formattedData = jsonData.map((row, index) => {
+        let variations = [];
+        try {
+          if (row["Variaciones"]) {
+            // Procesar las variaciones como un JSON válido
+            variations = JSON.parse(`[${row["Variaciones"]}]`);
+          }
+        } catch (error) {
+          console.error("Error al procesar las variaciones:", error);
+          message.error(`Error en la fila ${index + 1}: Variaciones mal formateadas.`);
+        }
+  
+        // Extraer cada variación en columnas diferentes
+        const variationEntries = variations.map((variation, vIndex) => ({
+          [`Calidad Variación ${vIndex + 1}`]: variation.quality,
+          [`Cantidad Variación ${vIndex + 1}`]: variation.quantity,
+          [`Precio Hogar Variación ${vIndex + 1}`]: variation.price_home,
+          [`Precio Supermercado Variación ${vIndex + 1}`]: variation.price_supermarket,
+          [`Precio Restaurante Variación ${vIndex + 1}`]: variation.price_restaurant,
+          [`Precio Fruver Variación ${vIndex + 1}`]: variation.price_fruver,
+        }));
+  
+        return {
+          key: index,
+          name: row["Nombre"] || "",
+          description: row["Descripción"] || "",
+          category: row["Categoría"] || "",
+          stock: parseInt(row["Stock"] || "0", 10),
+          ...variationEntries.reduce((acc, entry) => ({ ...acc, ...entry }), {}),
+          imageFile: null,
+        };
+      });
+  
+      setProducts(formattedData);
+      message.success("Archivo cargado correctamente.");
+    };
+  
+    reader.readAsArrayBuffer(file);
+    return false; // Evitar la carga automática del archivo
+  };
+
+  const handleSendToAPI = async () => {
+    setProgress(0);
+
+    try {
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        const formData = new FormData();
+        if (product.imageFile) {
+          formData.append("photo_url", product.imageFile);
+        } else {
+          message.warning(
+            `El producto ${product.name} no tiene imagen. Saltando...`
+          );
+          continue;
+        }
+        formData.append("name", product.name);
+        formData.append("description", product.description);
+        formData.append("category", product.category);
+        formData.append("stock", product.stock);
+
+        // Asegurarse de enviar las variaciones correctamente como una cadena JSON
+        formData.append("variations", JSON.stringify(product.variations));
+
+        const response = await axios.post(
+          "http://localhost:8080/api/createproduct",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        if (response.status === 200) {
+          setProgress(Math.round(((i + 1) / products.length) * 100));
+          message.success(`Producto ${product.name} enviado correctamente.`);
+        }
+      }
+
+      message.success("Todos los productos se enviaron correctamente.");
+    } catch (error) {
+      console.error("Error al enviar productos:", error);
+      message.error("Ocurrió un error al enviar los productos.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sendProductsToAPI = async (products) => {
@@ -214,45 +241,21 @@ const AdminProfile = () => {
     }
   };
 
-  const fetchShippingCosts = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/customer-types");
-      const costs = response.data.reduce((acc, type) => {
-        acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
-        return acc;
-      }, {});
-      setShippingCosts(costs); // Actualiza el estado con los datos cargados
-    } catch (error) {
-      message.error("Error al cargar los costos de envío.");
-      console.error(error);
-    }
+  const handleImageUpload = (file, key) => {
+    const updatedProducts = products.map((product) => {
+      if (product.key === key) {
+        return { ...product, imageFile: file }; // Asocia el archivo binario con el producto
+      }
+      return product;
+    });
+
+    setProducts(updatedProducts);
+    message.success(`Imagen cargada para el producto con clave: ${key}`);
   };
-
-  const updateShippingCosts = async (values) => {
-    setLoadingShipping(true);
-    try {
-      await axios.put("http://localhost:8080/api/customer-types/shipping-costs", values);
-      message.success("Costos de envío actualizados exitosamente.");
-      fetchShippingCosts(); // Refresca los datos
-    } catch (error) {
-      message.error("Error al actualizar los costos de envío.");
-      console.error(error);
-    } finally {
-      setLoadingShipping(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchShippingCosts(); // Carga los costos de envío al cargar la página
-  }, []);
-
-  useEffect(() => {
-    form.setFieldsValue(shippingCosts); // Actualiza los valores del formulario
-  }, [shippingCosts]);
 
   const getFilteredUsers = () => {
     if (!globalSearchText) return users;
-
+    
     return users.filter((user) => {
       const statusText = renderUserStatus(user.status_id); // Convierte el estado a texto legible
       return (
@@ -266,18 +269,14 @@ const AdminProfile = () => {
     });
   };
 
-  const [isCreateUserModalVisible, setIsCreateUserModalVisible] =
-    useState(false);
+  const [isCreateUserModalVisible, setIsCreateUserModalVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    fetchUsers();
-    fetchOrders();
-  }, []);
-
+  const [formDelivery] = Form.useForm();
+  const [formUserDetail] = Form.useForm()
+  const [formCreateUser] = Form.useForm()
+  
   const fetchUsers = async () => {
     try {
       const response = await axios.get("http://localhost:8080/api/users");
@@ -290,14 +289,68 @@ const AdminProfile = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/orders");
-      setOrders(response.data);
-      setFilteredOrders(response.data);
+        const response = await axios.get("http://localhost:8080/api/orders");
+
+        // Filtrar órdenes pendientes (status_id = 1)
+        const pendingOrders = response.data.filter(item => item.order.status_id === 1);
+
+        // Procesar datos de órdenes
+        const dataOrders = pendingOrders.map(item => ({
+            ...item.order,
+            email: item.userData?.email || ''
+        }));
+
+        // Procesar datos de productos de las órdenes pendientes
+        const dataPurchaseOrders = pendingOrders.flatMap(item => item.items);
+
+        // Agrupamos y sumamos las cantidades de los productos
+        const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
+            const key = `${product.product_id}-${product.product_variation_id}`;
+
+            // Si no existe el producto, lo agregamos
+            if (!acc[key]) {
+                acc[key] = { ...product };
+            } else {
+                // Si ya existe, sumamos la cantidad
+                acc[key].quantity += product.quantity;
+            }
+
+            return acc;
+        }, {});
+
+        // Convertimos el objeto de agrupación en un array
+        const uniquePurchaseProducts = Object.values(consolidatedProducts).map(product => {
+            const { variation } = product; // Extraemos el objeto variation
+            if (variation) {
+                // Traemos las propiedades al nivel superior
+                return {
+                    id_producto: product.product_id,
+                    cantidad: variation.quantity,
+                    nombre_producto: product.product_name,
+                    id_variacion: product.product_variation_id,
+                    calidad: variation.quality,
+                    total: product.quantity
+                };
+            }
+            return product; // Si no hay variation, devolvemos el producto sin cambios
+        });
+
+        // Actualizar el estado con las órdenes y productos filtrados
+        setPurchaseOrders(uniquePurchaseProducts);
+        setOrders(dataOrders);
+        setFilteredOrders(dataOrders);
     } catch (error) {
-      message.error("Error al cargar los pedidos.");
-      console.error(error);
+        message.error("Error al cargar los pedidos.");
+        console.error(error);
     }
-  };
+};
+
+// Llamar a fetchOrders al montar el componente
+useEffect(() => {
+    fetchUsers();
+    fetchOrders();
+}, []);
+
 
   const uploadProducts = async (products) => {
     setLoading(true);
@@ -396,7 +449,7 @@ const AdminProfile = () => {
       const response = await axios.get(`http://localhost:8080/api/users/${user.id}`);
       setSelectedUser(response.data);
       setIsUserModalVisible(true);
-      form.setFieldsValue(response.data.user); // Actualiza los valores del formulario
+      formUserDetail.setFieldsValue(response.data.user); // Actualiza los valores del formulario
     } catch (error) {
       message.error("Error al cargar los detalles del usuario.");
       console.error(error);
@@ -406,13 +459,14 @@ const AdminProfile = () => {
   const handleCancelUserModal = () => {
     setIsUserModalVisible(false);
     setSelectedUser(null);
-    form.resetFields(); // Limpia el formulario
+    formUserDetail.resetFields(); // Limpia el formulario
   };
 
   const openOrderModal = async (orderId) => {
     try {
-      const response = await axios.get(`/api/orders/${orderId}`);
+      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
       // Actualiza el estado con toda la respuesta (incluyendo order, items y shippingInfo)
+      
       setSelectedOrder(response.data);
       setIsOrderModalVisible(true);
     } catch (error) {
@@ -430,7 +484,7 @@ const AdminProfile = () => {
     }
   };
 
-  const updateUserDetails = async (values) => {
+  const updateUserDetails = async (values) => {    
     try {
       await axios.put(`http://localhost:8080/api/updateusers/${selectedUser.user.id}`, values);
       message.success("Usuario actualizado exitosamente.");
@@ -443,7 +497,7 @@ const AdminProfile = () => {
   };
 
   const openCreateUserModal = () => {
-    form.resetFields();
+    formCreateUser.resetFields();
     setIsCreateUserModalVisible(true);
   };
 
@@ -465,6 +519,7 @@ const AdminProfile = () => {
       setLoading(false);
     }
   };
+
 
   const renderUserTable = () => {
     const userColumns = [
@@ -509,22 +564,6 @@ const AdminProfile = () => {
       },
       { title: "Tipo", dataIndex: "user_type", key: "user_type" },
       {
-        title: "Estado",
-        dataIndex: "status_id",
-        key: "status_id",
-        render: (status, record) => (
-          <Select
-            defaultValue={status}
-            onChange={(newStatus) => updateUserStatus(record.id, newStatus)}
-            style={{ width: 120 }}
-          >
-            <Option value={1}>Activo</Option>
-            <Option value={2}>Inactivo</Option>
-            <Option value={3}>Suspendido</Option>
-          </Select>
-        ),
-      },
-      {
         title: "Acciones",
         key: "actions",
         render: (_, user) => (
@@ -559,85 +598,25 @@ const AdminProfile = () => {
     );
   };
 
-  const renderOrderTable = () => {
+
+  const renderPurchaseTable = () => {
     const orderColumns = [
-      { title: "ID de Orden", dataIndex: "id", key: "id" },
-      { title: "Cliente", dataIndex: "customer_id", key: "customer_id" },
-      {
-        title: "Fecha",
-        dataIndex: "order_date",
-        key: "order_date",
-        render: (date) => new Date(date).toLocaleDateString(),
-      },
-      { title: "Total", dataIndex: "total", key: "total" },
-      {
-        title: "Estado",
-        dataIndex: "status_id",
-        key: "status_id",
-        render: (status) =>
-          status === 1
-            ? "Pendiente"
-            : status === 2
-            ? "Enviado"
-            : status === 3
-            ? "Entregado"
-            : "Cancelado",
-      },
-      {
-        title: "Acciones",
-        key: "actions",
-        render: (_, order) => (
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Button onClick={() => openOrderModal(order.id)}>Detalles</Button>
-            <Select
-              defaultValue={order.status_id}
-              onChange={(newStatus) => updateOrderStatus(order.id, newStatus)}
-              style={{ width: 120 }}
-            >
-              <Option value={1}>Pendiente</Option>
-              <Option value={2}>Enviado</Option>
-              <Option value={3}>Entregado</Option>
-              <Option value={4}>Cancelado</Option>
-              <Option value={5}>Pagado</Option>
-            </Select>
-            <Popconfirm
-              title="¿Estás seguro de eliminar este pedido?"
-              onConfirm={() => deleteOrder(order.id)}
-              okText="Sí"
-              cancelText="No"
-            >
-              <Button danger>Eliminar</Button>
-            </Popconfirm>
-          </div>
-        ),
-      },
+      { title: "ID Producto", dataIndex: "id_producto", key: "id_producto" },
+      { title: "Producto", dataIndex: "nombre_producto", key: "nombre_producto" },
+      { title: "ID Variacion", dataIndex: "id_variacion", key: "id_variacion" },
+      { title: "Calidad", dataIndex: "calidad", key: "calidad" },
+      { title: "Cantidad", dataIndex: "cantidad", key: "cantidad" },
+      { title: "Total a Comprar", dataIndex: "total", key:"total" }
     ];
 
     return (
-      <Card title="Gestión de Pedidos" style={{ marginTop: "20px" }}>
-        <div style={{ marginBottom: "20px" }}>
-          <Select
-            placeholder="Filtrar por estado"
-            allowClear
-            onChange={handleStatusFilterChange}
-            style={{ width: 200 }}
-          >
-            <Option value={null}>Todos</Option>
-            <Option value={1}>Pendiente</Option>
-            <Option value={2}>Enviado</Option>
-            <Option value={3}>Entregado</Option>
-            <Option value={4}>Cancelado</Option>
-            <Option value={5}>Pagado</Option>
-          </Select>
-          <Button type="primary" onClick={exportFilteredOrdersToExcel}>
-            Descargar Excel
-          </Button>
-        </div>
+      <Card title="Gestión de Compras" style={{ marginTop: "20px" }}>
+        <Button style={{ marginBottom: '20px' }} type="primary" onClick={exportPurchaseOrdersToExcel}> Descargar Excel </Button>
         <Spin spinning={loading}>
           {" "}
           {/* Muestra la rueda de carga mientras `loading` está activo */}
           <Table
-            dataSource={filteredOrders}
+            dataSource={purchaseOrders}
             columns={orderColumns}
             rowKey="id"
             pagination={{ pageSize: 5 }}
@@ -646,37 +625,22 @@ const AdminProfile = () => {
       </Card>
     );
   };
-
-  const downloadSampleExcel = () => {
-    // Datos de ejemplo
-    const exampleData = [
-      {
-        Nombre: "Producto Ejemplo 1",
-        Descripción: "Descripción del producto 1",
-        Categoría: "Categoría 1",
-        Stock: 100,
-        Variaciones: `{"quality":"Alta","quantity":15,"price_home":3,"price_supermarket":3.5,"price_restaurant":4,"price_fruver":4.5},{"quality":"Media","quantity":10,"price_home":2.5,"price_supermarket":3,"price_restaurant":3.5,"price_fruver":4}`,
-      },
-      {
-        Nombre: "Producto Ejemplo 2",
-        Descripción: "Descripción del producto 2",
-        Categoría: "Categoría 2",
-        Stock: 200,
-        Variaciones: `{"quality":"Alta","quantity":15,"price_home":3.0,"price_supermarket":3.5,"price_restaurant":4.0,"price_fruver":4.5}`,
-      },
-    ];
-
-    // Crear un libro de trabajo
-    const workbook = XLSX.utils.book_new();
-
-    // Convertir los datos a una hoja de trabajo
-    const worksheet = XLSX.utils.json_to_sheet(exampleData);
-
-    // Agregar la hoja de trabajo al libro
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Productos Ejemplo");
-
-    // Descargar el archivo Excel
-    XLSX.writeFile(workbook, "Productos_Ejemplo.xlsx");
+  
+  
+  
+  // Función de apoyo para crear columnas de variaciones dinámicamente
+  const createVariationColumns = (maxVariations, variations) => {
+    const columns = {};
+    for (let i = 0; i < maxVariations; i++) {
+      const variation = variations[i] || {}; // Usa un objeto vacío si no hay variación
+      columns[`Calidad_v${i + 1}`] = variation.quality || '';
+      columns[`Cantidad_v${i + 1}`] = variation.quantity || 0;
+      columns[`Precio_Hogar_v${i + 1}`] = variation.price_home || 0;
+      columns[`Precio_Supermercado_v${i + 1}`] = variation.price_supermarket || 0;
+      columns[`Precio_Restaurante_v${i + 1}`] = variation.price_restaurant || 0;
+      columns[`Precio_Fruver_v${i + 1}`] = variation.price_fruver || 0;
+    }
+    return columns;
   };
 
   const exportFilteredOrdersToExcel = async () => {
@@ -691,36 +655,33 @@ const AdminProfile = () => {
         filteredOrders.map(async (order) => {
           try {
             const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
-            const { order: orderDetails, items, shippingInfo } = response.data;
-
-            // Combinar los detalles de la orden, ítems y envío en un solo objeto
-            detailedOrders.push({
-              "ID de Orden": orderDetails.id,
-              Cliente: orderDetails.customer_name,
-              "Correo Cliente": orderDetails.customer_email,
-              "Fecha de Pedido": new Date(
-                orderDetails.order_date
-              ).toLocaleDateString(),
-              Total: `$${orderDetails.total}`,
-              Estado:
-                orderDetails.status_id === 1
-                  ? "Pendiente"
-                  : orderDetails.status_id === 2
-                  ? "Enviado"
-                  : orderDetails.status_id === 3
-                  ? "Entregado"
-                  : "Cancelado",
-              "Método de Envío":
-                shippingInfo?.shipping_method || "No disponible",
-              "Número de Rastreo":
-                shippingInfo?.tracking_number || "No disponible",
-              Ítems:
-                items
-                  .map(
-                    (item) =>
-                      `${item.product_name} (x${item.quantity}) - $${item.price}`
-                  )
-                  .join("; ") || "No disponible",
+            
+            const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
+            // Crear filas por cada ítem y variación
+            items.forEach((item) => {
+              detailedOrders.push({
+                "ID de Orden": orderDetails.id,
+                Cliente: orderDetails.customer_name,
+                Ciudad: city,
+                Teléfono: phone,
+                Dirección: address,
+                "Correo Cliente": orderDetails.customer_email,
+                "Fecha de Pedido": new Date(orderDetails.order_date).toLocaleDateString(),
+                Total: `$${orderDetails.total}`,
+                Estado:
+                  orderDetails.status_id === 1
+                    ? "Pendiente"
+                    : orderDetails.status_id === 2
+                    ? "Enviado"
+                    : orderDetails.status_id === 3
+                    ? "Entregado"
+                    : "Cancelado",
+                "ID de Variación": item.product_variation_id,
+                "Nombre del Producto": item.product_name,
+                Calidad: item.variation.quality,
+                Cantidad: item.quantity,
+                Precio: `$${item.price}`,
+              });
             });
           } catch (error) {
             // Captura el detalle del error para la hoja de errores
@@ -770,6 +731,34 @@ const AdminProfile = () => {
       setLoading(false); // Desactivamos la rueda de carga
     }
   };
+  
+  const exportPurchaseOrdersToExcel = async () => {
+    setLoading(true); // Activamos la rueda de carga
+
+    // Crear hojas de trabajo
+    const workbook = XLSX.utils.book_new();
+    
+    // Reorganizar los datos en el orden deseado
+    const orderedPurchaseOrders = purchaseOrders.map(order => ({
+      id_producto: order.id_producto,
+      nombre_producto: order.nombre_producto,
+      id_variacion: order.id_variacion,
+      calidad: order.calidad,
+      cantidad: order.cantidad,
+      total: order.total
+    }));
+
+    // Convertir a hoja de cálculo con el orden de columnas establecido
+    const purchasedWorksheet = XLSX.utils.json_to_sheet(orderedPurchaseOrders);
+
+    XLSX.utils.book_append_sheet(workbook, purchasedWorksheet, "Pedidos a comprar");
+
+    // Guardar el archivo Excel
+    XLSX.writeFile(workbook, "Pedidos a comprar.xlsx");
+
+    message.success("Archivo Excel generado exitosamente.");
+    setLoading(false); // Desactivamos la rueda de carga
+  };
 
   return (
     <div>
@@ -777,11 +766,11 @@ const AdminProfile = () => {
       <div className="admin-profile-container">
         <h2>Bienvenido al Panel de Administración</h2>
         <p>
-        👤 Administra usuarios, 📦 gestiona pedidos, 🚚 configura precios de envíos y 🛒 crea productos fácilmente. 
-        ¡Todo en un solo lugar! 🎯
+        👤 Administra usuarios, 🚚 precios de envíos, 🛒 compras y 📢 publicidad. ¡Todo en un solo lugar! 🎯
         </p>
         {renderUserTable()}
-        {renderOrderTable()}
+        
+        {renderPurchaseTable()}
 
         {/* Modal for User Details */}
         <Modal
@@ -791,7 +780,9 @@ const AdminProfile = () => {
           footer={null}
         >
           {selectedUser && (
-            <Form form={form} onFinish={updateUserDetails} layout="vertical">
+            <Form form={formUserDetail} onFinish={(values) => {
+              updateUserDetails(values);
+            }} layout="vertical">
               <Form.Item
                 label="Nombre"
                 name="user_name"
@@ -880,18 +871,6 @@ const AdminProfile = () => {
                   <Option value="fruver">Fruver</Option>
                 </Select>
               </Form.Item>
-              <Form.Item
-                label="Estado"
-                name="status_id"
-                rules={[
-                  { required: true, message: "Por favor selecciona el estado" },
-                ]}
-              >
-                <Select>
-                  <Option value={true}>Activo</Option>
-                  <Option value={false}>Inactivo</Option>
-                </Select>
-              </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit" block>
                   Guardar Cambios
@@ -901,8 +880,11 @@ const AdminProfile = () => {
           )}
         </Modal>
 
+        <ManagePublicity />
+
+        {/* Costos Envio */}
         <Form
-          form={form}
+          form={formDelivery}
           layout="vertical"
           onFinish={updateShippingCosts} // Maneja la actualización de costos
         >
@@ -954,55 +936,6 @@ const AdminProfile = () => {
           </Card>
         </Form>
 
-        <div>
-          <Card title="Gestión de Productos" style={{ marginTop: 20 }}>
-            <h2>Cargar Productos desde Excel</h2>
-            <Button
-              type="primary"
-              onClick={downloadSampleExcel}
-              style={{ marginBottom: "20px", marginRight: "20px" }}
-            >
-              Descargar Excel de Ejemplo
-            </Button>
-
-            <Upload
-              accept=".xlsx"
-              beforeUpload={handleExcelUpload}
-              showUploadList={false}
-            >
-              <Button type="primary">Cargar Archivo Excel</Button>
-            </Upload>
-
-            {products.length > 0 && (
-              <>
-                <Table
-                  dataSource={products}
-                  columns={columns}
-                  rowKey="key"
-                  style={{ marginTop: 20 }}
-                  pagination={{ pageSize: 5 }}
-                />
-
-                <Button
-                  type="primary"
-                  onClick={handleSendToAPI}
-                  loading={loading}
-                  style={{ marginTop: 20 }}
-                >
-                  Enviar Productos a la API
-                </Button>
-
-                {loading && (
-                  <div style={{ marginTop: 20 }}>
-                    <Spin spinning={loading} />
-                    <Progress percent={progress} />
-                  </div>
-                )}
-              </>
-            )}
-          </Card>
-        </div>
-
         <Modal
           title="Detalles del Pedido"
           visible={isOrderModalVisible}
@@ -1026,8 +959,10 @@ const AdminProfile = () => {
                 <strong>Email:</strong> {selectedOrder.order.customer_email}
               </p>
               <p>
-                <strong>Fecha:</strong>{" "}
-                {new Date(selectedOrder.order.order_date).toLocaleDateString()}
+                <strong>Fecha:</strong> {new Date(selectedOrder.order.order_date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Fecha Entrega</strong> {new Date(new Date(selectedOrder.order.order_date).setDate(new Date(selectedOrder.order.order_date).getDate() + 1)).toLocaleDateString()}
               </p>
               <p>
                 <strong>Total:</strong> ${selectedOrder.order.total}
@@ -1044,41 +979,12 @@ const AdminProfile = () => {
               </p>
               <Divider />
 
-              <h3>Información de Envío</h3>
-              {selectedOrder.shippingInfo ? (
-                <>
-                  <p>
-                    <strong>Método de Envío:</strong>{" "}
-                    {selectedOrder.shippingInfo.shipping_method}
-                  </p>
-                  <p>
-                    <strong>Número de Rastreo:</strong>{" "}
-                    {selectedOrder.shippingInfo.tracking_number}
-                  </p>
-                  <p>
-                    <strong>Fecha Estimada de Entrega:</strong>{" "}
-                    {new Date(
-                      selectedOrder.shippingInfo.estimated_delivery
-                    ).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Estado de Envío:</strong>{" "}
-                    {selectedOrder.shippingInfo.shipping_status_id === 1
-                      ? "En Proceso"
-                      : "Entregado"}
-                  </p>
-                </>
-              ) : (
-                <p>No hay información de envío disponible.</p>
-              )}
-              <Divider />
-
               <h3>Ítems del Pedido</h3>
               {selectedOrder.items.length > 0 ? (
                 <ul>
                   {selectedOrder.items.map((item, index) => (
                     <li key={index}>
-                      {item.name} - {item.quantity} x ${item.price}
+                      {item.product_name} - {item.quantity} x ${item.price}
                     </li>
                   ))}
                 </ul>
@@ -1096,7 +1002,7 @@ const AdminProfile = () => {
           onCancel={() => setIsCreateUserModalVisible(false)}
           footer={null}
         >
-          <Form form={form} onFinish={handleCreateUser} layout="vertical">
+          <Form form={formCreateUser} onFinish={handleCreateUser} layout="vertical">
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item
@@ -1225,6 +1131,6 @@ const AdminProfile = () => {
       <CustomFooter />
     </div>
   );
-};
+  };
 
 export default AdminProfile;
