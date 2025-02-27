@@ -77,6 +77,7 @@ const ManagePublicity = () => {
       setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
       fetchAdvertisements();
     } catch (error) {
+        console.error('Error', error)
         alert("El Id del Producto no existe")
     } finally {
       setIsLoading(false);
@@ -101,7 +102,6 @@ const ManagePublicity = () => {
     setNewAd({
       category: ad.category,
       title: ad.title,
-      related_product_id: ad.related_product_id,
       description: ad.description,
       photo_url: ad.photo_url,
       related_product_id: ad.related_product_id || "", // Asignar el product_id si existe

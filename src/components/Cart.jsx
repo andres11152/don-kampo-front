@@ -4,7 +4,7 @@ import CustomFooter from "components/General/Footer";
 import { useCart } from "components/Products/CartContext";
 import { Card, Button, message, Divider } from "antd";
 import { DeleteOutlined } from '@ant-design/icons'; // Icono de la papelera (basura)
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -150,11 +150,18 @@ const Cart = () => {
               >
                 Finalizar Compra
               </Button>
+              <Button
+                type="secondary"
+                className="checkout-button "
+                onClick={() => navigate('/products')}
+              >
+                Continuar Comprando
+              </Button>
             </div>
           </div>
         )}
       </div>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </>
   );

@@ -20,7 +20,7 @@ import Navbar from "../../components/navbar/Navbar";
 import CustomFooter from "../../components/footer/Footer";
 
 import { SearchOutlined } from "@ant-design/icons";
-import BotonWhatsapp from "../../components/botonWhatsapp/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "css/AdminProfile.css";
@@ -786,7 +786,7 @@ const AdminProfile = () => {
         {/* Modal for User Details */}
         <Modal
           title="Detalles de Usuario"
-          visible={isUserModalVisible}
+          open={isUserModalVisible}
           onCancel={handleCancelUserModal} // Cambiar la función de cancelación
           footer={null}
         >
@@ -1005,7 +1005,7 @@ const AdminProfile = () => {
 
         <Modal
           title="Detalles del Pedido"
-          visible={isOrderModalVisible}
+          open={isOrderModalVisible}
           onCancel={() => setIsOrderModalVisible(false)}
           footer={[
             <Button key="close" onClick={() => setIsOrderModalVisible(false)}>
@@ -1092,7 +1092,7 @@ const AdminProfile = () => {
         {/* Modal for Create User */}
         <Modal
           title="Crear Usuario"
-          visible={isCreateUserModalVisible}
+          open={isCreateUserModalVisible}
           onCancel={() => setIsCreateUserModalVisible(false)}
           footer={null}
         >
@@ -1221,7 +1221,7 @@ const AdminProfile = () => {
           </Form>
         </Modal>
       </div>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </div>
   );

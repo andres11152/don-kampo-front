@@ -16,8 +16,9 @@ import {
 } from "antd";
 import Header from "components/General/Header";
 import CustomFooter from "components/General/Footer";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import axios from "axios";
+import getFetch from 'utils/getFetch';
 import * as XLSX from "xlsx";
 import fruits from 'assets/fruits.jpg'
 import jsPDF from 'jspdf';
@@ -32,13 +33,12 @@ const Profile = () => {
   const [view, setView] = useState("welcome"); // 'welcome', 'profile', 'orders'
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState([]);
-  const [products, setProducts] = useState([]);
-
+  const [actualOrder, setActualOrder] = useState(null)
+  
   useEffect(() => {
     const fetchUserData = async () => {
       const loginData = JSON.parse(localStorage.getItem("loginData"));
@@ -51,14 +51,12 @@ const Profile = () => {
 
           // Cargar pedidos
           const ordersResponse = await axios.get("http://localhost:8080/api/orders");
+          
+          
+          const userOrders = ordersResponse.data.filter(order => order.order.customer_id === loginData.user.id);
+          setOrders(userOrders);
 
-          const userOrders = ordersResponse.data.filter(
-            (dataOrder) => dataOrder.order.customer_id === loginData.user.id
-          );
-
-          const userIdOrders = userOrders.map(order => order.order)
-
-          setOrders(userIdOrders);
+          const userIdOrders = userOrders.map(order => order.order)     
           setFilteredOrders(userIdOrders);
 
         } catch (error) {
@@ -82,18 +80,6 @@ const Profile = () => {
       message.success("Datos actualizados exitosamente.");
     } catch (error) {
       message.error("Error al actualizar los datos.");
-      console.error(error);
-    }
-  };
-
-  const fetchOrderDetails = async (orderId) => {
-    try {
-      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
-
-      setSelectedOrder(response.data);
-      setIsModalVisible(true);
-    } catch (error) {
-      message.error("Error al cargar los detalles del pedido.");
       console.error(error);
     }
   };
@@ -155,7 +141,6 @@ const Profile = () => {
     });
     setFilteredOrders(filtered);
   };
-
 
   const handleExportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(filteredOrders);
@@ -392,6 +377,13 @@ const Profile = () => {
     </Card>
   );
 
+  const renderModal = order => {
+    const filter = orders.filter(newOrder => newOrder.order.id === order.id)[0]
+    
+    setActualOrder(filter)
+    setIsModalVisible(true)    
+  }
+
   const renderOrdersTable = () => {
     const orderColumns = [
       {
@@ -429,7 +421,7 @@ const Profile = () => {
                 onClick={() => fetchOrderDetailsAndGeneratePDF(record.id)}
               >
                 Generar PDF
-              </Button>
+              </Button>              
           </>
         ),
       },
@@ -456,6 +448,7 @@ const Profile = () => {
           columns={orderColumns}
           rowKey="id"
           pagination={{ pageSize: 5 }}
+          onRow={record => ({ onClick: () => renderModal(record) })}
         />
         <Button
           type="default"
@@ -468,72 +461,77 @@ const Profile = () => {
     );
   };
 
-  const renderOrderDetailsModal = () => (
-    <Modal
-      title={`Detalles de Orden #${selectedOrder?.order?.id}`}
-      visible={isModalVisible}
-      onCancel={() => setIsModalVisible(false)}
-      footer={[
-        <Button key="close" onClick={() => setIsModalVisible(false)}>
-          Cerrar
-        </Button>,
-      ]}
-    >
-      {selectedOrder && (
-        <div className="modal-content-horizontal">
-          <div className="modal-section-horizontal">
-            <p>
-              <strong>Cliente:</strong> {selectedOrder.order.customer_name}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedOrder.order.customer_email}
-            </p>
-            <p>
-              <strong>Fecha:</strong>{" "}
-              {new Date(selectedOrder.order.order_date).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Fecha de entrega:</strong>{" "}
-              {new Date(new Date(selectedOrder.order.order_date).setDate(new Date(selectedOrder.order.order_date).getDate() + 1)).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Estado:</strong>{" "}
-              {renderStatus(selectedOrder.order.status_id)}
-            </p>
-            <p className="modal-total-horizontal">
-              <strong>Total:</strong> $
-              {parseInt(selectedOrder.order.total).toLocaleString()}
-            </p>
-          </div>
-          <div className="modal-section-horizontal">
-            <h4>Productos:</h4>
-            <div className="modal-product-list-horizontal">
-              {selectedOrder.items.map((item) => (
-                <div
-                  key={item.product_id}
-                  className="modal-product-item-horizontal"
-                >
-                  <p>
-                    <strong>Producto:</strong> {item.product_name}
-                  </p>
-                  <p>
-                    <strong>Descripción:</strong> {item.product_description}
-                  </p>
-                  <p>
-                    <strong>Cantidad:</strong> {item.quantity}
-                  </p>
-                  <p>
-                    <strong>Precio:</strong> $
-                    {parseInt(item.price).toLocaleString()}
-                  </p>
-                </div>
-              ))}
+  const renderOrderDetailsModal = () =>
+    isModalVisible && (
+      
+      <Modal
+        title='Detalles de Orden'
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setIsModalVisible(false)}>
+            Cerrar
+          </Button>,
+        ]}
+      >
+        {actualOrder && (
+          <div className="modal-content-horizontal">
+            <div className="modal-section-horizontal">
+              <p><strong>Id de Orden:</strong> {actualOrder.order.id}</p>
+              <p><strong>Cliente:</strong> {actualOrder.userData.user_name}</p>
+              <p><strong>Email:</strong> {actualOrder.userData.email}</p>
+              <p><strong>Telefono:</strong> {actualOrder.userData.phone}</p>
+              <p><strong>Direccion:</strong> {actualOrder.userData.address}</p>
+              <p>
+                <strong>Fecha de Pedido:</strong>{" "}
+                {new Date(actualOrder.order.order_date).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>Fecha de Entrega:</strong>{" "}
+                {new Date(new Date(actualOrder.order.order_date).setDate(new Date(actualOrder.order.order_date).getDate() + 1)).toLocaleDateString()}
+              </p>
+              <p className="modal-total-horizontal">
+                <strong>Total (incluye envio):</strong> ${parseInt(actualOrder.order.total).toLocaleString()}</p>
+              <p>
+                <strong>Estado:</strong>{" "}
+                {renderStatus(actualOrder.order.status_id)}
+              </p>
+            </div>
+            <div className="modal-section-horizontal">
+              <h4>Productos:</h4>
+              <div className="modal-product-list-horizontal">
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                      <thead>
+                          <tr>
+                              <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Producto</th>
+                              <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Cantidad</th>
+                              <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Precio Unitario</th>
+                              <th style={{ border: '1px solid #ddd', padding: '8px', backgroundColor: '#f2f2f2' }}>Total</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {actualOrder.items.map((item, index) => {
+                              const priceHome = parseFloat(item.variation.price_home);
+                              const unitPrice = Math.trunc(priceHome);
+                              const total = item.quantity * unitPrice;
+
+                              return (
+                                  <tr key={index}>
+                                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.product_name} ({item.variation.quality} {item.variation.quantity})</td>
+                                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.quantity}</td>
+                                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>${unitPrice.toLocaleString()}</td>
+                                      <td style={{ border: '1px solid #ddd', padding: '8px' }}>${total.toLocaleString()}</td>
+                                  </tr>
+                              );
+                          })}
+                      </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </Modal>
-  );
+        )}
+      </Modal>
+    )
 
   return (
     <>
@@ -544,7 +542,7 @@ const Profile = () => {
         {view === "orders" && renderOrdersTable()}
         {renderOrderDetailsModal()}
       </div>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </>
   );

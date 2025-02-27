@@ -193,10 +193,11 @@
   font-weight: bold;
   transition: background-color 0.3s;
   text-align: center;
+  margin-top: 10px;
 }
 
 .checkout-button:hover {
-  background-color: #EE7723;
+  background-color: #00983A;
 }
 
 /* Media Queries */

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Select, Form, Input, Button, message, Divider, Modal, Row, Col, Checkbox } from "antd";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
@@ -548,7 +548,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </div>
   );

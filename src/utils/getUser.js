@@ -1,8 +1,8 @@
 const loginData = JSON.parse(localStorage.getItem("loginData"))
 
-const userData = loginData.user
+const userData = loginData?.user
 
-let userType = userData.user_type;
+let userType = userData?.user_type;
 
 userType = 
     userType === 'hogar' ? 'home' 

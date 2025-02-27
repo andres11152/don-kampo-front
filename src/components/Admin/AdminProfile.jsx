@@ -20,8 +20,9 @@ import Navbar from "components/General/Header";
 import CustomFooter from "components/General/Footer";
 import ManagePublicity from "./ManagePublicity";
 import { SearchOutlined } from "@ant-design/icons";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import axios from "axios";
+import getFetch from "utils/getFetch"
 import * as XLSX from "xlsx";
 import "css/AdminProfile.css";
 
@@ -277,15 +278,17 @@ const AdminProfile = () => {
   const [formUserDetail] = Form.useForm()
   const [formCreateUser] = Form.useForm()
   
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/users");
-      setUsers(response.data);
-    } catch (error) {
-      message.error("Error al cargar los usuarios.");
-      console.error(error);
-    }
-  };
+  const fetchUsers = async getData =>
+    getFetch('users', '')
+      .then(fetchedUsers => { 
+        if (getData) return fetchedUsers
+
+        else setUsers(fetchedUsers)
+      })
+      .catch(error => {
+        message.error("Error al cargar los usuarios.");
+        console.error(error);
+      })
 
   const fetchOrders = async () => {
     try {
@@ -347,7 +350,7 @@ const AdminProfile = () => {
 
 // Llamar a fetchOrders al montar el componente
 useEffect(() => {
-    fetchUsers();
+    fetchUsers(false);
     fetchOrders();
 }, []);
 
@@ -488,7 +491,7 @@ useEffect(() => {
     try {
       await axios.put(`http://localhost:8080/api/updateusers/${selectedUser.user.id}`, values);
       message.success("Usuario actualizado exitosamente.");
-      fetchUsers(); // Refresca la lista de usuarios después de actualizar
+      fetchUsers(false); // Refresca la lista de usuarios después de actualizar
       setIsUserModalVisible(false);
     } catch (error) {
       message.error("Error al actualizar el usuario.");
@@ -510,7 +513,7 @@ useEffect(() => {
         neighborhood: " ",
       });
       message.success("Usuario creado exitosamente.");
-      fetchUsers();
+      fetchUsers(false);
       setIsCreateUserModalVisible(false);
     } catch (error) {
       message.error("Error al crear el usuario.");
@@ -520,7 +523,34 @@ useEffect(() => {
     }
   };
 
+  const renderTypeUsers = () => {
+    const typeUsers = [
+      { count: 0, type: "hogar" },
+      { count: 0, type: "restaurante" },
+      { count: 0, type: "supermercado" },
+      { count: 0, type: "fruver" },
+    ];
 
+    const updatedTypeUsers = typeUsers.map(typeUser => ({
+      ...typeUser,
+      count: users.filter(userData => userData.user_type === typeUser.type).length
+    }));   
+    
+    return (
+      <ul className="listTypeUsers">
+        { updatedTypeUsers.map((typeUser, index) => {
+          return (
+          <li key={index}>
+            <span>{typeUser.count}</span>
+            <p>{typeUser.type}</p>
+          </li>
+          )
+        })}
+      </ul>
+    )
+  }
+
+  renderTypeUsers()
   const renderUserTable = () => {
     const userColumns = [
       { title: "Nombre", dataIndex: "user_name", key: "user_name" },
@@ -574,26 +604,29 @@ useEffect(() => {
 
     return (
       <Card title="Gestión de Usuarios">
-        <Button
-          type="primary"
-          onClick={openCreateUserModal}
-          className="crearUser"
-        >
-          Crear Usuario
-        </Button>
-        <Input
-          placeholder="Buscar en todos los campos"
-          allowClear
-          onChange={(e) => setGlobalSearchText(e.target.value.toLowerCase())}
-          style={{ marginBottom: 16, width: 300, marginLeft: 25 }}
-          prefix={<SearchOutlined />}
-        />
+        <div className="containerTableUsers">
+          <Button
+            type="primary"
+            onClick={openCreateUserModal}
+            className="crearUser"
+          >
+            Crear Usuario
+          </Button>
+          <Input
+            placeholder="Buscar en todos los campos"
+            allowClear
+            onChange={(e) => setGlobalSearchText(e.target.value.toLowerCase())}
+            style={{ marginBottom: 16, width: 300, marginLeft: 25 }}
+            prefix={<SearchOutlined />}
+          />
+          {renderTypeUsers()}
+        </div>
         <Table
-          dataSource={getFilteredUsers()}
-          columns={userColumns} // Ahora está definido correctamente
-          rowKey="id"
-          pagination={{ pageSize: 5 }}
-        />
+            dataSource={getFilteredUsers()}
+            columns={userColumns} // Ahora está definido correctamente
+            rowKey="id"
+            pagination={{ pageSize: 5 }}
+          />
       </Card>
     );
   };
@@ -625,8 +658,6 @@ useEffect(() => {
       </Card>
     );
   };
-  
-  
   
   // Función de apoyo para crear columnas de variaciones dinámicamente
   const createVariationColumns = (maxVariations, variations) => {
@@ -765,9 +796,7 @@ useEffect(() => {
       <Navbar />
       <div className="admin-profile-container">
         <h2>Bienvenido al Panel de Administración</h2>
-        <p>
-        👤 Administra usuarios, 🚚 precios de envíos, 🛒 compras y 📢 publicidad. ¡Todo en un solo lugar! 🎯
-        </p>
+        <p>👤 Administra usuarios, 🚚 precios de envíos, 🛒 compras y 📢 publicidad. ¡Todo en un solo lugar! 🎯</p>
         {renderUserTable()}
         
         {renderPurchaseTable()}
@@ -775,7 +804,7 @@ useEffect(() => {
         {/* Modal for User Details */}
         <Modal
           title="Detalles de Usuario"
-          visible={isUserModalVisible}
+          open={isUserModalVisible}
           onCancel={handleCancelUserModal} // Cambiar la función de cancelación
           footer={null}
         >
@@ -892,16 +921,18 @@ useEffect(() => {
             title="Gestión de Costos de Envío"
             bordered={true}
             style={{
+              header: {
+                backgroundColor: "#00983a",
+                color: "#fff",
+                textAlign: "center"
+              },
+              body: {
+                padding: "20px",
+              },
               width: "100%",
               marginTop: "20px",
               backgroundColor: "#f9f9f9",
             }}
-            headStyle={{
-              backgroundColor: "#00983a",
-              color: "#fff",
-              textAlign: "center",
-            }}
-            bodyStyle={{ padding: "20px" }}
           >
             <Row gutter={[16, 16]} style={{ textAlign: "center" }}>
               {Object.keys(shippingCosts).map((type) => (
@@ -938,7 +969,7 @@ useEffect(() => {
 
         <Modal
           title="Detalles del Pedido"
-          visible={isOrderModalVisible}
+          open={isOrderModalVisible}
           onCancel={() => setIsOrderModalVisible(false)}
           footer={[
             <Button key="close" onClick={() => setIsOrderModalVisible(false)}>
@@ -998,7 +1029,7 @@ useEffect(() => {
         {/* Modal for Create User */}
         <Modal
           title="Crear Usuario"
-          visible={isCreateUserModalVisible}
+          open={isCreateUserModalVisible}
           onCancel={() => setIsCreateUserModalVisible(false)}
           footer={null}
         >
@@ -1127,7 +1158,7 @@ useEffect(() => {
           </Form>
         </Modal>
       </div>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </div>
   );

@@ -3,7 +3,7 @@ import { Card, Button, message, Select, Input, Pagination, Modal } from "antd";
 import { useCart } from "./CartContext";
 import Header from "components/General/Header";
 import CustomFooter from "components/General/Footer";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import { userType } from "utils/getUser";
 import { getPrice } from "utils/getDataByUserType";
 import getFetch from 'utils/getFetch.js';
@@ -42,7 +42,7 @@ const Products = () => {
               }))
             : [],
         }));
-        
+
         setProducts(updatedProducts);
         setFilteredProducts(updatedProducts);
 
@@ -236,14 +236,14 @@ const Products = () => {
               <p>Cargando productos...</p>
             ) : (
               <>
-                { currentProducts.map(product => {
+                { currentProducts.map(product => {                  
                   const firstVariation = product.variations[0];
                   const price = firstVariation ? getPrice(firstVariation) : 0;
                   
                   return (
                     <Card
                       key={product.product_id}
-                      className="product-card"
+                      className={`product-card ${product.promocionar ? 'promo' : ''}`}
                       hoverable
                       onClick={() => openModal(product)}
                       cover={
@@ -417,7 +417,7 @@ const Products = () => {
           </Modal>
       )}
 
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </>
   );

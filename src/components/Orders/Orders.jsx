@@ -571,7 +571,7 @@ const OrderManagement = () => {
             </Spin>
             <Modal
                 title="Detalles de la Orden"
-                visible={isModalVisible}
+                open={isModalVisible}
                 onCancel={handleCancel}
                 footer={[
                     <Button onClick={() => fetchOrderDetailsAndGeneratePDF(order.id)}>

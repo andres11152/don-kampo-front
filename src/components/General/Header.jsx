@@ -98,7 +98,6 @@ const Header = (props) => {
         <a href="/">
           <img src="/images/1.png" alt="Don Kampo Logo"/>
         </a>
-       
 
         <div
           className="cart-icon"

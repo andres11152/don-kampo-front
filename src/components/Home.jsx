@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import Header from "components/General/Header";
 import Footer from "components/General/Footer";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import InstallPrompt from "components/InstallPrompt";
 import getFetch from 'utils/getFetch.js'
 import "css/Home.css";
@@ -91,9 +91,6 @@ const Home = () => {
       })
   }, [userType]); // Se vuelve a llamar cada vez que userType cambia
 
-  const handleNext = () => carouselRef.current.next();
-  const handlePrev = () => carouselRef.current.prev();
-
   const handleNavigate = link => navigate(link);
 
   const handleUserTypeChange = (type) => {
@@ -119,7 +116,6 @@ const Home = () => {
               ]);
 
               const minPrice = Math.min(...prices);
-              const maxPrice = Math.max(...prices);
 
               return {
                 value: product.name,
@@ -134,11 +130,7 @@ const Home = () => {
                       />
                       <span>{product.name}</span>
                     </div>
-                    <span className="range">
-                      {minPrice === maxPrice
-                        ? `$${minPrice}`
-                        : `$${minPrice} - $${maxPrice}`}
-                    </span>
+                    <span className="range">Desde: {minPrice}</span>
                   </div>
                 ),
               };
@@ -285,7 +277,7 @@ const Home = () => {
 
       </main>
       <Footer setShowInstallModal={setShowInstallModal} />
-      <BotonWhatsapp />
+      <FloatingButtons />
     </>
   );
 };

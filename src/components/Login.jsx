@@ -3,7 +3,7 @@ import { Form, Input, Button, Modal, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import CustomFooter from "components/General/Footer";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import "css/Login.css";
 import Header from "components/General/Header";
 import fruits from 'assets/fruits.jpg'
@@ -160,7 +160,7 @@ const Login = () => {
 
       <Modal
         title="Recuperar Contraseña"
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
         footer={null}
       >
@@ -197,7 +197,7 @@ const Login = () => {
 
       <Modal
         title="Restablecer Contraseña"
-        visible={isResetModalVisible}
+        open={isResetModalVisible}
         onCancel={() => setIsResetModalVisible(false)}
         footer={null}
       >
@@ -242,7 +242,7 @@ const Login = () => {
         </Form>
       </Modal>
 
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </>
   );

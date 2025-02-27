@@ -532,6 +532,10 @@ main { background: linear-gradient(to bottom right, #ccffe0,  #e5ffef, #ccffe0);
   font-weight: 700;
 }
 
+.search-result-item.promo {
+  
+}
+
 .search-result-item div { 
   display: flex;
   align-items: center;

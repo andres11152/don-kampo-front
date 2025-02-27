@@ -1,6 +1,5 @@
 import React from "react";
 import "css/General.css";
-import { FaMobileAlt } from "react-icons/fa";
 
 const categories = [
   {
@@ -27,8 +26,7 @@ const categories = [
 ];
 
 
-const Footer = (props) => {
-  const { setShowInstallModal } = props
+const Footer = () => {
   return (
     <footer className="footer">
       <h3>Explora nuestras categorías</h3>
@@ -57,7 +55,7 @@ const Footer = (props) => {
           <span>&copy; { new Date().getFullYear() } Don Kampo. Todos los derechos reservados</span>
         </li>
       </ul>
-      <button onClick={() => setShowInstallModal(true)}><i className="fa-solid fa-mobile-screen"/>  Instalar App</button>
+      <button><i className="fa-solid fa-mobile-screen"/>  Instalar App</button>
     </footer>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "components/General/Header";
-import BotonWhatsapp from "components/General/BotonWhatsapp";
+import FloatingButtons from "components/General/FloatingButtons";
 import CustomFooter from "components/General/Footer";
 import {
   Table,
@@ -15,8 +15,10 @@ import {
   InputNumber,
   Tabs,
   Select,
+  Switch,
+  Upload,
 } from "antd";
-import { SearchOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SearchOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -50,6 +52,7 @@ const ManageProducts = () => {
         price_supermarket: "",
         price_restaurant: "",
         price_fruver: "",
+        active: false,
       },
     ]);
   };
@@ -90,19 +93,29 @@ const ManageProducts = () => {
     }
   };
 
-  const showEditModal = (product) => {
+  const showEditModal = (product) => {    
     setSelectedProduct(product);
     form.setFieldsValue(product);
     setVariations(product.variations || []);
     setIsModalVisible(true);
   };
 
-  const handleUpdateProduct = async (values) => {
+  const handleUpdateProduct = async (values) => {      
+    console.log(values);
+      
     try {
       const updatedProduct = {
         ...values,
-        variations,
-      };
+        ...values.product,
+        variations: variations.map((variation, index) => ({
+          ...variation,
+          ...values.variations[index]
+        }))
+      };      
+      
+      
+      console.log(updatedProduct);
+      
       await axios.put(
         `http://localhost:8080/api/updateproduct/${selectedProduct.product_id}`,
         updatedProduct
@@ -301,7 +314,7 @@ const ManageProducts = () => {
             />
             <Modal
               title="Editar Producto"
-              visible={isModalVisible}
+              open={isModalVisible}
               onCancel={() => setIsModalVisible(false)}
               footer={null}
               width={800}
@@ -341,6 +354,27 @@ const ManageProducts = () => {
                 </Row>
 
                 <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Activar"
+                      name={["product", "active"]}
+                      valuePropName="checked"
+                    >
+                      <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
+                    </Form.Item>
+                  </Col>  
+                  <Col span={12}>
+                    <Form.Item
+                      label="Promocionar"
+                      name={["product", "promocionar"]}
+                      valuePropName="checked"
+                    >
+                      <Switch checkedChildren="Promocionar" unCheckedChildren="No Promocionar" />
+                    </Form.Item>
+                  </Col>  
+                </Row>
+
+                <Row gutter={[16, 16]}>
                   <Col span={24}>
                     <Form.Item
                       label="Descripción"
@@ -365,6 +399,18 @@ const ManageProducts = () => {
                         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
                       }}
                     >
+                      <Row gutter={[16, 16]}>
+                        <Col span={12}>
+                          <Form.Item
+                            label="Activar/Inactivo"
+                            name={["variations", index, "active"]}
+                            valuePropName="checked"
+                          >
+                            <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
+                          </Form.Item>
+                        </Col>  
+                      </Row>
+
                       <Row gutter={[16, 16]}>
                         <Col span={12}>
                           <Form.Item label={`Calidad (Var ${index + 1})`}>
@@ -481,7 +527,7 @@ const ManageProducts = () => {
           </Tabs.TabPane>
         </Tabs>
       </section>
-      <BotonWhatsapp />
+      <FloatingButtons />
       <CustomFooter />
     </>
   );

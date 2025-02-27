@@ -43,11 +43,12 @@ const SalesReport = () => {
     const aggregatedData = aggregateData(filtered, viewBy);
     setFilteredData(filtered);
     setChartData(aggregatedData);
+    
   }, [orders, dateRange, viewBy]);
 
   const aggregateData = (data, viewBy) => {
     const groupedData = {};
-
+  
     data.forEach((order) => {
       const dateKey =
         viewBy === "daily"
@@ -57,30 +58,45 @@ const SalesReport = () => {
           : viewBy === "monthly"
           ? dayjs(order.order.order_date).format("YYYY-MM")
           : dayjs(order.order.order_date).year();
-
-      groupedData[dateKey] = (groupedData[dateKey] || 0) + order.order.total;
+  
+      if (!groupedData[dateKey]) {
+        groupedData[dateKey] = [];
+      }
+  
+      const userName = order.userData.user_name || "Desconocido";
+  
+      order.items.forEach((item) => {
+        groupedData[dateKey].push({
+          date: dateKey,
+          user: userName,
+          product: item.product_name,
+          quantity: item.quantity,
+          total: order.order.total,
+        });
+      });
     });
-
-    return Object.entries(groupedData).map(([key, total]) => ({
-      name: key,
-      total,
-    }));
+  
+    return Object.values(groupedData).flat();
   };
-
-  // Función para exportar a Excel
+  
+  // Función para exportar a Excel con más detalles
   const exportToExcel = () => {
     const worksheetData = chartData.map((item) => ({
-      Fecha: item.name,
+      Fecha: item.date,
+      Usuario: item.user,
+      Producto: item.product,
+      Cantidad: item.quantity,
       Total: item.total,
     }));
-
+  
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte de Ventas");
-
+  
     // Generar el archivo Excel
     XLSX.writeFile(workbook, `Reporte_Ventas_${viewBy}.xlsx`);
   };
+  
 
   return (
     <div style={{ padding: "20px" }}>
