@@ -178,10 +178,14 @@
   gap: 15px;
 }
 
-.footer .contact-info .contact {
+.footer .contact-info li {
   display: flex;
   gap: 40px;
   font-size: 1.5rem;
+}
+
+.footer .contact-info .legalInfo {
+  font-size: 1.15rem;
 }
 
 .footer .contact-info a {
@@ -201,6 +205,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.footer .legalInfo {
+  gap: ;
 }
 
 .footer button {
@@ -257,7 +265,7 @@
     height: 100px;
   }
 
-  .footer .contact-info .contact {
+  .footer .contact-info li {
     flex-direction: column;
     font-size: 1rem;
     gap: 10px;

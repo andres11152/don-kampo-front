@@ -21,6 +21,7 @@ const CreateProduct = () => {
   const [imageFile, setImageFile] = useState(null);
   const [variations, setVariations] = useState([
     {
+      active: true,
       quality: "",
       quantity: "",
       price_home: "",
@@ -35,9 +36,7 @@ const CreateProduct = () => {
     description: "",
   });
 
-  const handleImageUpload = ({ file }) => {
-    file && setImageFile(file);
-  };
+  const handleImageUpload = ({ file }) => file && setImageFile(file);
 
   const handleVariationChange = (index, field, value) => {
     const updatedVariations = [...variations];
@@ -49,6 +48,7 @@ const CreateProduct = () => {
     setVariations([
       ...variations,
       {
+        active: true,
         quality: "",
         quantity: "",
         price_home: "",
@@ -65,9 +65,7 @@ const CreateProduct = () => {
     setVariations(updatedVariations);
   };
 
-  const handleValues = (key, value) => {
-    setValues((prev) => ({ ...prev, [key]: value }));
-  };
+  const handleValues = (key, value) => setValues(prev => ({ ...prev, [key]: value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,12 +79,12 @@ const CreateProduct = () => {
         return;
     }
 
+    const validPriceVariation = variation => variation !== "" && variation !== null && variation > 0;
+    
     // Validar que al menos una variación tenga un precio
     const hasValidPrice = variations.some(variation => 
-        variation.price_home !== "" && variation.price_home !== null ||
-        variation.price_supermarket !== "" && variation.price_supermarket !== null ||
-        variation.price_restaurant !== "" && variation.price_restaurant !== null ||
-        variation.price_fruver !== "" && variation.price_fruver !== null
+        validPriceVariation(variation.price_home) || validPriceVariation(variation.price_supermarket) ||
+        validPriceVariation(variation.price_restaurant) || validPriceVariation(variation.price_fruver)
     );
 
     if (!hasValidPrice) {
@@ -99,7 +97,10 @@ const CreateProduct = () => {
         description: values.description,
         category: values.category,
         stock: 100,
+        active: true,
+        promocionar: false,
         variations: variations.map((variation) => ({
+            active: variation.active,
             quality: variation.quality || null,
             quantity: variation.quantity || null,
             price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
@@ -125,6 +126,7 @@ const CreateProduct = () => {
         form.resetFields();
         setImageFile(null);
         setVariations([{
+            active: true,
             quality: "",
             quantity: "",
             price_home: "",

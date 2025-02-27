@@ -61,9 +61,12 @@ const Checkout = () => {
       })
   }, [])  
 
+  const [loading, setLoading] = useState(true); // Para manejar el estado de carga
+
   useEffect(() => {
     const fetchCartDetails = async () => {
       try {
+        setLoading(true); // Indicar que estamos cargando
         const productDetails = await Promise.all(
           Object.entries(cart).map(async ([key, item]) => {
             const [productId] = key.split('-');
@@ -86,6 +89,8 @@ const Checkout = () => {
       } catch (error) {
         message.error("Error al cargar los detalles del carrito.");
         console.error(error);
+      } finally {
+        setLoading(false); // Marcar como cargado
       }
     };
 
@@ -98,6 +103,19 @@ const Checkout = () => {
       return total + price * product.quantity;
     }, 0);
   }, [cartDetails])
+  
+  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
+  
+  useEffect(() => {
+    if (!loading) {
+      const { isAmount, content } = isAmountCheckout(total);
+      
+      if (!isAmount) {
+        navigate('/cart');
+        message.warning(content);
+      } 
+    }
+  }, [navigate, total, loading]); 
 
   const handleInputChange = e => {
     const { name, value } = e.target;
@@ -212,15 +230,6 @@ const Checkout = () => {
       message.error("Por favor, complete todos los campos antes de realizar el pedido.");
     }
   };
-
-  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
-  
-  const { isAmount, content } = isAmountCheckout(total)
-  
-  if (!isAmount) { 
-    navigate('/cart') 
-    message.warning(content)
-  }
 
   const generateOrderPDF = () => {
     const doc = new jsPDF();

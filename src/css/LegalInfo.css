@@ -1,4 +1,4 @@
-.terms {
+.legal {
     display: grid;
     gap: 10px;
     margin: 50px auto 0;
@@ -6,10 +6,10 @@
     max-width: 800px;
     background-color: white;
     padding: 40px 25px;
-    border-radius: 5px;
+    border-radius: 10px;
     height: 100%;
 }
 
-.terms h1 {
+.legal h1 {
     text-align: center;
 }

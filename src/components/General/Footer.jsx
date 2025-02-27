@@ -54,6 +54,11 @@ const Footer = () => {
         <span> Diseñado y Desarrollado por <a href="https://www.cre8tive.pro/" target="_blank" rel="noopener noreferrer" className="company"> Cre8tive Agency </a></span>
           <span>&copy; { new Date().getFullYear() } Don Kampo. Todos los derechos reservados</span>
         </li>
+
+        <li className="legalInfo">
+          <a href="/terms" target="_blank" rel="noopener noreferrer"> Terminos y Condiciones </a>
+          <a href="/privacy-politicy" target="_blank" rel="noopener noreferrer"> Politica de Privacidad </a>
+        </li>
       </ul>
       <button><i className="fa-solid fa-mobile-screen"/>  Instalar App</button>
     </footer>

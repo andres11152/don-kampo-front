@@ -279,7 +279,7 @@ const Profile = () => {
       doc.text(`Valor envío: $${shippingCost.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 10);
 
       // Valor productos
-      doc.text(`Valor productos: $${orderData.order.total.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
+      doc.text(`Valor productos: $${Math.floor(orderData.order.total).toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
 
       // Total de la Orden
       const totalPedido = Math.floor(orderData.order.total + shippingCost); // Suma y elimina los decimales

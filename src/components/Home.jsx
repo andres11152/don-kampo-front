@@ -16,6 +16,7 @@ import Footer from "components/General/Footer";
 import FloatingButtons from "components/General/FloatingButtons";
 import InstallPrompt from "components/InstallPrompt";
 import getFetch from 'utils/getFetch.js'
+import { getPrice } from "utils/getDataByUserType";
 import "css/Home.css";
 
 const { Title, Paragraph } = Typography;
@@ -108,13 +109,8 @@ const Home = () => {
           <AutoComplete
             className="custom-search-bar" // Agregamos una clase personalizada
             options={searchResults.map((product) => {
-              const prices = product.variations.flatMap((variation) => [
-                variation.price_fruver,
-                variation.price_home,
-                variation.price_restaurant,
-                variation.price_supermarket,
-              ]);
-
+              const prices = product.variations.map(variation => getPrice(variation))
+                            
               const minPrice = Math.min(...prices);
 
               return {

@@ -20,6 +20,7 @@ const FloatButton = () => {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#ee7723',
+    border: '2px solid white',
     borderRadius: '50%',
     width: '60px',
     height: '60px'

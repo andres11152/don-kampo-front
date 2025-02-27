@@ -16,9 +16,8 @@ import {
   Tabs,
   Select,
   Switch,
-  Upload,
 } from "antd";
-import { SearchOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
+import { SearchOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -84,7 +83,7 @@ const ManageProducts = () => {
 
   const deleteProduct = async (productId) => {
     try {
-      await axios.delete(`http://localhost:8080/api/deleteproduct/${productId}`);
+      await axios.delete(`http://localhost:8080/api/deleteproduct/${productId.toLocaleString()}`);
       message.success("Producto eliminado correctamente.");
       fetchProducts();
     } catch (error) {
@@ -94,31 +93,17 @@ const ManageProducts = () => {
   };
 
   const showEditModal = (product) => {    
-    setSelectedProduct(product);
+    setSelectedProduct(product);    
     form.setFieldsValue(product);
     setVariations(product.variations || []);
     setIsModalVisible(true);
   };
 
   const handleUpdateProduct = async (values) => {      
-    console.log(values);
-      
     try {
-      const updatedProduct = {
-        ...values,
-        ...values.product,
-        variations: variations.map((variation, index) => ({
-          ...variation,
-          ...values.variations[index]
-        }))
-      };      
-      
-      
-      console.log(updatedProduct);
-      
       await axios.put(
         `http://localhost:8080/api/updateproduct/${selectedProduct.product_id}`,
-        updatedProduct
+        values
       );
       message.success("Producto actualizado correctamente.");
       setIsModalVisible(false);
@@ -166,6 +151,7 @@ const ManageProducts = () => {
           >
             Editar
           </Button>
+          
           <Popconfirm
             title={`¿Eliminar el producto "${record.name}"?`}
             onConfirm={() => deleteProduct(record.product_id)}
@@ -357,7 +343,7 @@ const ManageProducts = () => {
                   <Col span={12}>
                     <Form.Item
                       label="Activar"
-                      name={["product", "active"]}
+                      name="active"
                       valuePropName="checked"
                     >
                       <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
@@ -366,7 +352,7 @@ const ManageProducts = () => {
                   <Col span={12}>
                     <Form.Item
                       label="Promocionar"
-                      name={["product", "promocionar"]}
+                      name="promocionar"
                       valuePropName="checked"
                     >
                       <Switch checkedChildren="Promocionar" unCheckedChildren="No Promocionar" />

@@ -17,7 +17,7 @@ import CreateOrder from "components/CreateOrder.jsx";
 import ManageProducts from "components/ManageProducts.jsx";
 import Home from "components/Home.jsx";
 import { CartProvider } from "components/Products/CartContext.jsx";
-import TermsAndConditions from "components/TermsAndConditions";
+import { TermsAndConditions, PrivacyPoliticy } from "components/LegalInfo";
 
 const App = () => {
   const [userType, setUserType] = useState(null);
@@ -56,6 +56,7 @@ const App = () => {
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy-politicy" element={<PrivacyPoliticy />} />
 
           {/* Rutas protegidas para usuarios admin */}
           <Route

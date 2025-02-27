@@ -42,22 +42,27 @@ const SalesReport = () => {
 
     const aggregatedData = aggregateData(filtered, viewBy);
     setFilteredData(filtered);
+
+    console.log(aggregatedData);
+    
+    
     setChartData(aggregatedData);
     
   }, [orders, dateRange, viewBy]);
 
   const aggregateData = (data, viewBy) => {
     const groupedData = {};
-  
+      
     data.forEach((order) => {
+      const year = dayjs(order.order.order_date).year();
+      const month = dayjs(order.order.order_date).month() + 1;
+      const week = Math.ceil(dayjs(order.order.order_date).date() / 7);
+      const day = dayjs(order.order.order_date).date(); 
+  
       const dateKey =
-        viewBy === "daily"
-          ? dayjs(order.order.order_date).format("YYYY-MM-DD")
-          : viewBy === "weekly"
-          ? `${dayjs(order.order.order_date).year()}-W${dayjs(order.order.order_date).week()}`
-          : viewBy === "monthly"
-          ? dayjs(order.order.order_date).format("YYYY-MM")
-          : dayjs(order.order.order_date).year();
+        viewBy === "daily" ? `${year}-${month}-${day}` : viewBy === "weekly"
+          ? `${year}-${month}-W${week}` : viewBy === "monthly"
+            ? `${year}-${month}` : `${year}`
   
       if (!groupedData[dateKey]) {
         groupedData[dateKey] = [];
@@ -69,7 +74,7 @@ const SalesReport = () => {
         groupedData[dateKey].push({
           date: dateKey,
           user: userName,
-          product: item.product_name,
+          product: `${item.product_name} (${item.variation.quality} ${item.variation.quantity})`,
           quantity: item.quantity,
           total: order.order.total,
         });
@@ -95,6 +100,7 @@ const SalesReport = () => {
   
     // Generar el archivo Excel
     XLSX.writeFile(workbook, `Reporte_Ventas_${viewBy}.xlsx`);
+  
   };
   
 
