@@ -5,23 +5,23 @@ const categories = [
   {
     title: "Frutas Nacionales",
     img: "/images/mangostino.webp",
-    link: "/products?category=Frutas Nacionales",
+    link: "/products?category=Frutas nacionales",
   },
   { title: "Verduras", 
     img: "/images/verdurasProducto.jpg", 
-    link: "/products?category=verduras" },
+    link: "/products?category=Verduras" },
   {
     title: "Frutas Importadas",
     img: "/images/frutasImportadas.jpg",
-    link: "/products?category=frutas importadas",
+    link: "/products?category=Frutas importadas",
   },
   { title: "Hortalizas", 
     img: "/images/hortalizas.jpg", 
-    link: "/products?category=hortalizas" 
+    link: "/products?category=Hortalizas" 
   },
   { title: "Cosechas", 
     img: "/images/organicas.webp", 
-    link: "/products?category=cosechas" 
+    link: "/products?category=Cosechas" 
   },
 ];
 

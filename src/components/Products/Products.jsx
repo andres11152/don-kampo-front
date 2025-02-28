@@ -30,6 +30,23 @@ const Products = () => {
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
 
   const { addToCart } = useCart();
+
+  const filterProducts = ({category, name, id=null, actualProducts={}}) => {
+      let handleProducts = products.length ? products : actualProducts
+      const filtered = handleProducts.filter(product => {
+        if (id) {          
+          return product.product_id === id
+        } else {          
+          const matchesCategory = category.toLowerCase() === "todas" || product.category.toLowerCase() === category.toLowerCase();
+          const matchesSearch = normalizeString(product.name).includes(normalizeString(name));
+          return matchesCategory && matchesSearch;
+        }
+      });
+      
+      setFilteredProducts(filtered);
+      setCurrentPage(1);
+  }
+
   useEffect(() => {
     getFetch('products', '')
       .then(fetchedProducts => {
@@ -44,7 +61,15 @@ const Products = () => {
         }));
 
         setProducts(updatedProducts);
-        setFilteredProducts(updatedProducts);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchQueryFromUrl = urlParams.get("search") || "";
+        const categoryQueryFromUrl = urlParams.get("category") || "Todas";
+        const idQueryFromUrl = parseInt(urlParams.get("id")) || null;
+
+        setSelectedCategory(categoryQueryFromUrl.toLowerCase());
+        setSearchQuery(searchQueryFromUrl);
+        filterProducts({category: categoryQueryFromUrl, name: searchQueryFromUrl, id: idQueryFromUrl, actualProducts: updatedProducts});
 
         const uniqueCategories = [...new Set(updatedProducts.map(product => product.category))];
         setCategories(["Todas", ...uniqueCategories]);
@@ -55,40 +80,6 @@ const Products = () => {
       })
       .finally(() => setLoading(false))
   }, []);
-
-  const filterProducts = useCallback(
-    ({category, name, id=null}) => {
-      
-      const filtered = products.filter(product => {
-        if (id) {
-          return product.product_id === id
-        } else {
-          const matchesCategory = category === "Todas" || product.category === category;
-          const matchesSearch = normalizeString(product.name).includes(normalizeString(name));
-          return matchesCategory && matchesSearch;
-        }
-      });
-      setFilteredProducts(filtered);
-      setCurrentPage(1);
-    },
-    [products]
-  );
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const searchQueryFromUrl = urlParams.get("search") || "";
-    const categoryQueryFromUrl = urlParams.get("category") || "Todas";
-    const idQueryFromUrl = parseInt(urlParams.get("id")) || null;
-
-    setSelectedCategory(categoryQueryFromUrl);
-    setSearchQuery(searchQueryFromUrl);
-    filterProducts({category: categoryQueryFromUrl, name: searchQueryFromUrl, id: idQueryFromUrl});
-
-    // if (idQueryFromUrl) {
-    //   const product = products.find((p) => p.product_id == idQueryFromUrl);
-    //   if (product) openModal(product);
-    // }
-  }, [products, filterProducts]);
 
   const handleCategoryChange = category => {
     setSelectedCategory(category);
