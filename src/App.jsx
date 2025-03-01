@@ -10,11 +10,11 @@ import Register from "components/Register";
 import Products from "components/Products/Products";
 import Cart from "components/Cart.jsx";
 import Checkout from "components/Checkout.jsx";
-import CreateProduct from "components/CreateProduct/CreateProduct.jsx";
+import CreateProduct from "components/Products/CreateProduct.jsx";
 import Profile from "components/Profile.jsx";
 import AdminProfile from "components/Admin/AdminProfile.jsx";
+import ManageData from "components/Admin/ManageData.jsx";
 import CreateOrder from "components/CreateOrder.jsx";
-import ManageProducts from "components/ManageProducts.jsx";
 import Home from "components/Home.jsx";
 import { CartProvider } from "components/Products/CartContext.jsx";
 import { TermsAndConditions, PrivacyPoliticy } from "components/LegalInfo";
@@ -70,10 +70,10 @@ const App = () => {
             }
           />
           <Route
-            path="/manageproducts"
+            path="/manageData"
             element={
               userType === "admin" ? (
-                <ManageProducts />
+                <ManageData />
               ) : (
                 <Navigate to="/" replace />
               )

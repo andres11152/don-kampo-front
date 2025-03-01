@@ -4,9 +4,6 @@ import {
   Button,
   Card,
   Typography,
-  Row,
-  Col,
-  Modal,
   AutoComplete,
   message,
 } from "antd";
@@ -17,6 +14,8 @@ import FloatingButtons from "components/General/FloatingButtons";
 import InstallPrompt from "components/InstallPrompt";
 import getFetch from 'utils/getFetch.js'
 import { getPrice } from "utils/getDataByUserType";
+import { userType } from "utils/getUser";
+
 import "css/Home.css";
 
 const { Title, Paragraph } = Typography;
@@ -31,21 +30,11 @@ const categories = [
 const Home = () => {  
   const carouselRef = useRef(null);
   const [showInstallModal, setShowInstallModal] = useState(false)
-  const [isModalVisible, setIsModalVisible] = useState(() => {
-    const storedValue = localStorage.getItem('modalShown');
-    return storedValue !== null ? JSON.parse(storedValue) : true;
-  });
   const navigate = useNavigate(); 
     
-  const userTypes = ['Hogar', 'Supermercado', 'Restaurante', 'Fruver']
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-
-  const [userType, setUserType] = useState(() => {
-    return localStorage.getItem("userType") || "Hogar"; // Default: "Hogar"
-  });
-  
   
   const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
 
@@ -73,33 +62,26 @@ const Home = () => {
     
     selectedProduct && navigate(`/products?search=${encodeURIComponent(selectedProduct.name)}&id=${encodeURIComponent(selectedProduct.product_id)}`)
   };
-  
-  useEffect(() => {
-    userType &&
-      localStorage.setItem("modalShown", false);
-    !userType &&       
-      localStorage.setItem("modalShown", true);
-  }, [userType]); 
 
   // Cargar datos iniciales
   useEffect(() => {
+    const updatedUserType = 
+      userType === 'home' ? 'hogar' 
+      : userType === 'supermarket' ? 'supermercado'
+      : userType === 'restuarant' ? 'restaurante'
+      : userType
+
+
     getFetch('publicidad', '')
       .then(fetchedPublicity => {
         const advertisement = fetchedPublicity.filter(
-          advertisement => advertisement.category.toLowerCase() === userType.toLowerCase()
+          advertisement => advertisement.category.toLowerCase() === updatedUserType.toLowerCase()
         );
         setPublicity(advertisement);
       })
-  }, [userType]); // Se vuelve a llamar cada vez que userType cambia
+  }, []); 
 
-  const handleNavigate = link => navigate(link);
-
-  const handleUserTypeChange = (type) => {
-    localStorage.setItem("userType", type); // Guardar en una clave separada
-    setUserType(type);
-    setIsModalVisible(false);
-  };
-  
+  const handleNavigate = link => navigate(link);  
 
   return (
     <>
@@ -237,37 +219,6 @@ const Home = () => {
           />
          
         </section>
-
-        {/* Modal de selección de usuario */}
-        <Modal
-          open={isModalVisible}
-          closable={false}
-          footer={null}
-        >
-          <img src="/images/1.png" alt="Logo" />
-          <div className="modal-text">
-            Por el momento, nuestros servicios están disponibles únicamente en
-            <span className="modal-body-highlight"> Chía</span> y
-            <span className="modal-body-highlight"> Cajicá</span>. ¡Gracias por
-            tu comprensión!
-          </div>
-          <div className="user-type-selection">
-            <Title level={5}>Selecciona tu tipo de usuario:</Title>
-            <Row gutter={[16, 16]} justify="center">
-              {userTypes.map((type, index) => (
-                <Col xs={24} sm={12} md={12} key={index}>
-                  <Button
-                    type={userType === type ? "primary" : "default"}
-                    onClick={() => handleUserTypeChange(type)}
-                    className="user-type-button"
-                  >
-                    {type}
-                  </Button>
-                </Col>
-              ))}
-            </Row>
-          </div>
-        </Modal>
 
         <InstallPrompt setShowInstallModal={setShowInstallModal} showInstallModal={showInstallModal} />
 

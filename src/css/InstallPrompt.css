@@ -23,6 +23,7 @@
   width: 90%;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Sombra elegante */
   animation: fadeIn 0.5s ease; /* Animación de aparición */
+  flex-direction: column;
 }
 .modal-content button:last-child{
   background-color: #e0e0e0;
@@ -36,6 +37,13 @@
 }
 
 /* Título */
+.modal-content .close {
+  position: absolute;
+  right: 20px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
 .modal-content h2 {
   color: var(--color-secondary);
   font-size: 1.8rem;
@@ -66,6 +74,7 @@
   font-size: 40px;
   color: var(--color-primary-hover);
   transition: transform 0.3s ease, color 0.3s ease;
+  cursor: pointer;
 }
 
 .modal-content ul li:hover {

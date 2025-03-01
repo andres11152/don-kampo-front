@@ -1,39 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Menu, Drawer, Button, Badge } from "antd";
+import { Menu, Drawer, Badge } from "antd";
 import {
   HomeOutlined,
   AppstoreOutlined,
   UserOutlined,
   LogoutOutlined,
-  MenuOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "components/Products/CartContext"; // Importa el hook de contexto de carrito
+
+import { userData } from "utils/getUser";
+import { userType } from "utils/getUser";
 import "css/General.css";
 import  InstallPrompt from "components/InstallPrompt";
-import { FaMobileAlt } from "react-icons/fa";
 
-const Header = (props) => {
-  const { setShowInstallModal } = props
+const Header = () => {
+  const [ showInstallModal, setShowInstallModal ] = useState(true)
   const navigate = useNavigate();
   const location = useLocation();
 
-  localStorage.setItem("selectedKey", localStorage.getItem('selectedKey' || ''));
   // Obtener el cartValue y cartCount desde el contexto del carrito
   const { cartValue, cartCount } = useCart();
-
-  // Obtener el loginData del localStorage
-  const loginData = JSON.parse(localStorage.getItem("loginData"));
-  const isLoggedIn = Boolean(loginData && loginData.user);
-  const isAdmin = isLoggedIn && loginData.user.user_type === "admin"; // Verifica si el usuario es admin
 
   // Estado para la ruta seleccionada y para el drawer en pantallas pequeñas
   const [selectedKey, setSelectedKey] = useState(localStorage.getItem('selectedKey'));
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
 
   // Efecto para actualizar la ruta seleccionada en el menú
   useEffect(() => {
@@ -63,8 +56,8 @@ const Header = (props) => {
       case "/createorder":
         setSelectedKey("createorder");
         break;
-      case "/manageproducts":
-        setSelectedKey("manageproducts");
+      case "/manageData":
+        setSelectedKey("manageData");
         break;
       case "/checkout":
         setSelectedKey("checkout");
@@ -137,10 +130,10 @@ const Header = (props) => {
           <li>
             <a className={`${selectedKey === 'Productos' ? 'selected' : ''}`} href="/products" onClick={() => handleMenuClick('Productos')}><i className="fa-solid fa-grip" />Productos</a>
           </li>
-          { isLoggedIn ? 
+          { userData ? 
             <>  
-              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageproducts" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
-              <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {loginData.user.user_name} </a></li>
+              { userType === 'admin' && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageData" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
+              <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {userData.user_name} </a></li>
               <li><a onClick={handleLogout}><i className="fa-solid fa-right-from-bracket" /> Cerrar Sesion </a></li>
             </>
           :   
@@ -180,9 +173,9 @@ const Header = (props) => {
             Productos
           </Menu.Item>
 
-          {isLoggedIn ? (
+          { userData ? (
             <>
-              {isAdmin && (
+              { userType === 'admin' && (
                 <Menu.Item
                   key="createproduct"
                   icon={<PlusOutlined />}
@@ -198,7 +191,7 @@ const Header = (props) => {
                 icon={<UserOutlined />}
                 onClick={() => handleMenuClick("profile", "/profile")}
               >
-                {loginData.user.user_name}
+                {userData.user_name}
               </Menu.Item>
               <Menu.Item
                 key="logout"
@@ -234,6 +227,8 @@ const Header = (props) => {
           </Menu.Item>
         </Menu>
       </Drawer>
+
+      <InstallPrompt showInstallModal={showInstallModal} setShowInstallModal={setShowInstallModal} />
     </header>
   );
 };

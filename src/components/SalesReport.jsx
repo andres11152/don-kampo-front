@@ -42,9 +42,6 @@ const SalesReport = () => {
 
     const aggregatedData = aggregateData(filtered, viewBy);
     setFilteredData(filtered);
-
-    console.log(aggregatedData);
-    
     
     setChartData(aggregatedData);
     

@@ -5,9 +5,9 @@ const userData = loginData?.user
 let userType = userData?.user_type;
 
 userType = 
-    userType === 'hogar' ? 'home' 
+    (userType === 'hogar' || userType === undefined) ? 'home' 
     : userType === 'supermercado' ? 'supermarket'
-    : userType === 'restuarante' ? 'restaurant'
+    : userType === 'restaurante' ? 'restaurant'
     : userType
 
 export { userData, userType }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
-import { Upload, Button, message, Alert } from "antd";
+import { Upload, Button, Alert } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import axios from "axios";
 import "css/UpdateMultipleProducts.css";

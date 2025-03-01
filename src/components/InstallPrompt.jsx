@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import "css/InstallPrompt.css"; // CSS para el modal
 import "font-awesome/css/font-awesome.min.css";
 
-const InstallPrompt = (props) => {
+const InstallPrompt = props => {
+  const { showInstallModal, setShowInstallModal } = props
+
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const {showInstallModal, setShowInstallModal} = props
 
   useEffect(() => {
     
@@ -38,6 +39,8 @@ const InstallPrompt = (props) => {
   return (
     <div className="modal">
       <div className="modal-content">
+        <i className="fa-solid fa-xmark close" onClick={() => setShowInstallModal(false)} />
+
         <h2>¿Quieres instalar esta aplicación?</h2>
         <p>¡Puedes instalar esta aplicación en tu dispositivo para un acceso más rápido y una experiencia más cómoda!</p>
         

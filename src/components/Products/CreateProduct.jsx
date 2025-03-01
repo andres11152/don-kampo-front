@@ -12,6 +12,9 @@ import {
 } from "antd";
 import axios from "axios";
 import { UploadOutlined } from "@ant-design/icons";
+
+import validatePriceVariations from "utils/validatePriceVariations";
+
 import "css/CreateProduct.css"; 
 
 const { Option } = Select;
@@ -70,74 +73,64 @@ const CreateProduct = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isValues = Object.keys(values).every(
-        (key) => values[key] !== null && values[key] !== undefined && values[key] !== ""
-    );
+    const isValues = Object.keys(values).every(key => ![null, undefined, ''].includes(values[key]));
 
     if (!isValues) {
         message.error('No se ingresaron los datos del producto');
         return;
     }
 
-    const validPriceVariation = variation => variation !== "" && variation !== null && variation > 0;
-    
-    // Validar que al menos una variación tenga un precio
-    const hasValidPrice = variations.some(variation => 
-        validPriceVariation(variation.price_home) || validPriceVariation(variation.price_supermarket) ||
-        validPriceVariation(variation.price_restaurant) || validPriceVariation(variation.price_fruver)
-    );
+    const isValidPriceVariation = validatePriceVariations(variations)
 
-    if (!hasValidPrice) {
-        message.error('Debe ingresar al menos un precio en alguna variación');
-        return;
-    }
+    if (isValidPriceVariation) {
 
-    const productData = {
-        name: values.name,
-        description: values.description,
-        category: values.category,
-        stock: 100,
-        active: true,
-        promocionar: false,
-        variations: variations.map((variation) => ({
-            active: variation.active,
-            quality: variation.quality || null,
-            quantity: variation.quantity || null,
-            price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
-            price_supermarket: variation.price_supermarket === "" ? null : parseInt(variation.price_supermarket),
-            price_restaurant: variation.price_restaurant === "" ? null : parseInt(variation.price_restaurant),
-            price_fruver: variation.price_fruver === "" ? null : parseInt(variation.price_fruver),
-        })),
-    };
+      const productData = {
+          name: values.name,
+          description: values.description,
+          category: values.category,
+          stock: 100,
+          active: true,
+          promocionar: false,
+          variations: variations.map((variation) => ({
+              active: variation.active,
+              quality: variation.quality || null,
+              quantity: variation.quantity || null,
+              price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
+              price_supermarket: variation.price_supermarket === "" ? null : parseInt(variation.price_supermarket),
+              price_restaurant: variation.price_restaurant === "" ? null : parseInt(variation.price_restaurant),
+              price_fruver: variation.price_fruver === "" ? null : parseInt(variation.price_fruver),
+          })),
+      };
 
-    const formData = new FormData();
-    imageFile && formData.append("photo_url", imageFile);
+      const formData = new FormData();
+      imageFile && formData.append("photo_url", imageFile);
 
-    Object.keys(productData).forEach((key) => {
-        key === "variations" ? formData.append(key, JSON.stringify(productData[key])) : formData.append(key, productData[key]);
-    });
+      Object.keys(productData).forEach((key) => {
+          key === "variations" ? formData.append(key, JSON.stringify(productData[key])) : formData.append(key, productData[key]);
+      });
 
-    try {
-        const response = await axios.post("http://localhost:8080/api/createproduct", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-        });
+      try {
+          const response = await axios.post("http://localhost:8080/api/createproduct", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+          });
 
-        message.success(`Producto creado exitosamente con ID: ${response.data.product_id}`);
-        form.resetFields();
-        setImageFile(null);
-        setVariations([{
-            active: true,
-            quality: "",
-            quantity: "",
-            price_home: "",
-            price_supermarket: "",
-            price_restaurant: "",
-            price_fruver: "",
-        }]);
-        setTimeout(() => window.location.reload(), 1500);
-    } catch (error) {
-        message.error("Error al crear el producto.");
-        console.error(error);
+          message.success(`Producto creado exitosamente con ID: ${response.data.product_id}`);
+          form.resetFields();
+          setImageFile(null);
+          setVariations([{
+              active: true,
+              quality: "",
+              quantity: "",
+              price_home: "",
+              price_supermarket: "",
+              price_restaurant: "",
+              price_fruver: "",
+          }]);
+          setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+          message.error("Error al crear el producto.");
+          console.error(error);
+      }
     }
 };
 

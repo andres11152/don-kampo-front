@@ -31,7 +31,7 @@ const Products = () => {
 
   const { addToCart } = useCart();
 
-  const filterProducts = ({category, name, id=null, actualProducts={}}) => {
+  const filterProducts = useCallback(({category, name, id=null, actualProducts={}}) => {
       let handleProducts = products.length ? products : actualProducts
       const filtered = handleProducts.filter(product => {
         if (id) {          
@@ -45,7 +45,7 @@ const Products = () => {
       
       setFilteredProducts(filtered);
       setCurrentPage(1);
-  }
+  }, [products])
 
   useEffect(() => {
     getFetch('products', '')
@@ -86,9 +86,9 @@ const Products = () => {
     filterProducts({category, name: searchQuery});
   };
 
-  const handleSearchChange = event => {
-    setSearchQuery(event);
-    filterProducts({category: selectedCategory, name: event});
+  const handleSearchChange = value => {
+    setSearchQuery(value);
+    filterProducts({category: selectedCategory, name: value});
   };
 
   const normalizeString = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -145,7 +145,6 @@ const Products = () => {
     }
 
     const multiplier = quantities[product.product_id] || 1;
-    const totalPrice = getPrice(selectedVariation) * multiplier;
 
     const productsToAdd = Array.from({ length: multiplier }, () => ({
       ...product,
@@ -173,7 +172,7 @@ const Products = () => {
     setIsModalVisible(false);
   };
 
-  const openModal = (product) => {
+  const openModal = product => {
     setCurrentProduct(product);
     setIsModalVisible(true);
   };
@@ -219,7 +218,6 @@ const Products = () => {
           size="large"
         />
       </div>
-
       { currentProducts.length ? 
         <>
           <div className="products-container">
@@ -227,20 +225,21 @@ const Products = () => {
               <p>Cargando productos...</p>
             ) : (
               <>
-                { currentProducts.map(product => {                  
+                { currentProducts.map(product => {            
                   const firstVariation = product.variations[0];
+                  const { name, category, description, product_id: id, photo_url: url, promocionar } = product
                   const price = firstVariation ? getPrice(firstVariation) : 0;
                   
                   return (
                     <Card
-                      key={product.product_id}
-                      className={`product-card ${product.promocionar ? 'promo' : ''}`}
+                      key={id}
+                      className={`product-card ${promocionar ? 'promo' : ''}`}
                       hoverable
-                      onClick={() => openModal(product)}
+                      onClick={() => userType !== 'home' && openModal(product)}
                       cover={
                         <img
-                          alt={product.name}
-                          src={getBase64Image(product.photo_url)}
+                          alt={name}
+                          src={getBase64Image(url)}
                           style={{
                             objectFit: "cover",
                             width: "100%",
@@ -250,26 +249,25 @@ const Products = () => {
                       }
                     >
                       <div className="product-info">
-                        <h3 className="product-name">{product.name}</h3>
-                        <p className="product-category">{product.category}</p>
-                        <p className="product-description">{product.description}</p>
-                        {userType === "hogar" && firstVariation && (
+                        <h3 className="product-name">{name}</h3>
+                        <p className="product-category">{category}</p>
+                        <p className="product-description">{description}</p>
+                        { userType === "home" && firstVariation ? 
                           <div className="product-variation-info">
                             <p>
                               <strong>Cantidad:</strong> {firstVariation.quantity}
                             </p>
                             <p>
                               <strong>Precio:</strong> $
-                              {price
+                              { price
                                 .toFixed(2)
                                 .replace(/\.00$/, "")
-                                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                              }
                             </p>
                           </div>
-                        )}
-                        <Button type="primary" onClick={() => openModal(product)}>
-                          Ver detalles
-                        </Button>
+                          : <Button type="primary" onClick={() => openModal(product)}> Ver detalles </Button> 
+                        }
                       </div>
                     </Card>
                   );
@@ -305,7 +303,7 @@ const Products = () => {
               style={{ width: "100%", height: "300px", objectFit: "cover" }}
             />
 
-            {userType !== "hogar" && (
+            { userType !== "hogar" && (
               <>
                 <Select
                   placeholder="Calidad"
@@ -339,7 +337,7 @@ const Products = () => {
               </>
             )}
 
-            {userType === "hogar" && currentProduct.variations[0] && (
+            { userType === "hogar" && currentProduct.variations.length && (
               <div style={{ marginBottom: "8px" }}>
                 <p>
                   <strong>Cantidad:</strong> {currentProduct.variations[0].quantity}
