@@ -26,7 +26,8 @@ const categories = [
 ];
 
 
-const Footer = () => {
+const Footer = props => {
+  const { setShowInstallPrompt } = props
   return (
     <footer className="footer">
       <h3>Explora nuestras categorías</h3>
@@ -60,7 +61,7 @@ const Footer = () => {
           <a href="/privacy-politicy" target="_blank" rel="noopener noreferrer"> Politica de Privacidad </a>
         </li>
       </ul>
-      <button><i className="fa-solid fa-mobile-screen"/>  Instalar App</button>
+      <button onClick={() => setShowInstallPrompt(true)}><i className="fa-solid fa-mobile-screen"/>Instalar App</button>
     </footer>
   );
 };

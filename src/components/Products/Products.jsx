@@ -122,7 +122,7 @@ const Products = () => {
   const handleAddToCart = (product) => {
     let selectedVariation;
 
-    if (userType === "hogar" ) {
+    if ( userType === "home" ) {
       // Para "hogar", usar la primera variación
       selectedVariation = product.variations[0];
     } else {
@@ -235,7 +235,7 @@ const Products = () => {
                       key={id}
                       className={`product-card ${promocionar ? 'promo' : ''}`}
                       hoverable
-                      onClick={() => userType !== 'home' && openModal(product)}
+                      onClick={() => openModal(product)}
                       cover={
                         <img
                           alt={name}
@@ -252,7 +252,7 @@ const Products = () => {
                         <h3 className="product-name">{name}</h3>
                         <p className="product-category">{category}</p>
                         <p className="product-description">{description}</p>
-                        { userType === "home" && firstVariation ? 
+                        { userType === "home" && firstVariation && 
                           <div className="product-variation-info">
                             <p>
                               <strong>Cantidad:</strong> {firstVariation.quantity}
@@ -266,8 +266,11 @@ const Products = () => {
                               }
                             </p>
                           </div>
-                          : <Button type="primary" onClick={() => openModal(product)}> Ver detalles </Button> 
                         }
+
+                        <Button type="primary" onClick={() => openModal(product)}>
+                          { userType === 'home' ? 'Agregar al carrito' : 'Ver detalles' }
+                        </Button> 
                       </div>
                     </Card>
                   );
@@ -289,7 +292,7 @@ const Products = () => {
         : <span className="noAvailable">No existe el producto</span>
       }
 
-      {currentProduct && (
+      { currentProduct && (
           <Modal
             title={currentProduct.name}
             open={isVisible}
@@ -303,7 +306,7 @@ const Products = () => {
               style={{ width: "100%", height: "300px", objectFit: "cover" }}
             />
 
-            { userType !== "hogar" && (
+            { userType !== "home" && (
               <>
                 <Select
                   placeholder="Calidad"
@@ -337,7 +340,7 @@ const Products = () => {
               </>
             )}
 
-            { userType === "hogar" && currentProduct.variations.length && (
+            { userType === "home" && currentProduct.variations.length && (
               <div style={{ marginBottom: "8px" }}>
                 <p>
                   <strong>Cantidad:</strong> {currentProduct.variations[0].quantity}
@@ -363,7 +366,7 @@ const Products = () => {
             </div>
 
             <div className="product-price" style={{ marginTop: "8px", textAlign: "center" }}>
-              {userType === "hogar" && currentProduct.variations[0] ? (
+              { userType === "home" && currentProduct.variations[0] ? (
                 <span>
                   Precio: $
                   {(

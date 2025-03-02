@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Select, Popconfirm, Spin, message, notification, Card, DatePicker, Modal, Alert } from 'antd';
+import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker, Modal, Alert } from 'antd';
 import { Option } from 'antd/es/mentions';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -14,6 +14,9 @@ const Orders = () => {
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [filteredOrders, setFilteredOrders] = useState([]);
+    const [shippingCosts, setShippingCosts] = useState({});
+    const [dateFilter, setDateFilter] = useState(null);
+    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [statusFilter, setStatusFilter] = useState(null);
     const [dateRange, setDateRange] = useState([null, null]);
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -68,6 +71,9 @@ const Orders = () => {
             console.error(error);
         }
     };
+
+
+
 
     useEffect(() => {
         if (statusFilter === null) {
@@ -124,7 +130,7 @@ const Orders = () => {
     const renderModalContent = () => {
         if (!orderDetails) return null; // Si no hay detalles de la orden, no renderizar nada
 
-        const { order, items, userData } = orderDetails;
+        const { order, items, userData } = orderDetails;        
 
         return (
             <div>

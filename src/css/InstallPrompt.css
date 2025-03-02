@@ -74,7 +74,6 @@
   font-size: 40px;
   color: var(--color-primary-hover);
   transition: transform 0.3s ease, color 0.3s ease;
-  cursor: pointer;
 }
 
 .modal-content ul li:hover {

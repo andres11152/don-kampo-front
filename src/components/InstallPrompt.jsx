@@ -3,43 +3,42 @@ import "css/InstallPrompt.css"; // CSS para el modal
 import "font-awesome/css/font-awesome.min.css";
 
 const InstallPrompt = props => {
-  const { showInstallModal, setShowInstallModal } = props
+  const { setShowInstallPrompt } = props
 
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
   useEffect(() => {
-    
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handleBeforeInstallPrompt = e => {
+      console.log('queso')
       e.preventDefault(); 
       setDeferredPrompt(e);  
-    });
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", () => {});
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
-  const handleInstall = () => {
+  const handleInstall = () => {    
     if (deferredPrompt) {
       deferredPrompt.prompt(); // Muestra el prompt nativo de instalación
       deferredPrompt.userChoice.then((choiceResult) => {
 
         setDeferredPrompt(null); // Limpia el evento
-        setShowInstallModal(false); // Cierra el modal
       });
     }
   };
 
-  const handleCancel = () => {
-    setShowInstallModal(false); // Cierra el modal si el usuario decide no instalar
-  };
-
-  if (!showInstallModal) return null;
+  const handleCancel = () => {    
+    setShowInstallPrompt(false)
+  }
 
   return (
     <div className="modal">
       <div className="modal-content">
-        <i className="fa-solid fa-xmark close" onClick={() => setShowInstallModal(false)} />
+        <i className="fa-solid fa-xmark close" onClick={handleCancel} />
 
         <h2>¿Quieres instalar esta aplicación?</h2>
         <p>¡Puedes instalar esta aplicación en tu dispositivo para un acceso más rápido y una experiencia más cómoda!</p>

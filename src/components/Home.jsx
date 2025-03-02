@@ -10,8 +10,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import Header from "components/General/Header";
 import Footer from "components/General/Footer";
+import InstallPrompt from "components/InstallPrompt"
 import FloatingButtons from "components/General/FloatingButtons";
-import InstallPrompt from "components/InstallPrompt";
 import getFetch from 'utils/getFetch.js'
 import { getPrice } from "utils/getDataByUserType";
 import { userType } from "utils/getUser";
@@ -29,12 +29,12 @@ const categories = [
 
 const Home = () => {  
   const carouselRef = useRef(null);
-  const [showInstallModal, setShowInstallModal] = useState(false)
   const navigate = useNavigate(); 
     
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
+  const [ showInstallPrompt, setShowInstallPrompt ] = useState(false)
   
   const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
 
@@ -85,9 +85,9 @@ const Home = () => {
 
   return (
     <>
-      <Header setShowInstallModal={setShowInstallModal} />
+      <Header setShowInstallPrompt={setShowInstallPrompt} />
       <main>
-      <div className="search-bar">
+        <div className="search-bar">
           <AutoComplete
             className="custom-search-bar" // Agregamos una clase personalizada
             options={searchResults.map((product) => {
@@ -219,11 +219,12 @@ const Home = () => {
           />
          
         </section>
-
-        <InstallPrompt setShowInstallModal={setShowInstallModal} showInstallModal={showInstallModal} />
-
+      
       </main>
-      <Footer setShowInstallModal={setShowInstallModal} />
+      <Footer setShowInstallPrompt={setShowInstallPrompt} />
+
+      { showInstallPrompt && <InstallPrompt setShowInstallPrompt={setShowInstallPrompt} /> }
+
       <FloatingButtons />
     </>
   );
