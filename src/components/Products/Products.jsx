@@ -69,6 +69,7 @@ const Products = () => {
 
         setSelectedCategory(categoryQueryFromUrl.toLowerCase());
         setSearchQuery(searchQueryFromUrl);
+        
         filterProducts({category: categoryQueryFromUrl, name: searchQueryFromUrl, id: idQueryFromUrl, actualProducts: updatedProducts});
 
         const uniqueCategories = [...new Set(updatedProducts.map(product => product.category))];
@@ -192,7 +193,7 @@ const Products = () => {
       ...prev,
       [productId]: newValue,
     }));
-  };
+  };  
 
   return (
     <>
