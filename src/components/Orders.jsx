@@ -504,6 +504,7 @@ const Orders = () => {
                         defaultValue={order.status_id}
                         onChange={(newStatus) => updateOrderStatus(order.id, newStatus)}
                         style={{ width: 120 }}
+                        onClick={(e) => e.stopPropagation()} // Evita que el evento burbujee
                     >
                         <Option value={1}>Pendiente</Option>
                         <Option value={2}>Enviado</Option>
@@ -513,18 +514,26 @@ const Orders = () => {
                     </Select>
                     <Popconfirm
                         title="¿Estás seguro de eliminar este pedido?"
-                        onConfirm={() => deleteOrder(order.id)}
+                        onConfirm={(e) => {
+                            e.stopPropagation();
+                            deleteOrder(order.id)
+                        }}
+                        onCancel={(e) => e.stopPropagation()}
                         okText="Sí"
                         cancelText="No"
                     >
-                        <Button danger>Eliminar</Button>
+                        <Button danger onClick={(e) => e.stopPropagation()}>Eliminar</Button>
                     </Popconfirm>
-                    <Button onClick={() => fetchOrderDetailsAndGeneratePDF(order.id)}>
+                    <Button onClick={(e) => {
+                        e.stopPropagation();
+                        fetchOrderDetailsAndGeneratePDF(order.id);
+                    }}>
                         Generar PDF
                     </Button>
                 </div>
             ),
         },
+        
     ];
 
     useEffect(() => {
@@ -573,7 +582,7 @@ const Orders = () => {
                 open={isModalVisible}
                 onCancel={handleCancel}
                 footer={[
-                    <Button onClick={() => fetchOrderDetailsAndGeneratePDF(order.id)}>
+                    <Button key={1} onClick={() => fetchOrderDetailsAndGeneratePDF(orders.id)}>
                         Generar PDF
                     </Button>,
                 ]}

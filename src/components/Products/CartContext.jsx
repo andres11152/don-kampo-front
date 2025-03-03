@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { userType } from "utils/getUser";
 
 const CartContext = createContext();
 
@@ -17,35 +18,18 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const getPriceByUserType = (item) => {
-    const userType = JSON.parse(localStorage.getItem("loginData"))?.user?.user_type;
-    if (!item) return 0;
-    switch (userType) {
-      case "hogar":
-        return parseInt(item.price_home);
-      case "supermercado":
-        return parseInt(item.price_supermarket);
-      case "restaurante":
-        return parseInt(item.price_restaurant);
-      case "fruver":
-        return parseInt(item.price_fruver);
-      default:
-        return parseInt(item.price_home);
-    }
-  };
-
   const cartValue = Object.values(cart).reduce(
     (total, item) => total + item.quantity * (item.price || 0),
     0
   );
 
   // Validar si la variación tiene un precio válido antes de agregar al carrito
-  const isValidVariation = (product) => {
+  const isValidVariation = (product) => {    
     if (!product?.selectedVariation) {
       return false;
     }
     
-    const price = getPriceByUserType(product.selectedVariation);
+    const price = product.selectedVariation[`price_${userType}`]
     return price > 0 && price !== null;
   };
 
@@ -53,7 +37,7 @@ export const CartProvider = ({ children }) => {
     if (!Array.isArray(products)) {
       console.error("Error: 'products' debe ser un array.");
       products = [products];  // Si no es un array, lo convertimos en uno
-    }
+    }   
 
     setCart((prevCart) => {
       const newCart = { ...prevCart };
@@ -63,12 +47,12 @@ export const CartProvider = ({ children }) => {
         if (!isValidVariation(product)) {
           setErrorMessage("Una de las variaciones seleccionadas no está disponible.");
           return;  // No añadir el producto al carrito
-        }
+        }        
 
         const cartKey = `${product.product_id}-${product.selectedVariation.variation_id}`;
         const quantitySelected = quantities[product.product_id] || 1;
-        const pricePerUnit = getPriceByUserType(product.selectedVariation);
-        const totalPrice = pricePerUnit * quantitySelected;
+        const pricePerUnit = product.selectedVariation[`price_${userType}`]
+        const totalPrice = product.totalPrice;        
 
         if (newCart[cartKey]) {
           newCart[cartKey] = {

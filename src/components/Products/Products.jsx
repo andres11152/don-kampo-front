@@ -24,7 +24,7 @@ const Products = () => {
   const [currentProduct, setCurrentProduct] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-
+  
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
@@ -96,13 +96,17 @@ const Products = () => {
   const getBase64Image = (photoUrl) => photoUrl || `${import.meta.env.PUBLIC_URL}/images/icon.png`;
 
   const handleVariationChange = (productId, variationType, value) => {
-    setSelectedVariations((prev) => ({
-      ...prev,
-      [productId]: {
-        ...prev[productId],
-        [variationType]: value,
-      },
-    }));
+    setSelectedVariations(prev => {
+      const updatedVariations = {
+        ...prev,
+        [productId]: {
+          ...prev[productId],
+          [variationType]: value,
+        }
+      }
+
+      return updatedVariations
+    });
   };
 
   const handleIncrement = (productId) => {
@@ -126,12 +130,12 @@ const Products = () => {
       // Para "hogar", usar la primera variación
       selectedVariation = product.variations[0];
     } else {
+      
       // Para otros tipos de usuario, usar la variación seleccionada
-      selectedVariation = product.variations.find(
-        (v) =>
-          v.quality === selectedVariations[product.product_id]?.quality &&
-          v.quantity === selectedVariations[product.product_id]?.quantity
-      );
+      selectedVariation = product.variations.find(variation =>
+        variation.quality === selectedVariations[product.product_id]?.quality &&
+        variation.quantity === selectedVariations[product.product_id]?.quantity
+      );      
 
       if (!selectedVariation) {
         message.error("Por favor selecciona una calidad y cantidad.");
@@ -144,7 +148,7 @@ const Products = () => {
       return;
     }
 
-    const multiplier = quantities[product.product_id] || 1;
+    const multiplier = quantities[product.product_id] || 1;    
 
     const productsToAdd = Array.from({ length: multiplier }, () => ({
       ...product,
@@ -153,7 +157,7 @@ const Products = () => {
         quantity: 1,
       },
       totalPrice: getPrice(selectedVariation),
-    }));
+    }));   
 
     addToCart(productsToAdd);
 
@@ -169,7 +173,7 @@ const Products = () => {
       return updatedQuantities;
     });
 
-    setIsModalVisible(false);
+    // setIsModalVisible(false);
   };
 
   const openModal = product => {
@@ -312,11 +316,9 @@ const Products = () => {
                   placeholder="Calidad"
                   style={{ width: "100%", marginBottom: "8px" }}
                   value={selectedVariations[currentProduct.product_id]?.quality}
-                  onChange={(value) =>
-                    handleVariationChange(currentProduct.product_id, "quality", value)
-                  }
+                  onChange={ value => handleVariationChange(currentProduct.product_id, "quality", value) }
                 >
-                  {currentProduct.variations.map((variation) => (
+                  { currentProduct.variations.map(variation => (
                     <Option key={variation.variation_id} value={variation.quality}>
                       {variation.quality}
                     </Option>

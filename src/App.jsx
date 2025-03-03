@@ -18,16 +18,12 @@ import CreateOrder from "components/CreateOrder.jsx";
 import Home from "components/Home.jsx";
 import { CartProvider } from "components/Products/CartContext.jsx";
 import { TermsAndConditions, PrivacyPoliticy } from "components/LegalInfo";
+import { userType, isAdmin } from "utils/getUser"
 
 const App = () => {
-  const [userType, setUserType] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Recuperar datos del usuario al cargar la aplicación
   useEffect(() => {
-    const loginData = JSON.parse(localStorage.getItem("loginData"));
-        
-    setUserType(loginData?.user?.user_type || null);
     setIsLoading(false); // Establecer que ya no se está cargando
   }, []);
 
@@ -62,7 +58,7 @@ const App = () => {
           <Route
             path="/createproduct"
             element={
-              userType === "admin" ? (
+              isAdmin ? (
                 <CreateProduct />
               ) : (
                 <Navigate to="/" replace />
@@ -72,7 +68,7 @@ const App = () => {
           <Route
             path="/manageData"
             element={
-              userType === "admin" ? (
+              isAdmin ? (
                 <ManageData />
               ) : (
                 <Navigate to="/" replace />
@@ -96,7 +92,7 @@ const App = () => {
           <Route
             path="/profile"
             element={
-              userType === "admin" ? (
+              isAdmin ? (
                 <AdminProfile />
               ) : userType ? (
                 <Profile />

@@ -139,7 +139,7 @@ const Header = (props) => {
           </li>
           { isLoggedIn ? 
             <>  
-              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageData" onClick={() => handleMenuClick('Gestionar')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
+              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageData" onClick={() => handleMenuClick('manageData')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
               <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {loginData.user.user_name} </a></li>
               <li><a onClick={handleLogout}><i className="fa-solid fa-right-from-bracket" /> Cerrar Sesion </a></li>
             </>

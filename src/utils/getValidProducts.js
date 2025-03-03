@@ -1,7 +1,7 @@
-import { userType } from "./getUser";
+import { userType, isAdmin } from "./getUser";
 
 const getValidProducts = products => {  
-  if (userType === 'admin') {    
+  if (isAdmin) {    
     return products
   } else {    
     const validProducts = products

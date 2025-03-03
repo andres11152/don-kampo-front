@@ -4,10 +4,12 @@ const userData = loginData?.user
 
 let userType = userData?.user_type;
 
+const isAdmin = userType === 'admin'
+
 userType = 
     (userType === 'hogar' || userType === undefined) ? 'home' 
     : userType === 'supermercado' ? 'supermarket'
     : userType === 'restaurante' ? 'restaurant'
-    : userType
+    : 'fruver'
 
-export { userData, userType }
+export { userData, userType, isAdmin }
