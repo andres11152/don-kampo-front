@@ -24,8 +24,8 @@ const Checkout = () => {
   const [needsElectronicInvoice, setNeedsElectronicInvoice] = useState(false);
   const [companyName, setCompanyName] = useState("");
   const [companyNit, setCompanyNit] = useState("");
-  const [shippingCost, setShippingCost] = useState(9);
-  const [discountedShippingCost, setDiscountedShippingCost] = useState(0);
+  const [shippingCost, setShippingCost] = useState(0);
+  const [discountedShippingCost, setDiscountedShippingCost] = useState(null);
 
   const { cart, clearCart, addToCart, removeFromCart } = useCart();
   const navigate = useNavigate();
@@ -33,27 +33,32 @@ const Checkout = () => {
 
   const [checkTerms, setCheckTerms] = useState(false);
 
+
   useEffect(() => {
     getFetch('customer-types', '')
       .then(fetchedShippingCosts => {
+        
         const shippingCost = getShippingCost(fetchedShippingCosts)     
-                
-        getFetch('users', `/${userData.id}`)
+        
+        if (userData) {
+          getFetch('users', `/${userData.id}`)
           .then(fetchedUser => {
             setActualUser(fetchedUser.user)
             
             if (fetchedUser.orders.length) {                            
               setIsFirstOrder(true)
               setDiscountedShippingCost(shippingCost / 2);
-              setShippingCost(shippingCost / 2)
-            } else {
-              setShippingCost(shippingCost)
-            }            
+            } 
+
+            setShippingCost(shippingCost)
           })
           .catch(error => {
             message.error("Error al cargar los datos de usuario.");
             console.error(error);
           })
+        } else {
+          setShippingCost(shippingCost)
+        }
       })
       .catch(error => {
         message.error("Error al cargar los costos de envío.");
@@ -104,7 +109,10 @@ const Checkout = () => {
     }, 0);
   }, [cartDetails])
   
-  const total = calculateSubtotal() + (discountedShippingCost ?? shippingCost);
+  const subtotal = calculateSubtotal()
+  const percentageShippingCost = discountedShippingCost ?? shippingCost
+  const amountShippingCost = subtotal * percentageShippingCost
+  const total = subtotal * (1 + percentageShippingCost);
   
   useEffect(() => {
     if (!loading) {
@@ -157,7 +165,7 @@ const Checkout = () => {
       "address",
       "neighborhood",
     ];
-
+  
     if (needsElectronicInvoice) {
       requiredFields.push("companyName", "companyNit");
     }
@@ -181,15 +189,15 @@ const Checkout = () => {
         const estimatedDelivery = currentDate.toISOString();
   
         const orderData = {
-          userId: userData.id,
+          userId: userData ? userData.id : '0f8fc459-571f-4e15-b653-4eb4558c6450',
           cartDetails: cartDetails.map((product) => ({
             productId: product.product_id,
             quantity: product.quantity,
             variationId: product.selectedVariation.variation_id,
             price: getPrice(product.selectedVariation),
           })),
-          total: calculateSubtotal() + (discountedShippingCost),
-          shippingCost: discountedShippingCost ?? shippingCost,
+          total: total,
+          shippingCost: percentageShippingCost * 100,
           shippingMethod: "Overnight",
           estimatedDelivery: estimatedDelivery,
           actual_delivery: currentDate,
@@ -229,7 +237,15 @@ const Checkout = () => {
     } else {
       message.error("Por favor, complete todos los campos antes de realizar el pedido.");
     }
-  };
+  };  
+
+  const finishOrder = msg => {
+    // **Limpiar el carrito y redirigir**
+    setIsModalVisible(false)
+    clearCart();
+    message.success(msg);
+    navigate("/products");
+  }
 
   const generateOrderPDF = () => {
     const doc = new jsPDF();
@@ -327,25 +343,22 @@ const Checkout = () => {
     // **Agregar subtotales, envío y total al final**
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Subtotal: $${calculateSubtotal().toLocaleString()}`, 10, finalY);
-    doc.text(`Envío: $${shippingCost.toLocaleString()}`, 10, finalY + 5);
+    doc.text(`Subtotal: $${subtotal.toLocaleString()}`, 10, finalY);
+    doc.text(`Envío (${percentageShippingCost * 100}%): $${amountShippingCost.toLocaleString()}`, 10, finalY + 5);
     doc.setFontSize(14);
-    doc.text(`Total: $${(calculateSubtotal() + shippingCost).toLocaleString()}`, 10, finalY + 10);
+    doc.text(`Total: $${total.toLocaleString()}`, 10, finalY + 10);
 
     // **Guardar el PDF**
     doc.save(`Resumen_Pedido_${orderId}.pdf`);
 
-    // **Limpiar el carrito y redirigir**
-    clearCart();
-    message.success("El carrito ha sido vaciado después de generar el PDF.");
-    navigate("/products");
+    finishOrder("El carrito ha sido vaciado después de generar el PDF.")
+
   };
 
   const handleAddToCart = product => 
     product.selectedVariation 
       ? addToCart(product)
       : message.error("Por favor selecciona una variaci��n antes de añadir al carrito.")
-
 
   return (
     <div>
@@ -354,7 +367,7 @@ const Checkout = () => {
       <div className="checkout-container">
         <h2>Finalizar Compra</h2>
         <div className="checkout-content">
-          { userData ? (
+          { actualUser && (
             <Form layout="vertical" className="checkout-form">
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
@@ -424,18 +437,18 @@ const Checkout = () => {
                   </Form.Item>
                 </Col>
                 <Col xs={24} sm={12}>
-                  <Button
-                    type="primary"
-                    className="confirm-data-button"
-                    onClick={handleUpdateUser}
-                  >
-                    Confirmar Datos
-                  </Button>
+                  { userData && (
+                    <Button
+                      type="primary"
+                      className="confirm-data-button"
+                      onClick={handleUpdateUser}
+                    >
+                      Confirmar Datos
+                    </Button>
+                  )}
                 </Col>
               </Row>
             </Form>
-          ) : (
-            <p>Cargando datos del usuario...</p>
           )}
           <div className="order-summary">
             <h3>Resumen del Pedido</h3>
@@ -457,8 +470,8 @@ const Checkout = () => {
             })}
 
             <Divider />
-            <p>Subtotal: <span>${calculateSubtotal().toLocaleString()}</span></p>
-            <p>Envío: <span>${shippingCost.toLocaleString()}</span></p>
+            <p>Subtotal: <span>${subtotal.toLocaleString()}</span></p>
+            <p>Envío ({percentageShippingCost * 100}%): <span>${amountShippingCost.toLocaleString()}</span></p>
             { isFirstOrder && (
               <p
                 style={{
@@ -515,7 +528,7 @@ const Checkout = () => {
                 setIsModalVisible(false);
                 navigate("/products");
               }}
-              onCancel={() => setIsModalVisible(false)}
+              onCancel={() => finishOrder("Productos Enviados Correctamente")}
               footer={[
                 <Button
                   key="pdf"
@@ -549,9 +562,9 @@ const Checkout = () => {
                   )
                 })}
                 <Divider />
-                <p>Subtotal: ${calculateSubtotal().toLocaleString()}</p>
-                <p>Envío: ${shippingCost.toLocaleString()}</p>
-                <h4>Total: ${(calculateSubtotal() + shippingCost).toLocaleString()}</h4>
+                <p>Subtotal: ${subtotal}</p>
+                <p>Envío ({percentageShippingCost * 100}%): ${amountShippingCost}</p>
+                <h4>Total: ${total}</h4>
               </div>
             </Modal>
           </div>

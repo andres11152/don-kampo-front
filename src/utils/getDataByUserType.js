@@ -5,15 +5,16 @@ const getPrice = variation => {
     return parseInt(price);
 };
 
-const getShippingCost = shippingData => {
+const getShippingCost = shippingData => {        
     const formattedUserType = 
         userType === 'home' ? 'Hogar'
         : userType === 'supermarket' ? 'Supermercado'
         : userType === 'restaurant' ? 'Restaurante'
         : 'Fruver'
  
+    if (formattedUserType === 'Hogar') return 3 / 100
     const shippingCost = shippingData.filter(data => data.type_name === formattedUserType)[0].shipping_cost
-    return shippingCost
+    return shippingCost / 100
 }
 
 const isAmountCheckout = amount => { 

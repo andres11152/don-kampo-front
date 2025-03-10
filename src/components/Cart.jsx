@@ -68,8 +68,9 @@ const Cart = () => {
       return getPrice(product.selectedVariation) * product.quantity
     }, 0);
   };
-
-  const total = calculateSubtotal() + shippingCost;
+  
+  const subtotal = calculateSubtotal()
+  const total = subtotal * (1 + shippingCost);
 
   const handleAddToCart = product => 
     product.selectedVariation 
