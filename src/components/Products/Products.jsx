@@ -147,6 +147,8 @@ const Products = () => {
     if (!selectedVariation) {
       message.error("No se encontró una variación válida para este producto.");
       return;
+    } else {
+      message.success("Producto agregado al carrito.");
     }
 
     const multiplier = quantities[product.product_id] || 1;    
@@ -174,7 +176,7 @@ const Products = () => {
       return updatedQuantities;
     });
 
-    // setIsModalVisible(false);
+    setIsModalVisible(false);
   };
 
   const openModal = product => {
@@ -204,7 +206,6 @@ const Products = () => {
           style={{ width: 200, marginRight: 16 }}
           onChange={handleCategoryChange}
           value={selectedCategory}
-          allowClear
           size="large"
         >
           {categories.map((category) => (

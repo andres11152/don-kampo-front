@@ -21,11 +21,24 @@ import "css/Home.css";
 const { Title, Paragraph } = Typography;
 
 const categories = [
-  { title: "Frutas nacionales", img: "/images/mangostino.webp" },
-  { title: "Verduras", img: "/images/verdurasProducto.jpg" },
-  { title: "Frutas importadas", img: "/images/frutasImportadas.jpg" },
-  { title: "Hortalizas", img: "/images/hortalizas.jpg" },
-]
+  {
+    title: "Frutas Nacionales",
+    img: "/images/mangostino.webp",
+    link: "/products?category=Frutas nacionales",
+  },
+  { title: "Verduras", 
+    img: "/images/verdurasProducto.jpg", 
+    link: "/products?category=Verduras" },
+  {
+    title: "Frutas Importadas",
+    img: "/images/frutasImportadas.jpg",
+    link: "/products?category=Frutas importadas",
+  },
+  { title: "Hortalizas", 
+    img: "/images/hortalizas.jpg",
+    link: "/products?category=Hortalizas"
+  },
+];
 
 const Home = () => {  
   const carouselRef = useRef(null);
@@ -36,8 +49,6 @@ const Home = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [ showInstallPrompt, setShowInstallPrompt ] = useState(false)
   
-  const handleCategoryClick = category => navigate(`/products?category=${encodeURIComponent(category)}`);
-
   const handleSearch = value => navigate(`/products?search=${encodeURIComponent(value)}`);
 
   const fetchProducts = async query =>
@@ -87,6 +98,7 @@ const Home = () => {
     <>
       <Header setShowInstallPrompt={setShowInstallPrompt} />
       <main>
+        <div className="background-home" />
         <div className="search-bar">
           <AutoComplete
             className="custom-search-bar" // Agregamos una clase personalizada
@@ -180,18 +192,15 @@ const Home = () => {
           <ul>
             {categories.map((category, index) => (
               <li key={index}>
-                <Card
-                  hoverable
-                  cover={<img alt={category.title} src={category.img} />}
-                  className="category-card"
-                  onClick={(e) => {
-                    e.preventDefault(); 
-                    handleCategoryClick(category.title);
-                  }}
-                  
-                >
-                  <Card.Meta title={category.title} />
-                </Card>
+                <a href={category.link}>
+                  <Card
+                    hoverable
+                    cover={<img alt={category.title} src={category.img} />}
+                    className="category-card"
+                  >
+                    <Card.Meta title={category.title} />
+                  </Card>
+                </a>
               </li>
             ))}
           </ul>

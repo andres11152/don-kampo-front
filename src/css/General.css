@@ -71,6 +71,10 @@
 
 .header ul a i { margin-right: 5px; }
 
+.header ul li {
+  cursor: pointer;
+}
+
 .header button {
   display: none !important;
 }

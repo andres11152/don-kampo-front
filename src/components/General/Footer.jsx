@@ -25,9 +25,9 @@ const categories = [
   },
 ];
 
-
 const Footer = props => {
   const { setShowInstallPrompt } = props
+  
   return (
     <footer className="footer">
       <h3>Explora nuestras categorías</h3>
