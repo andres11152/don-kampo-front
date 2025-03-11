@@ -24,6 +24,13 @@
     margin-top: -5%;
 }
 
+/* Tablet and below */
+@media only screen and (max-width: 61.188rem) {
+  .products-container { padding: 10px 20px; }
+
+  .products-container .ant-card { width: 100%; }
+}
+
 /* Estilos de las tarjetas de productos */
 .product-card p {
     color: #00983A;
