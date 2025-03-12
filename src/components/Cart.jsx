@@ -65,7 +65,7 @@ const Cart = () => {
 
   const calculateSubtotal = () => {
     return cartDetails.reduce((total, product) => { 
-      return getPrice(product.selectedVariation) * product.quantity
+      return total + (getPrice(product.selectedVariation) * product.quantity)
     }, 0);
   };
   

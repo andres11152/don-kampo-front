@@ -239,8 +239,20 @@ main { position: relative; }
 /* Mobile and below */
 @media only screen and (max-width: 767px) {
   .categories-section ul { 
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 30px;
+  }
+
+  .categories-section ul li {
+    width: 100%;
+  }
+
+  .categories-section ul li img {
+    width: 150px;
+  }
+
+  .categories-section ul li .ant-card-body {
+    padding: 20px 0;
   }
 }
 
@@ -263,7 +275,15 @@ main { position: relative; }
     color: white;
     z-index: 10;
     overflow: hidden;
-    
+}
+
+/* Tablet and below */
+@media only screen and (max-width: 61.188rem) {
+  .info-section {
+    width: 75%;
+    border-radius: 0;
+    padding: 40px 20px;
+  }
 }
 
 .info-section div { 

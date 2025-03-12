@@ -187,6 +187,7 @@
 .chooseUserType .category:hover {
   background-color: #00983a;
   color: white;
+<<<<<<< HEAD
   transform: translateY(-3px);
   box-shadow: 0 4px 10px rgba(0, 152, 58, 0.3);
 }
@@ -215,3 +216,13 @@
   }
 }
 
+=======
+}
+
+/* Tablet and below */
+@media only screen and (max-width: 61.188rem) {
+  .chooseUserType .ant-modal-content { padding: 40px 20px; }
+  .chooseUserType .ant-modal-title { font-size: 28px; }
+  .chooseUserType .categories { grid-template-columns: 1fr; }
+}
+>>>>>>> ba29b7075bbf33a6d68200a7de373c437f9d12f2

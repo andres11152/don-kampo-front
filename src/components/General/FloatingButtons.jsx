@@ -23,7 +23,8 @@ const FloatButton = () => {
     border: '2px solid white',
     borderRadius: '50%',
     width: '60px',
-    height: '60px'
+    height: '60px',
+    zIndex: 1000,
   }
 
   return (
