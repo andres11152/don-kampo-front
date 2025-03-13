@@ -250,15 +250,13 @@ main { position: relative; }
 /* Mobile and below */
 @media only screen and (max-width: 767px) {
   .categories-section ul { 
+    grid-template-columns: 1fr;
     gap: 30px;
   }
 
-  .categories-section ul li {
-    width: 100%;
-  }
-
   .categories-section ul li img {
-    width: 150px;
+    height: 200px;
+    width: 300px !important;
   }
 
   .categories-section ul li .ant-card-body {
