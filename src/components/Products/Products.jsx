@@ -200,7 +200,7 @@ const Products = () => {
   return (
     <>
       <Header />
-      <div className="filters-container">
+      <article>
         <Select
           placeholder="Filtrar por categoría"
           style={{ width: 200, marginRight: 16 }}
@@ -223,7 +223,7 @@ const Products = () => {
           allowClear
           size="large"
         />
-      </div>
+      </article>
       { currentProducts.length ? 
         <>
           <div className="products-container">

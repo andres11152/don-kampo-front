@@ -1,5 +1,5 @@
 /* .filters-container para la barra de filtros */
-.filters-container {
+article {
     display: flex;
     align-items: center;
     justify-content: center;
