@@ -200,7 +200,20 @@ const Products = () => {
   return (
     <>
       <Header />
-      <article>
+      <article
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '8px',
+          backgroundColor: '#0fb83970',
+          borderRadius: '8px',
+          margin: '10px auto',
+          maxWidth: '1078px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '5%'
+        }}
+      >
         <Select
           placeholder="Filtrar por categoría"
           style={{ width: 200, marginRight: 16 }}
