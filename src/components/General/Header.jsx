@@ -5,24 +5,21 @@ import {
   AppstoreOutlined,
   UserOutlined,
   LogoutOutlined,
-  MenuOutlined,
   ShoppingCartOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "components/Products/CartContext"; // Importa el hook de contexto de carrito
 import "css/General.css";
-import  InstallPrompt from "components/InstallPrompt";
+import InstallPrompt from "components/InstallPrompt";
 import { FaMobileAlt } from "react-icons/fa";
 
-const Header = (props) => {
-  const { setShowInstallPrompt } = props
+const Header = ({ setShowInstallPrompt }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  localStorage.setItem("selectedKey", localStorage.getItem('selectedKey' || ''));
   // Obtener el cartValue y cartCount desde el contexto del carrito
-  const { cartValue, cartCount } = useCart();
+  const { cartValue } = useCart();
 
   // Obtener el loginData del localStorage
   const loginData = JSON.parse(localStorage.getItem("loginData"));
@@ -30,10 +27,8 @@ const Header = (props) => {
   const isAdmin = isLoggedIn && loginData.user.user_type === "admin"; // Verifica si el usuario es admin
 
   // Estado para la ruta seleccionada y para el drawer en pantallas pequeñas
-  const [selectedKey, setSelectedKey] = useState(localStorage.getItem('selectedKey'));
+  const [selectedKey, setSelectedKey] = useState(localStorage.getItem("selectedKey") || "home");
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
 
   // Efecto para actualizar la ruta seleccionada en el menú
   useEffect(() => {
@@ -72,7 +67,6 @@ const Header = (props) => {
       case "/adminprofile":
         setSelectedKey("adminprofile");
         break;
-
       default:
         setSelectedKey("home");
         break;
@@ -80,8 +74,8 @@ const Header = (props) => {
   }, [location.pathname]);
 
   // Función para manejar el clic en el menú y cambiar la ruta
-  const handleMenuClick = key => {
-    navigate(`/${key}`)
+  const handleMenuClick = (key) => {
+    navigate(`/${key}`);
     setDrawerVisible(false); // Cierra el Drawer si se selecciona un elemento
   };
 
@@ -89,20 +83,20 @@ const Header = (props) => {
   const handleLogout = () => {
     localStorage.removeItem("loginData");
     localStorage.removeItem("cart");
-    handleMenuClick("login", "/login");
+    handleMenuClick("login");
   };
 
   return (
     <header className="header">
       <div>
         <a href="/">
-          <img src="/images/1.png" alt="Don Kampo Logo"/>
+          <img src="/images/1.png" alt="Don Kampo Logo" />
         </a>
 
         <div
           className="cart-icon"
           style={{ display: "flex", alignItems: "center" }}
-          onClick={() => handleMenuClick("cart", "/cart")}
+          onClick={() => handleMenuClick("cart")}
         >
           <Badge
             count={
@@ -123,37 +117,93 @@ const Header = (props) => {
           </Badge>
         </div>
       </div>
-    
+
       {/* Menú para pantallas grandes */}
       <nav>
         <ul>
-          <li><a className="app" href="#" onClick={() => setShowInstallPrompt(true)}><i className="fa-solid fa-mobile-screen"/> App</a></li>
           <li>
-            <a className={`${selectedKey === 'Inicio' ? 'selected' : ''}`} href="/" onClick={() => handleMenuClick('Inicio')}><i className="fa-solid fa-house" />Inicio</a>
+            <a className="app" href="#" onClick={() => setShowInstallPrompt(true)}>
+              <i className="fa-solid fa-mobile-screen" /> App
+            </a>
+          </li>
+          <li>
+            <a
+              className={`${selectedKey === "home" ? "selected" : ""}`}
+              href="/"
+              onClick={() => handleMenuClick("")}
+            >
+              <i className="fa-solid fa-house" /> Inicio
+            </a>
           </li>
           <li className="cosechas">
             <a href="/products?category=Cosechas">Cosechas</a>
           </li>
           <li>
-            <a className={`${selectedKey === 'Productos' ? 'selected' : ''}`} href="/products" onClick={() => handleMenuClick('Productos')}><i className="fa-solid fa-grip" />Productos</a>
+            <a
+              className={`${selectedKey === "products" ? "selected" : ""}`}
+              href="/products"
+              onClick={() => handleMenuClick("products")}
+            >
+              <i className="fa-solid fa-grip" /> Productos
+            </a>
           </li>
-          { isLoggedIn ? 
-            <>  
-              { isAdmin && <li><a className={`${selectedKey === 'Gestionar' ? 'selected' : ''}`} href="/manageData" onClick={() => handleMenuClick('manageData')}><i className="fa-solid fa-sliders" /> Gestión </a></li> }
-              <li><a className={`${selectedKey === 'Perfil' ? 'selected' : ''}`} href="/profile" onClick={() => handleMenuClick('Perfil')}><i className="fa-regular fa-user" /> {loginData.user.user_name} </a></li>
-              <li><a onClick={handleLogout}><i className="fa-solid fa-right-from-bracket" /> Cerrar Sesion </a></li>
-            </>
-          :   
+          {isLoggedIn ? (
             <>
-              <li><a className={`${selectedKey === 'Login' ? 'selected' : ''}`} href="/login" onClick={() => handleMenuClick('Login')}><i className="fa-solid fa-user" /> Iniciar Sesion </a></li>
-              <li><a className={`${selectedKey === 'Register' ? 'selected' : ''}`} href="/register" onClick={() => handleMenuClick('Register')}><i className="fa-regular fa-circle-user" /> Registrarse </a></li>
+              {isAdmin && (
+                <li>
+                  <a
+                    className={`${selectedKey === "manageData" ? "selected" : ""}`}
+                    href="/manageData"
+                    onClick={() => handleMenuClick("manageData")}
+                  >
+                    <i className="fa-solid fa-sliders" /> Gestión
+                  </a>
+                </li>
+              )}
+              <li>
+                <a
+                  className={`${selectedKey === "profile" ? "selected" : ""}`}
+                  href="/profile"
+                  onClick={() => handleMenuClick("profile")}
+                >
+                  <i className="fa-regular fa-user" /> {loginData.user.user_name}
+                </a>
+              </li>
+              <li>
+                <a onClick={handleLogout}>
+                  <i className="fa-solid fa-right-from-bracket" /> Cerrar Sesión
+                </a>
+              </li>
             </>
-          }
+          ) : (
+            <>
+              <li>
+                <a
+                  className={`${selectedKey === "login" ? "selected" : ""}`}
+                  href="/login"
+                  onClick={() => handleMenuClick("login")}
+                >
+                  <i className="fa-solid fa-user" /> Iniciar Sesión
+                </a>
+              </li>
+              <li>
+                <a
+                  className={`${selectedKey === "register" ? "selected" : ""}`}
+                  href="/register"
+                  onClick={() => handleMenuClick("register")}
+                >
+                  <i className="fa-regular fa-circle-user" /> Registrarse
+                </a>
+              </li>
+            </>
+          )}
         </ul>
       </nav>
 
       {/* Ícono de menú para pantallas pequeñas */}
-      <button onClick={() => setDrawerVisible(true)}> <i className="fa-solid fa-bars" /></button>
+      <button onClick={() => setDrawerVisible(true)}>
+        <i className="fa-solid fa-bars" />
+      </button>
 
       {/* Drawer para menú en pantallas pequeñas */}
       <Drawer
@@ -168,14 +218,14 @@ const Header = (props) => {
           <Menu.Item
             key="home"
             icon={<HomeOutlined />}
-            onClick={() => handleMenuClick("", "/")}
+            onClick={() => handleMenuClick("")}
           >
             Inicio
           </Menu.Item>
           <Menu.Item
             key="products"
             icon={<AppstoreOutlined />}
-            onClick={() => handleMenuClick("products", "/products")}
+            onClick={() => handleMenuClick("products")}
           >
             Productos
           </Menu.Item>
@@ -186,9 +236,7 @@ const Header = (props) => {
                 <Menu.Item
                   key="createproduct"
                   icon={<PlusOutlined />}
-                  onClick={() =>
-                    handleMenuClick("createproduct", "/createproduct")
-                  }
+                  onClick={() => handleMenuClick("createproduct")}
                 >
                   Agregar Productos
                 </Menu.Item>
@@ -196,7 +244,7 @@ const Header = (props) => {
               <Menu.Item
                 key="profile"
                 icon={<UserOutlined />}
-                onClick={() => handleMenuClick("profile", "/profile")}
+                onClick={() => handleMenuClick("profile")}
               >
                 {loginData.user.user_name}
               </Menu.Item>
@@ -212,13 +260,13 @@ const Header = (props) => {
             <>
               <Menu.Item
                 key="login"
-                onClick={() => handleMenuClick("login", "/login")}
+                onClick={() => handleMenuClick("login")}
               >
                 Iniciar Sesión
               </Menu.Item>
               <Menu.Item
                 key="register"
-                onClick={() => handleMenuClick("register", "/register")}
+                onClick={() => handleMenuClick("register")}
               >
                 Registrarse
               </Menu.Item>
