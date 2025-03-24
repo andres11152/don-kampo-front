@@ -12,7 +12,6 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "components/Products/CartContext"; // Importa el hook de contexto de carrito
 import "css/General.css";
-import  InstallPrompt from "components/InstallPrompt";
 import { FaMobileAlt } from "react-icons/fa";
 
 const Header = (props) => {

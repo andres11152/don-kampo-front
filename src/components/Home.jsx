@@ -47,7 +47,7 @@ const Home = () => {
   const [publicity, setPublicity] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-  const [ showInstallPrompt, setShowInstallPrompt ] = useState(false)
+  const [ showInstallPrompt, setShowInstallPrompt ] = useState(true)
   
   const handleSearch = value => navigate(`/products?search=${encodeURIComponent(value)}`);
 
@@ -232,7 +232,7 @@ const Home = () => {
       </main>
       <Footer setShowInstallPrompt={setShowInstallPrompt} />
 
-      { showInstallPrompt && <InstallPrompt setShowInstallPrompt={setShowInstallPrompt} /> }
+      <InstallPrompt showInstallPrompt={showInstallPrompt} setShowInstallPrompt={setShowInstallPrompt} />
 
       <FloatingButtons />
     </>
