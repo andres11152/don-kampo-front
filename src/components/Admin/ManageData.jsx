@@ -30,6 +30,9 @@ import getFetch from "utils/getFetch"
 import "css/ManageData.css";
 import { Orders, UpdateOrderPrices } from "components/Orders";
 import SalesReport from "components/SalesReport";
+import { Upload } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+
 
 const ManageData = () => {
   const [products, setProducts] = useState([]);
@@ -39,6 +42,7 @@ const ManageData = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [variations, setVariations] = useState([]);
   const [form] = Form.useForm();
+  const [imageFile, setImageFile] = useState(null);
 
   const fetchProducts = (msg = { success: "Productos cargados correctamente.", error: "Error al cargar los productos." }) => {
     setLoading(true);
@@ -87,19 +91,44 @@ const ManageData = () => {
     }
   };
 
-  const showEditModal = (product) => {    
-    setSelectedProduct(product);    
-    form.setFieldsValue(product);
+  const showEditModal = (product) => {
+    setSelectedProduct(product);
+    form.setFieldsValue(product); // Inicializa los valores del formulario
     setVariations(product.variations || []);
+    setImageFile(null); // Reinicia el estado de la imagen
     setIsModalVisible(true);
   };
 
-  const handleUpdateProduct = async product => {       
-    const isValidPriceVariations = validatePriceVariations(product.variations)
-       
+  const handleUpdateProduct = async (product) => {
+    const isValidPriceVariations = validatePriceVariations(product.variations);
+
     if (isValidPriceVariations) {
       try {
-        await axios.put(`https://don-kampo-api-5vf3.onrender.com/api/updateproduct/${selectedProduct.product_id}`, product);
+        const formData = new FormData();
+
+        // Agrega la nueva imagen si se seleccionó una
+        if (imageFile) {
+          formData.append("photo_url", imageFile);
+        }
+
+        // Agrega los demás campos del producto
+        Object.keys(product).forEach((key) => {
+          if (key === "variations") {
+            formData.append(key, JSON.stringify(product[key]));
+          } else {
+            formData.append(key, product[key]);
+          }
+        });
+
+        // Envía la solicitud al servidor
+        await axios.put(
+          `https://don-kampo-api-5vf3.onrender.com/api/updateproduct/${selectedProduct.product_id}`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
         setIsModalVisible(false);
         fetchProducts({ success: "Producto actualizado correctamente.", error: "Error al actualizar el producto." });
       } catch (error) {
@@ -113,7 +142,7 @@ const ManageData = () => {
       ...product,
       active: checked
     }
-    
+
     try {
       await axios.put(
         `https://don-kampo-api-5vf3.onrender.com/api/updateproduct/${updatedProduct.product_id}`,
@@ -260,13 +289,13 @@ const ManageData = () => {
         key: "actions",
         render: (_, record) => (
           <div style={{ display: "flex", justifyContent: 'space-evenly' }}>
-            <Switch 
+            <Switch
               checked={record.active}
               onChange={e => updateActive(e, record)}
               checkedChildren="Activo"
-              unCheckedChildren="Inactivo" 
+              unCheckedChildren="Inactivo"
             />
-  
+
             <Button
               type="primary"
               icon={<EditOutlined />}
@@ -274,7 +303,7 @@ const ManageData = () => {
             >
               Editar
             </Button>
-            
+
             <Popconfirm
               title={`¿Eliminar el producto "${record.name}"?`}
               onConfirm={() => deleteProduct(record.product_id)}
@@ -315,10 +344,50 @@ const ManageData = () => {
         <Modal
           title="Editar Producto"
           open={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={() => {
+            setIsModalVisible(false);
+            setImageFile(null); // Reinicia el estado de la imagen
+          }}
           footer={null}
           width={800}
         >
+          <Form.Item label="Foto del Producto">
+            <Upload
+              beforeUpload={() => false} // Evita la subida automática
+              onChange={({ file }) => setImageFile(file)} // Guarda el archivo seleccionado
+              accept="image/*" // Acepta solo imágenes
+              maxCount={1} // Permite solo una imagen
+            >
+              <Button icon={<UploadOutlined />}>Subir Imagen</Button>
+            </Upload>
+            {imageFile ? (
+              <div style={{ marginTop: 10 }}>
+                <img
+                  src={URL.createObjectURL(imageFile)} // Muestra la vista previa de la nueva imagen
+                  alt="Vista previa"
+                  style={{
+                    width: "100%",
+                    maxHeight: "200px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            ) : selectedProduct?.photo_url ? (
+              <div style={{ marginTop: 10 }}>
+                <img
+                  src={selectedProduct.photo_url} // Muestra la imagen actual del producto
+                  alt="Vista previa"
+                  style={{
+                    width: "100%",
+                    maxHeight: "200px",
+                    objectFit: "contain",
+                    borderRadius: "8px",
+                  }}
+                />
+              </div>
+            ) : null}
+          </Form.Item>
           <Form
             form={form}
             onFinish={handleUpdateProduct}
@@ -362,7 +431,7 @@ const ManageData = () => {
                 >
                   <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
                 </Form.Item>
-              </Col>  
+              </Col>
               <Col span={12}>
                 <Form.Item
                   label="Promocionar"
@@ -371,7 +440,7 @@ const ManageData = () => {
                 >
                   <Switch checkedChildren="Promocionar" unCheckedChildren="No Promocionar" />
                 </Form.Item>
-              </Col>  
+              </Col>
             </Row>
 
             <Row gutter={[16, 16]}>
@@ -408,12 +477,12 @@ const ManageData = () => {
                       >
                         <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
                       </Form.Item>
-                    </Col>  
+                    </Col>
                   </Row>
 
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Calidad (Var ${index + 1})`}
                         name={["variations", index, "quality"]}
                         rules={[{ required: true, message: `Por favor ingresa la calidad de la variacion ${index + 1}` }]}
@@ -422,7 +491,7 @@ const ManageData = () => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Cantidad (Var ${index + 1})`}
                         name={["variations", index, "quantity"]}
                         rules={[{ required: true, message: `Por favor ingresa la cantidad de la variacion ${index + 1}` }]}
@@ -434,7 +503,7 @@ const ManageData = () => {
 
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Precio Hogar (Var ${index + 1})`}
                         name={["variations", index, "price_home"]}
                       >
@@ -442,7 +511,7 @@ const ManageData = () => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Precio Supermercado (Var ${index + 1})`}
                         name={["variations", index, "price_supermarket"]}
                       >
@@ -453,7 +522,7 @@ const ManageData = () => {
 
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Precio Restaurante (Var ${index + 1})`}
                         name={["variations", index, "price_restaurant"]}
                       >
@@ -461,7 +530,7 @@ const ManageData = () => {
                       </Form.Item>
                     </Col>
                     <Col span={12}>
-                      <Form.Item 
+                      <Form.Item
                         label={`Precio Fruver (Var ${index + 1})`}
                         name={["variations", index, "price_fruver"]}
                       >

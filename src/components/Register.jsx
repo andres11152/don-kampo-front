@@ -15,24 +15,37 @@ const Register = () => {
   const [ userTypeSelected, setUserTypeSelected ] = useState('');
   const navigate = useNavigate();
 
+  const handleCancel = () => {
+    navigate(-1); // Navega a la página anterior si el usuario cancela
+  };
+
+
   const renderUserTypeSelection = () => {
-    const categories = ['hogar', 'restaurante', 'supermercado', 'fruver']
+  
+    const categories = ['hogar', 'restaurante', 'supermercado', 'fruver'];
     return (
       <Modal
         title="Escoge tu tipo de usuario"
         open={!userTypeSelected.length}
         footer={null}
+        onCancel={handleCancel}
         width={800}
         className="chooseUserType"
       >
         <div className="categories">
-          { categories.map((category, index) => 
-            <div key={index} className="category" onClick={e => setUserTypeSelected(e.target.innerText)}>{category}</div> )
-          }
+          {categories.map((category, index) => (
+            <div
+              key={index}
+              className="category"
+              onClick={() => setUserTypeSelected(category)}
+            >
+              {category}
+            </div>
+          ))}
         </div>
       </Modal>
-    )
-  }
+    );
+  };
 
   const onFinish = async (values) => {    
     const {
