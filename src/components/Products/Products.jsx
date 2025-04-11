@@ -126,20 +126,20 @@ const Products = () => {
 
   const handleAddToCart = (product) => {
     let selectedVariation;
+    let selectedPresentation
 
     if ( userType === "home" ) {
       // Para "hogar", usar la primera variación
       selectedVariation = product.variations[0];
     } else {
       
+      const currentVariation = selectedVariations[product.product_id]
       // Para otros tipos de usuario, usar la variación seleccionada
-      selectedVariation = product.variations.find(variation =>
-        variation.quality === selectedVariations[product.product_id]?.quality &&
-        variation.quantity === selectedVariations[product.product_id]?.quantity
-      );      
-
+      selectedVariation = product.variations.find(v =>  v.quality === currentVariation?.quality)
+      selectedPresentation = selectedVariation.presentations.find(p => p.presentation === currentVariation?.presentation)
+      
       if (!selectedVariation) {
-        message.error("Por favor selecciona una calidad y cantidad.");
+        message.error("Por favor selecciona una calidad y presentacion.");
         return;
       }
     }
@@ -156,11 +156,19 @@ const Products = () => {
     const productsToAdd = Array.from({ length: multiplier }, () => ({
       ...product,
       selectedVariation: {
-        ...selectedVariation,
+        variation_id: selectedVariation.variation_id,
+        quality: selectedVariation.quality,
+        active: selectedVariation.active,
+        presentation: selectedPresentation.presentation,
+        presentation_id: selectedPresentation.presentation_id,
+        price_home: selectedPresentation.price_home,
+        price_supermarket: selectedPresentation.price_supermarket,
+        price_restaurant: selectedPresentation.price_restaurant,
+        price_fruver: selectedPresentation.price_fruver,
         quantity: 1,
       },
-      totalPrice: getPrice(selectedVariation),
-    }));   
+      totalPrice: getPrice(selectedPresentation),
+    }));
 
     addToCart(productsToAdd);
 
@@ -247,8 +255,7 @@ const Products = () => {
                 { currentProducts.map(product => {            
                   const firstVariation = product.variations[0];
                   const { name, category, description, product_id: id, photo_url: url, promocionar } = product
-                  const price = firstVariation ? getPrice(firstVariation) : 0;
-                  
+
                   return (
                     <Card
                       key={id}
@@ -273,17 +280,50 @@ const Products = () => {
                         <p className="product-description">{description}</p>
                         { userType === "home" && firstVariation && 
                           <div className="product-variation-info">
-                            <p>
-                              <strong>Cantidad:</strong> {firstVariation.quantity}
-                            </p>
-                            <p>
-                              <strong>Precio:</strong> $
-                              { price
+                            <Select
+                              disabled={!selectedVariations[currentProduct.product_id]?.quality}
+                              placeholder="Presentacion"
+                              style={{ width: "100%", marginBottom: "8px" }}
+                              value={selectedVariations[currentProduct.product_id]?.presentation}
+                              onChange={(value) =>
+                                handleVariationChange(currentProduct.product_id, "presentation", value)
+                              }
+                            >
+                              { selectedVariations[currentProduct.product_id]?.quality &&
+                                  <Option value={ firstVariation.quality }>
+                                    { firstVariation.quality }
+                                  </Option>
+                              }
+                            </Select>
+                            <Select
+                              disabled={!selectedVariations[currentProduct.product_id]?.quality}
+                              placeholder="Presentacion"
+                              style={{ width: "100%", marginBottom: "8px" }}
+                              value={selectedVariations[currentProduct.product_id]?.presentation}
+                              onChange={(value) =>
+                                handleVariationChange(currentProduct.product_id, "presentation", value)
+                              }
+                            >
+                              { selectedVariations[currentProduct.product_id]?.quality &&
+                                firstVariation.presentations.map((presentation, index) => (
+                                  <Option key={index} value={presentation.presentation}>
+                                    {presentation.presentation}
+                                  </Option>
+                                ))
+                              }
+                            </Select>
+                            <span>
+                              Precio: $
+                              {(
+                                getPrice(
+                                  firstVariation.presentations
+                                  .find(p => p.presentation === selectedVariations[currentProduct.product_id].presentation)
+                                ) * (quantities[currentProduct.product_id] || 1)
+                              )
                                 .toFixed(2)
                                 .replace(/\.00$/, "")
-                                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-                              }
-                            </p>
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+                            </span>
                           </div>
                         }
 
@@ -311,120 +351,113 @@ const Products = () => {
         : <span className="noAvailable">No existe el producto</span>
       }
 
-      { currentProduct && (
-          <Modal
-            title={currentProduct.name}
-            open={isVisible}
-            onCancel={handleCancelModal}
-            footer={null}
-            width={400}
+      { currentProduct && 
+        <Modal
+          title={currentProduct.name}
+          open={isVisible}
+          onCancel={handleCancelModal}
+          footer={null}
+          width={400}
+        >
+          <img
+            alt={currentProduct.name}
+            src={getBase64Image(currentProduct.photo_url)}
+            style={{ width: "100%", height: "300px", objectFit: "cover" }}
+          />
+
+          {/* Calidad */}
+          <Select
+            placeholder="Calidad"
+            style={{ width: "100%", marginBottom: "8px" }}
+            value={selectedVariations[currentProduct.product_id]?.quality}
+            onChange={ value => handleVariationChange(currentProduct.product_id, "quality", value) }
           >
-            <img
-              alt={currentProduct.name}
-              src={getBase64Image(currentProduct.photo_url)}
-              style={{ width: "100%", height: "300px", objectFit: "cover" }}
+            { currentProduct.variations.map(variation => (
+              <Option key={variation.variation_id} value={variation.quality}>
+                {variation.quality}
+              </Option>
+            ))}
+          </Select>
+          {/* Presentacion */}
+          <Select
+            disabled={!selectedVariations[currentProduct.product_id]?.quality}
+            placeholder="Presentacion"
+            style={{ width: "100%", marginBottom: "8px" }}
+            value={selectedVariations[currentProduct.product_id]?.presentation}
+            onChange={(value) =>
+              handleVariationChange(currentProduct.product_id, "presentation", value)
+            }
+          >
+            { selectedVariations[currentProduct.product_id]?.quality &&
+              currentProduct.variations 
+                .filter((variation) => (
+                  selectedVariations[currentProduct['product_id']].quality === variation.quality
+                ))[0].presentations.map((presentation, index) => (
+                  <Option key={index} value={presentation.presentation}>
+                    {presentation.presentation}
+                  </Option>
+                ))
+            }
+          </Select>
+
+          <div className="quantity-controls" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
+            <input
+              type="number"
+              value={quantities[currentProduct.product_id] || 1}
+              onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
+              style={{
+                width: "50px",
+                textAlign: "center",
+                border: "1px solid #d9d9d9",
+                borderRadius: "4px",
+                padding: "4px",
+              }}
             />
+            <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
+          </div>
 
-            { userType !== "home" && (
-              <>
-                <Select
-                  placeholder="Calidad"
-                  style={{ width: "100%", marginBottom: "8px" }}
-                  value={selectedVariations[currentProduct.product_id]?.quality}
-                  onChange={ value => handleVariationChange(currentProduct.product_id, "quality", value) }
-                >
-                  { currentProduct.variations.map(variation => (
-                    <Option key={variation.variation_id} value={variation.quality}>
-                      {variation.quality}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Select
-                  placeholder="Cantidad"
-                  style={{ width: "100%", marginBottom: "8px" }}
-                  value={selectedVariations[currentProduct.product_id]?.quantity}
-                  onChange={(value) =>
-                    handleVariationChange(currentProduct.product_id, "quantity", value)
-                  }
-                >
-                  {currentProduct.variations.map((variation) => (
-                    <Option key={variation.variation_id} value={variation.quantity}>
-                      {variation.quantity}
-                    </Option>
-                  ))}
-                </Select>
-              </>
+          <div className="product-price" style={{ marginTop: "8px", textAlign: "center" }}>
+            { userType === "home" && currentProduct.variations[0] ? (
+              <span>
+                Precio: $
+                {(
+                  getPrice(currentProduct.variations[0]) *
+                  (quantities[currentProduct.product_id] || 1)
+                )
+                  .toFixed(2)
+                  .replace(/\.00$/, "")
+                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+              </span>
+            ) : selectedVariations[currentProduct.product_id]?.quality &&
+              selectedVariations[currentProduct.product_id]?.presentation ? (
+              <span>
+                Precio: $
+                {(
+                  getPrice(
+                    currentProduct.variations
+                    .find(v => v.quality === selectedVariations[currentProduct.product_id]?.quality)
+                    .presentations.find(p => p.presentation === selectedVariations[currentProduct.product_id].presentation)
+                  ) * (quantities[currentProduct.product_id] || 1)
+                )
+                  .toFixed(2)
+                  .replace(/\.00$/, "")
+                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+              </span>
+            ) : (
+              <span>Selecciona calidad y presentacion para ver el precio!</span>
             )}
+          </div>
 
-            { userType === "home" && currentProduct.variations.length && (
-              <div style={{ marginBottom: "8px" }}>
-                <p>
-                  <strong>Cantidad:</strong> {currentProduct.variations[0].quantity}
-                </p>
-              </div>
-            )}
-
-            <div className="quantity-controls" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Button onClick={() => handleDecrement(currentProduct.product_id)}>-</Button>
-              <input
-                type="number"
-                value={quantities[currentProduct.product_id] || 1}
-                onChange={(e) => handleInputChange(currentProduct.product_id, e.target.value)}
-                style={{
-                  width: "50px",
-                  textAlign: "center",
-                  border: "1px solid #d9d9d9",
-                  borderRadius: "4px",
-                  padding: "4px",
-                }}
-              />
-              <Button onClick={() => handleIncrement(currentProduct.product_id)}>+</Button>
-            </div>
-
-            <div className="product-price" style={{ marginTop: "8px", textAlign: "center" }}>
-              { userType === "home" && currentProduct.variations[0] ? (
-                <span>
-                  Precio: $
-                  {(
-                    getPrice(currentProduct.variations[0]) *
-                    (quantities[currentProduct.product_id] || 1)
-                  )
-                    .toFixed(2)
-                    .replace(/\.00$/, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
-                </span>
-              ) : selectedVariations[currentProduct.product_id]?.quality &&
-                selectedVariations[currentProduct.product_id]?.quantity ? (
-                <span>
-                  Precio: $
-                  {(
-                    getPrice(
-                      currentProduct.variations.find(
-                        (v) =>
-                          v.quality === selectedVariations[currentProduct.product_id]?.quality &&
-                          v.quantity === selectedVariations[currentProduct.product_id]?.quantity
-                      )
-                    ) * (quantities[currentProduct.product_id] || 1)
-                  )
-                    .toFixed(2)
-                    .replace(/\.00$/, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
-                </span>
-              ) : (
-                <span>Selecciona calidad y cantidad para ver el precio!</span>
-              )}
-            </div>
-
-            <Button
-              type="primary"
-              onClick={() => handleAddToCart(currentProduct)}
-              style={{ marginTop: "8px", width: "100%" }}
-            >
-              Añadir al carrito
-            </Button>
-          </Modal>
-      )}
+          <Button
+            type="primary"
+            onClick={() => handleAddToCart(currentProduct)}
+            style={{ marginTop: "8px", width: "100%" }}
+          >
+            Añadir al carrito
+          </Button>
+        </Modal>
+      }
 
       <FloatingButtons />
       <CustomFooter />

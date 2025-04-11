@@ -15,7 +15,7 @@ import "css/Cart.css";
 import fruits from 'assets/fruits.jpg'
 
 const Cart = () => {
-  const { cart, removeFromCart, addToCart } = useCart();
+  const { cart, removeFromCart, addToCart, clearCart } = useCart();
   const [cartDetails, setCartDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [shippingCost, setShippingCost] = useState(0);
@@ -40,7 +40,7 @@ const Cart = () => {
             const [productId] = key.split('-');
             
             const response = await axios.get(
-              `https://don-kampo-api-5vf3.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -65,7 +65,9 @@ const Cart = () => {
 
   const calculateSubtotal = () => {
     return cartDetails.reduce((total, product) => { 
-      return total + (getPrice(product.selectedVariation) * product.quantity)
+      const { selectedVariation: variation } = product
+      const { quantity } = variation
+      return total + (getPrice(variation) * quantity)
     }, 0);
   };
   
@@ -103,7 +105,9 @@ const Cart = () => {
           <div className="cart-content">
             <div className="cart-items">
               { cartDetails.map(product => {
-                const { category, product_id: id, photo_url: photo, selectedVariation: variation, name, quantity } = product
+                const { category, product_id: id, photo_url: photo, selectedVariation: variation, name } = product
+                const { quantity, quality, presentation } = variation
+                
                 return (
                   <Card key={`${id}-${variation.variation_id}`} className="cart-item">
                     <div className="cart-item-layout">
@@ -120,8 +124,9 @@ const Cart = () => {
                         <div>
                           <h4>{name}</h4>
                           <p>Categoría: {category}</p>
-                          <p>Calidad: {variation?.quality}</p>
-                          <p>Cantidad: {variation?.quantity}</p>
+                          <p>Calidad: {quality}</p>
+                          <p>Cantidad: {quantity}</p>
+                          <p>Presentacion: {presentation}</p>
                           <p>Precio: ${getPrice(variation).toLocaleString()}</p>
                           <p>Subtotal: ${(getPrice(variation) * quantity).toLocaleString()}</p>
                         </div>

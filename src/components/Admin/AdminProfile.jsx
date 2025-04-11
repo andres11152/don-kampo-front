@@ -19,7 +19,7 @@ import {
 import Navbar from "components/General/Header";
 import CustomFooter from "components/General/Footer";
 import ManagePublicity from "./ManagePublicity";
-import { SearchOutlined } from "@ant-design/icons";
+import { ConsoleSqlOutlined, SearchOutlined } from "@ant-design/icons";
 import FloatingButtons from "components/General/FloatingButtons";
 import axios from "axios";
 import getFetch from "utils/getFetch"
@@ -85,7 +85,7 @@ const AdminProfile = () => {
 
   const fetchShippingCosts = async () => {
     try {
-      const response = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/customer-types");
+      const response = await axios.get("http://localhost:8080/api/customer-types");
       const costs = response.data.reduce((acc, type) => {
         acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost);
         return acc;
@@ -100,7 +100,7 @@ const AdminProfile = () => {
   const updateShippingCosts = async (values) => {
     setLoadingShipping(true);
     try {
-      await axios.put("https://don-kampo-api-5vf3.onrender.com/api/customer-types/shipping-costs", values);
+      await axios.put("http://localhost:8080/api/customer-types/shipping-costs", values);
       message.success("Costos de envío actualizados exitosamente.");
       fetchShippingCosts(); // Refresca los datos
     } catch (error) {
@@ -189,7 +189,7 @@ const AdminProfile = () => {
         formData.append("variations", JSON.stringify(product.variations));
 
         const response = await axios.post(
-          "https://don-kampo-api-5vf3.onrender.com/api/createproduct",
+          "http://localhost:8080/api/createproduct",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -230,7 +230,7 @@ const AdminProfile = () => {
         // Agregar variaciones como JSON
         formData.append("variations", JSON.stringify(product.variations));
 
-        await axios.post("https://don-kampo-api-5vf3.onrender.com/api/createproduct", formData, {
+        await axios.post("http://localhost:8080/api/createproduct", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
@@ -292,56 +292,67 @@ const AdminProfile = () => {
 
   const fetchOrders = async () => {
     try {
-        const response = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/orders");
+        const response = await axios.get("http://localhost:8080/api/orders");
 
         // Filtrar órdenes pendientes (status_id = 1)
         const pendingOrders = response.data.filter(item => item.order.status_id === 1);
-
-        // Procesar datos de órdenes
-        const dataOrders = pendingOrders.map(item => ({
-            ...item.order,
-            email: item.userData?.email || ''
-        }));
-
+        
         // Procesar datos de productos de las órdenes pendientes
-        const dataPurchaseOrders = pendingOrders.flatMap(item => item.items);
-
-        // Agrupamos y sumamos las cantidades de los productos
-        const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
-            const key = `${product.product_id}-${product.product_variation_id}`;
-
-            // Si no existe el producto, lo agregamos
+        const dataPurchaseOrders = pendingOrders.flatMap(item => 
+            item.items.map(product => ({
+                order_id: item.order.id,  // Agregar la referencia de la orden
+                product_id: product.product_id,
+                quantity: product.quantity,
+                product_name: product.product_name,
+                price: product.price,
+                variation_id: product.variation_id,
+                presentation: product.presentation,
+                quality: product.quality,
+            }))
+        );
+        
+        // Agrupamos y sumamos las cantidades de los productos por product_id, variation_id y presentation
+        const groupedProducts = dataPurchaseOrders.reduce((acc, product) => {
+            // Crear una clave única para el grupo de productos
+            const key = `${product.product_id}-${product.variation_id}-${product.presentation}`;
+            
             if (!acc[key]) {
-                acc[key] = { ...product };
+                // Si el grupo aún no existe, creamos un nuevo grupo
+                acc[key] = { 
+                    ...product, 
+                    totalQuantity: product.quantity // Inicializamos con la cantidad del primer producto
+                };
             } else {
-                // Si ya existe, sumamos la cantidad
-                acc[key].quantity += product.quantity;
+                // Si ya existe el grupo, sumamos la cantidad al total
+                acc[key].totalQuantity += product.quantity;
             }
-
+            
             return acc;
         }, {});
-
+        
         // Convertimos el objeto de agrupación en un array
-        const uniquePurchaseProducts = Object.values(consolidatedProducts).map(product => {
+        const uniqueGroupedProducts = Object.values(groupedProducts).map(product => {
             const { variation } = product; // Extraemos el objeto variation
+        
             if (variation) {
                 // Traemos las propiedades al nivel superior
                 return {
                     id_producto: product.product_id,
-                    cantidad: variation.quantity,
+                    cantidad: product.totalQuantity, // Usamos la cantidad total agrupada
                     nombre_producto: product.product_name,
-                    id_variacion: product.product_variation_id,
-                    calidad: variation.quality,
-                    total: product.quantity
+                    id_variacion: product.variation_id,
+                    calidad: product.quality,
+                    total: product.totalQuantity * product.price // Aquí calculamos el total por producto
                 };
             }
+        
             return product; // Si no hay variation, devolvemos el producto sin cambios
         });
-
+      
         // Actualizar el estado con las órdenes y productos filtrados
-        setPurchaseOrders(uniquePurchaseProducts);
-        setOrders(dataOrders);
-        setFilteredOrders(dataOrders);
+        setPurchaseOrders(uniqueGroupedProducts);
+        setOrders(dataPurchaseOrders);
+        setFilteredOrders(dataPurchaseOrders);
     } catch (error) {
         message.error("Error al cargar los pedidos.");
         console.error(error);
@@ -375,7 +386,7 @@ useEffect(() => {
 
           formData.append("variations", JSON.stringify(product.variations));
 
-          await axios.post("https://don-kampo-api-5vf3.onrender.com/api/createproduct", formData, {
+          await axios.post("http://localhost:8080/api/createproduct", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
         })
@@ -425,7 +436,7 @@ useEffect(() => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       // Cambiamos la URL para incluir directamente el id y el nuevo estado
-      await axios.put(`https://don-kampo-api-5vf3.onrender.com/api/updatestatus/${orderId}/${newStatus}`);
+      await axios.put(`http://localhost:8080/api/updatestatus/${orderId}/${newStatus}`);
       message.success("Estado del pedido actualizado correctamente.");
       fetchOrders(); // Refresca la lista de pedidos después de actualizar el estado
     } catch (error) {
@@ -436,7 +447,7 @@ useEffect(() => {
 
   const deleteOrder = async (orderId) => {
     try {
-      await axios.delete(`https://don-kampo-api-5vf3.onrender.com/api/deleteorders/${orderId}`);
+      await axios.delete(`http://localhost:8080/api/deleteorders/${orderId}`);
       message.success("Pedido eliminado correctamente.");
       fetchOrders();
     } catch (error) {
@@ -449,7 +460,7 @@ useEffect(() => {
 
   const openUserModal = async (user) => {
     try {
-      const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/users/${user.id}`);
+      const response = await axios.get(`http://localhost:8080/api/users/${user.id}`);
       setSelectedUser(response.data);
       setIsUserModalVisible(true);
       formUserDetail.setFieldsValue(response.data.user); // Actualiza los valores del formulario
@@ -467,7 +478,7 @@ useEffect(() => {
 
   const openOrderModal = async (orderId) => {
     try {
-      const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/orders/${orderId}`);
+      const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
       // Actualiza el estado con toda la respuesta (incluyendo order, items y shippingInfo)
       
       setSelectedOrder(response.data);
@@ -489,7 +500,7 @@ useEffect(() => {
 
   const updateUserDetails = async (values) => {    
     try {
-      await axios.put(`https://don-kampo-api-5vf3.onrender.com/api/updateusers/${selectedUser.user.id}`, values);
+      await axios.put(`http://localhost:8080/api/updateusers/${selectedUser.user.id}`, values);
       message.success("Usuario actualizado exitosamente.");
       fetchUsers(false); // Refresca la lista de usuarios después de actualizar
       setIsUserModalVisible(false);
@@ -507,7 +518,7 @@ useEffect(() => {
   const handleCreateUser = async (values) => {
     setLoading(true);
     try {
-      await axios.post("https://don-kampo-api-5vf3.onrender.com/api/createusers", {
+      await axios.post("http://localhost:8080/api/createusers", {
         ...values,
         address: " ",
         neighborhood: " ",
@@ -634,13 +645,14 @@ useEffect(() => {
 
   const renderPurchaseTable = () => {
     const orderColumns = [
-      { title: "ID Producto", dataIndex: "id_producto", key: "id_producto" },
-      { title: "Producto", dataIndex: "nombre_producto", key: "nombre_producto" },
-      { title: "ID Variacion", dataIndex: "id_variacion", key: "id_variacion" },
-      { title: "Calidad", dataIndex: "calidad", key: "calidad" },
-      { title: "Cantidad", dataIndex: "cantidad", key: "cantidad" },
-      { title: "Total a Comprar", dataIndex: "total", key:"total" }
-    ];
+      { title: "ID Producto", dataIndex: "product_id", key: "product_id" },
+      { title: "Producto", dataIndex: "product_name", key: "product_name" },
+      { title: "ID Variacion", dataIndex: "variation_id", key: "variation_id" },
+      { title: "Calidad", dataIndex: "quality", key: "quality" },
+      { title: "Presentacion", dataIndex: "presentation", key: "presentation" },
+      { title: "Cantidad", dataIndex: "quantity", key: "quantity" },
+      { title: "Total a Comprar", dataIndex: "totalQuantity", key:"totalQuantity" }
+    ];  
 
     return (
       <Card title="Gestión de Compras" style={{ marginTop: "20px" }}>
@@ -685,7 +697,7 @@ useEffect(() => {
       const responses = await Promise.all(
         filteredOrders.map(async (order) => {
           try {
-            const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/orders/${order.id}`);
+            const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
             
             const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
             // Crear filas por cada ítem y variación
@@ -771,12 +783,13 @@ useEffect(() => {
     
     // Reorganizar los datos en el orden deseado
     const orderedPurchaseOrders = purchaseOrders.map(order => ({
-      id_producto: order.id_producto,
-      nombre_producto: order.nombre_producto,
-      id_variacion: order.id_variacion,
-      calidad: order.calidad,
-      cantidad: order.cantidad,
-      total: order.total
+      id_producto: order.product_id,
+      nombre_producto: order.product_name,
+      id_variacion: order.variation_id,
+      calidad: order.quality,
+      presentacion: order.presentation,
+      cantidad: order.quantity,
+      total: order.totalQuantity
     }));
 
     // Convertir a hoja de cálculo con el orden de columnas establecido
@@ -799,7 +812,7 @@ useEffect(() => {
         <p>👤 Administra usuarios, 🚚 precios de envíos, 🛒 compras y 📢 publicidad. ¡Todo en un solo lugar! 🎯</p>
         {renderUserTable()}
         
-        {renderPurchaseTable()}
+        {/* {renderPurchaseTable()} */}
 
         {/* Modal for User Details */}
         <Modal

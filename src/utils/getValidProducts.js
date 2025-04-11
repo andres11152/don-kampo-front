@@ -1,26 +1,37 @@
 import { userType, isAdmin } from "./getUser";
 
-const getValidProducts = products => {  
-  if (isAdmin) {    
+const getValidProducts = (products) => {
+  if (isAdmin) {
+    return products;
+  } else {
     return products
-  } else {        
-    const validProducts = products 
-      .map(product => {
-          // Filtrar variaciones con precio mayor a 0 según userType
-          const validVariations = product.variations.filter(variation => variation[`price_${userType}`] > 0)
-          
-          // Retornar solo si tiene al menos una variación válida
-          return validVariations.length ? { ...product, variations: validVariations } : null;
+      .map((product) => {
+        // Filtrar solo variaciones activas
+        const activeVariations = product.variations.filter(
+          (variation) => variation.active
+        );
+
+        // Filtrar presentaciones con precio mayor a 0 según userType
+        const validVariations = activeVariations
+          .map((variation) => {
+            const validPresentations = variation.presentations.filter(
+              (presentation) => presentation[`price_${userType}`] && presentation[`price_${userType}`] > 0
+            );
+
+            // Solo conservar variaciones con al menos una presentación válida
+            return validPresentations.length > 0
+              ? { ...variation, presentations: validPresentations }
+              : null;
+          })
+          .filter((variation) => variation !== null);
+
+        // Retornar el producto solo si tiene variaciones válidas
+        return validVariations.length > 0
+          ? { ...product, variations: validVariations }
+          : null;
       })
-      .filter(product => product !== null) // Eliminar productos sin variaciones válidas
-      .filter(product => product.active && product.variations.some(variation => variation.active)) // Solo productos activos con al menos una variación activa
-      .map(product => ({
-          ...product,
-          variations: product.variations.filter(variation => variation.active) // Solo incluir variaciones activas
-      }));       
-
-    return validProducts
+      .filter((product) => product !== null && product.active); // Eliminar productos sin variaciones válidas y solo incluir productos activos
   }
-}
+};
 
-export default getValidProducts
+export default getValidProducts;

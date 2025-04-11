@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker, Modal, Alert } from 'antd';
+import { Table, Button, Select, Popconfirm, Spin, message, Card, DatePicker, Modal, Alert, notification } from 'antd';
 import { Option } from 'antd/es/mentions';
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import "css/Orders.css";
+
+import getFetch from "utils/getFetch"
+import { getPrice, getShippingCost } from 'utils/getDataByUserType';
 
 const { RangePicker } = DatePicker;
 
@@ -14,13 +16,11 @@ const Orders = () => {
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [filteredOrders, setFilteredOrders] = useState([]);
-    const [shippingCosts, setShippingCosts] = useState({});
-    const [dateFilter, setDateFilter] = useState(null);
-    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     const [statusFilter, setStatusFilter] = useState(null);
     const [dateRange, setDateRange] = useState([null, null]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [orderDetails, setOrderDetails] = useState(null);
+
 
     useEffect(() => {
         fetchOrders();
@@ -28,40 +28,16 @@ const Orders = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/orders");
+            const response = await axios.get("http://localhost:8080/api/orders");
 
             // Procesar datos de órdenes
-            const dataOrders = response.data.map(item => ({
-                ...item.order,
-                email: item.userData?.email || ''
-            }));
-
-            // Procesar datos de productos de la orden
-            const dataPurchaseOrders = response.data.flatMap(item => item.items);
-
-            // Agrupamos y consolidamos las cantidades
-            const consolidatedProducts = dataPurchaseOrders.reduce((acc, product) => {
-                const key = `${product.product_id}-${product.product_variation_id}`;
-
-                // Si no existe el producto, lo agregamos
-                if (!acc[key]) acc[key] = { ...product, totalQuantity: product.quantity };
-                // Si ya existe, sumamos la cantidad
-                else acc[key].totalQuantity += product.quantity;
-
-                return acc;
-            }, {});
-
-            // Convertimos el objeto de agrupación en un array
-            const uniquePurchaseProducts = Object.values(consolidatedProducts).map(product => {
-                const { variation } = product; // Extraemos el objeto variation
+            const dataOrders = response.data.map(item => {
+                const total = item.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
                 return {
-                    id_producto: product.product_id,
-                    id_variacion: product.product_variation_id,
-                    nombre_producto: product.product_name,
-                    calidad: variation?.quality || 'N/A', // Manejo seguro de calidad
-                    cantidad: variation?.quantity || 0, // Cantidad del producto
-                    total: product.totalQuantity // Cantidad acumulada
-                };
+                    ...item.order,
+                    email: item.userData?.email || '',
+                    total
+                }
             });
 
             setOrders(dataOrders); // Establecer órdenes procesadas
@@ -71,9 +47,6 @@ const Orders = () => {
             console.error(error);
         }
     };
-
-
-
 
     useEffect(() => {
         if (statusFilter === null) {
@@ -115,7 +88,7 @@ const Orders = () => {
         setIsModalVisible(true);
 
         try {
-            const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/orders/${order.id}`);
+            const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
             setOrderDetails(response.data); // Almacenar los detalles de la orden
         } catch (error) {
             message.error("Error al cargar los detalles de la orden.");
@@ -162,20 +135,22 @@ const Orders = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {items.map((item, index) => {
-                            const priceHome = parseFloat(item.variation.price_home);
-                            const unitPrice = Math.trunc(priceHome);
-                            const total = item.quantity * unitPrice;
-
-                            return (
+                        {items.map((item, index) =>
+                            item.variation.presentations.map((p, index) => {
+                                const price = item.price
+                                const unitPrice = Math.trunc(price);
+                                const total = item.quantity * unitPrice;
+    
+                                return (
                                 <tr key={index}>
-                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.product_name} ({item.variation.quality} {item.variation.quantity})</td>
+                                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.product_name} ({item.variation.quality} {item.variation.quantity} {p.presentation})</td>
                                     <td style={{ border: '1px solid #ddd', padding: '8px' }}>{item.quantity}</td>
                                     <td style={{ border: '1px solid #ddd', padding: '8px' }}>${unitPrice.toLocaleString()}</td>
                                     <td style={{ border: '1px solid #ddd', padding: '8px' }}>${total.toLocaleString()}</td>
                                 </tr>
-                            );
-                        })}
+                                )
+                            })
+                        )}
                     </tbody>
                 </table>
                 <Alert
@@ -197,8 +172,6 @@ const Orders = () => {
         );
     };
 
-
-
     const exportFilteredOrdersToExcel = async () => {
         const failedOrders = []; // Lista para almacenar los detalles de órdenes fallidas
         const detailedOrders = []; // Lista para almacenar los detalles exitosos
@@ -210,7 +183,7 @@ const Orders = () => {
             const responses = await Promise.all(
                 filteredOrders.map(async (order) => {
                     try {
-                        const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/orders/${order.id}`);
+                        const response = await axios.get(`http://localhost:8080/api/orders/${order.id}`);
                         
                         const { order: orderDetails, items, userData: { city, phone, address } } = response.data;
                         // Crear filas por cada ítem y variación
@@ -291,7 +264,7 @@ const Orders = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             // Cambiamos la URL para incluir directamente el id y el nuevo estado
-            await axios.put(`https://don-kampo-api-5vf3.onrender.com/api/updatestatus/${orderId}/${newStatus}`);
+            await axios.put(`http://localhost:8080/api/updatestatus/${orderId}/${newStatus}`);
             message.success("Estado del pedido actualizado correctamente.");
             fetchOrders(); // Refresca la lista de pedidos después de actualizar el estado
         } catch (error) {
@@ -300,11 +273,10 @@ const Orders = () => {
         }
     };
 
-
     // Eliminar un pedido
     const deleteOrder = async (orderId) => {
         try {
-            await axios.delete(`https://don-kampo-api-5vf3.onrender.com/api/deleteorders/${orderId}`);
+            await axios.delete(`http://localhost:8080/api/deleteorders/${orderId}`);
             message.success("Pedido eliminado correctamente.");
             fetchOrders();
         } catch (error) {
@@ -316,152 +288,134 @@ const Orders = () => {
     const fetchOrderDetailsAndGeneratePDF = async (orderId) => {
         try {
             // Llamar a la API para obtener los detalles de la orden
-            const response = await axios.get(`https://don-kampo-api-5vf3.onrender.com/api/orders/${orderId}`);
+            const response = await axios.get(`http://localhost:8080/api/orders/${orderId}`);
             const orderData = response.data;
+            
+            let shippingCost = 0;
+            let discountedShippingCost = null;
 
-            // Llamar a la API para obtener los tipos de cliente y costos de envío
-            const customerTypeResponse = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/customer-types");
-            const customerTypes = customerTypeResponse.data.reduce((acc, type) => {
-                acc[type.type_name.toLowerCase()] = parseInt(type.shipping_cost, 10);
-                return acc;
-            }, {});
+            await getFetch('customer-types', '')
+                .then(fetchedShippingCosts => {
+                    shippingCost = getShippingCost(fetchedShippingCosts)     
+                    
+                    getFetch('users', `/${orderData.order.customer_id}`)
+                        .then(fetchedUser => {                            
+                            if (fetchedUser.orders.length === 1) discountedShippingCost = shippingCost / 2 
+                        })
+                        .catch(error => {
+                            message.error("Error al cargar los datos de usuario.");
+                            console.error(error);
+                        })
+                })
+                .catch(error => {
+                    message.error("Error al cargar los costos de envío.");
+                    console.error(error);
+                })
 
-            // Verificar si existe el campo user_type o type_name en userData
-            const userType = orderData.userData?.user_type?.toLowerCase() || orderData.userData?.type_name?.toLowerCase();
+            const percentageShippingCost = discountedShippingCost ?? shippingCost
+            const total = orderData.items.reduce((acc, item) => acc + item.price * item.quantity, 0)
+            
+            const amountShippingCost = total * percentageShippingCost
+            
+            const subtotal = total + amountShippingCost;
 
-            if (!userType) {
-                throw new Error("El tipo de usuario (type_name o user_type) no está definido en los datos de la orden.");
-            }
-
-            // Obtener el porcentaje de envío y calcular el costo
-            const subtotal = Math.floor(orderData.order.total);
-            const shippingPercentage = customerTypes[userType] || 0;
-
-            let shippingCost = Math.floor((subtotal * shippingPercentage) / 100);
-
-            // Aplicar reglas específicas según el tipo de usuario y condiciones
-            if (userType === "hogar") {
-                if (!orderData.userData?.isLoggedIn) {
-                    shippingCost = 5000; // Hogar sin registrarse
-                } else if (orderData.isFirstOrder) {
-                    shippingCost = 0; // Hogar registrado en su primer pedido
-                }
-            } else if (userType === "restaurante" && orderData.isFirstOrder) {
-                shippingCost /= 2; // Restaurante en su primer pedido
-            }
-
-            // Crear el PDF
             const doc = new jsPDF();
             doc.setFontSize(10);
-
-            // Insertar el logo de la empresa
+        
+            // **Insertar el logo de la empresa**
             const logoUrl = '/images/1.png';
             doc.addImage(logoUrl, 'PNG', 10, 5, 50, 30);
-
-            // Información del remitente
+        
+            // **Información del remitente**
             const senderInfo = ['Don Kampo S.A.S', 'Nit 901.865.742', 'Chía - Cundinamarca', '3117366666'];
             const pageWidth = doc.internal.pageSize.width;
             const senderX = pageWidth - 50;
-
+        
             doc.setFont('helvetica', 'bold');
             senderInfo.forEach((line, index) => {
                 doc.text(line, senderX, 10 + (index * 5));
             });
-
-            // Título del documento
+        
+            // **Título del documento y fecha**
+            doc.setFontSize(14);
             doc.text("Detalles de la Orden", 10, 35);
-
-            // Información de la orden
-            const yOffset = 40;
-            const lineHeight = 5;
-
+        
             doc.setFont('helvetica', 'bold');
-            doc.text("ID de Orden:", 10, yOffset);
+            doc.text("ID de la orden:", 10, 50);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.order.id}`, 33, yOffset);
+            doc.text(`${orderData.order.id}`, 55, 50);
 
             const status = orderData.order.status_id === 1
-                ? 'Pendiente'
-                : orderData.order.status_id === 2
-                    ? 'Enviado'
-                    : orderData.order.status_id === 3
-                        ? 'Entregado'
-                        : 'Cancelado';
+            ? 'Pendiente' : orderData.order.status_id === 2
+                ? 'Enviado' : orderData.order.status_id === 3
+                    ? 'Entregado' : 'Cancelado';
             doc.setFont('helvetica', 'bold');
-            doc.text("Estado:", 10, yOffset + lineHeight);
+            doc.text("Estado:", 10, 55);
             doc.setFont('helvetica', 'normal');
-            doc.text(status, 33, yOffset + lineHeight);
-
+            doc.text(`${status}`, 55, 55);
+        
             doc.setFont('helvetica', 'bold');
-            doc.text("Cliente:", 10, yOffset + 2 * lineHeight);
+            doc.text("Cliente:", 10, 60);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.userData.user_name} ${orderData.userData.lastname}`, 33, yOffset + 2 * lineHeight);
-
+            doc.text(`${orderData.userData.user_name} ${orderData.userData.lastname}`, 55, 60);
+        
             doc.setFont('helvetica', 'bold');
-            doc.text("Correo:", 10, yOffset + 3 * lineHeight);
+            doc.text("Correo:", 10, 65);
             doc.setFont('helvetica', 'normal');
-            doc.text(orderData.userData.email, 33, yOffset + 3 * lineHeight);
-
+            doc.text(orderData.userData.email, 55, 65);
+        
             doc.setFont('helvetica', 'bold');
-            doc.text("Teléfono:", 10, yOffset + 4 * lineHeight);
+            doc.text("Teléfono:", 10, 70);
             doc.setFont('helvetica', 'normal');
-            doc.text(orderData.userData.phone, 33, yOffset + 4 * lineHeight);
-
+            doc.text(orderData.userData.phone, 55, 70);
+        
             doc.setFont('helvetica', 'bold');
-            doc.text("Dirección:", 10, yOffset + 5 * lineHeight);
+            doc.text("Dirección:", 10, 75);
             doc.setFont('helvetica', 'normal');
-            doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 33, yOffset + 5 * lineHeight);
-
-            // Datos de los productos y la tabla
-            const productData = orderData.items.map((item) => {
-                // Convertir el precio a número flotante y truncar a la parte entera
-                const priceHome = parseFloat(item.variation.price_home); // Convierte correctamente con punto decimal
-                const unitPrice = Math.trunc(priceHome); // Ignorar los decimales y tomar solo la parte entera
-
-                return {
-                    "Producto": `${item.product_name} (${item.variation.quality} ${item.variation.quantity})`,
-                    "Cantidad": item.quantity,
-                    "Precio Unitario": `$${unitPrice.toLocaleString()}`, // Formatear como moneda
-                    "Total": `$${(item.quantity * unitPrice).toLocaleString()}` // Total calculado
-                };
-            });
-
-
-            const columns = [
-                { title: "Producto", dataKey: "Producto" },
-                { title: "Cantidad", dataKey: "Cantidad" },
-                { title: "Precio Unitario", dataKey: "Precio Unitario" },
-                { title: "Total", dataKey: "Total" }
+            doc.text(`${orderData.userData.address}${orderData.userData.neighborhood}, ${orderData.userData.city}`, 55, 75);
+        
+            // **Configuración de la tabla con los productos**
+            const tableColumns = [
+                { header: 'Producto', dataKey: 'description' },
+                { header: 'Precio Unitario', dataKey: 'unitPrice' },
+                { header: 'Cantidad', dataKey: 'quantity' },
+                { header: 'Subtotal', dataKey: 'subtotal' },
             ];
-
-            autoTable(doc, {
-                head: [columns.map(col => col.title)],
-                body: productData.map(item => Object.values(item)),
-                startY: yOffset + 6 * lineHeight,
-                theme: 'grid',
-                margin: { top: 10 },
-                styles: {
-                    head: {
-                        fillColor: '#00983a',
-                        textColor: '#ffffff'
-                    },
-                    body: {
-                        justify: 'center',
-                        textColor: '#000000'
-                    }
-                }
+        
+            const tableData = orderData.items.flatMap((item) => {
+                return item.variation.presentations.map((presentation) => {
+              
+                  return {
+                    description: `${item.product_name} (${item.variation.quality} ${presentation.presentation})`,
+                    unitPrice: `${item.price.toLocaleString()}`,
+                    quantity: item.quantity,
+                    subtotal: `${(item.price * item.quantity).toLocaleString()}`
+                  };
+                });
             });
+              
+            // **Renderizar la tabla**
+            doc.autoTable({
+                columns: tableColumns,
+                body: tableData,
+                startY: 80, // Comienza justo después de la dirección
+                styles: { fontSize: 10, halign: 'center' },
+            });
+        
+            // **Calcular posición final para totales**
+            const finalY = doc.lastAutoTable.finalY + 10;
+        
+            // **Agregar subtotales, envío y total al final**
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Valor envio: (${percentageShippingCost * 100}%): $${amountShippingCost.toLocaleString()}`, 10, finalY + 5);
+            doc.text(`Valor Productos: $${total.toLocaleString()}`, 10, finalY);
+            doc.setFontSize(14);
+            doc.text(`Total Pedido: $${subtotal.toLocaleString()}`, 10, finalY + 10);
 
-            // Agregar el costo de envío al PDF
-            doc.text(`Valor envío: $${shippingCost.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 10);
-
-            // Valor productos
-            doc.text(`Valor productos: $${subtotal.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 17);
-
-            // Total de la Orden
-            const totalPedido = Math.floor(subtotal + shippingCost); // Suma y elimina los decimales
-            doc.text(`Total Pedido: $${totalPedido.toLocaleString()}`, 10, doc.autoTable.previous.finalY + 25);
-
+            doc.setTextColor(255, 0, 0);
+            doc.text(`Los pedidos pueden ser fluctuantes, por lo tanto pueden variar`, 10, finalY + 15);
+        
             // Descargar el PDF
             doc.save(`Orden_${orderData.order.id}.pdf`);
         } catch (error) {
@@ -469,7 +423,7 @@ const Orders = () => {
         }
     };
 
-    const orderColumns = [
+     const orderColumns = [
         { title: 'ID de Orden', dataIndex: 'id', key: 'id' },
         { title: 'Cliente', dataIndex: 'email', key: 'email' },
         {
@@ -582,7 +536,7 @@ const Orders = () => {
                 open={isModalVisible}
                 onCancel={handleCancel}
                 footer={[
-                    <Button key={1} onClick={() => fetchOrderDetailsAndGeneratePDF(orders.id)}>
+                    <Button key={1} onClick={() => fetchOrderDetailsAndGeneratePDF(selectedOrder.id)}>
                         Generar PDF
                     </Button>,
                 ]}
@@ -601,7 +555,7 @@ const UpdateOrderPrices = () => {
       setLoading(true);
   
       try {
-        const response = await axios.put("https://don-kampo-api-5vf3.onrender.com/api/orders/updatePrices");
+        const response = await axios.put("http://localhost:8080/api/orders/updatePrices");
         notification.success({
           message: "Éxito",
           description: response.data.msg || "Los precios se han actualizado correctamente.",
@@ -616,8 +570,7 @@ const UpdateOrderPrices = () => {
         setLoading(false);
       }
     };
-  
-    
+
     return (
       
       <div style={{ padding: "24px", maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
@@ -650,5 +603,4 @@ const UpdateOrderPrices = () => {
     );
 };
   
-
 export { Orders, UpdateOrderPrices };

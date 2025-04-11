@@ -234,3 +234,7 @@ h4 {
   border-radius: 8px;
   border: none;
 }
+
+.ant-select.tag {
+  width: 100% !important;
+}

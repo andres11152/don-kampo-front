@@ -1,17 +1,25 @@
 import { message } from "antd";
 
 const validatePriceVariations = variations => {
-    const validPriceVariation = variation => variation !== "" && variation !== null && variation > 0;
+    const validPrice = price => price !== "" && price !== null && price !== undefined && price > 0;
 
-    // Validar que al menos una variación tenga un precio
-    const hasValidPrice = variations.some(variation => 
-        validPriceVariation(variation.price_home) || validPriceVariation(variation.price_supermarket) ||
-        validPriceVariation(variation.price_restaurant) || validPriceVariation(variation.price_fruver)
-    );
+    for (let variationIndex = 0; variationIndex < variations.length; variationIndex++) {
+        const variation = variations[variationIndex];
 
-    if (!hasValidPrice) { message.error('Debe ingresar al menos un precio en alguna variación') }
-    
-    return hasValidPrice
-}
-    
-export default validatePriceVariations
+        for (let presentation of variation.presentations) {
+            const { presentation: presentationName, price_home, price_supermarket, price_restaurant, price_fruver } = presentation;
+
+            const presentationPrices = [price_home, price_supermarket, price_restaurant, price_fruver];
+            const hasValidPrice = presentationPrices.some(validPrice);
+
+            if (!hasValidPrice) {
+                message.error(`La presentación "${presentationName}" en la variación ${variationIndex + 1} debe tener al menos un precio mayor a 0.`);
+                return false; // Detiene la función inmediatamente
+            }
+        }
+    }
+
+    return true; // Si ninguna presentación tiene errores, retorna true
+};
+
+export default validatePriceVariations;

@@ -26,11 +26,7 @@ const CreateProduct = () => {
     {
       active: true,
       quality: "",
-      quantity: "",
-      price_home: "",
-      price_supermarket: "",
-      price_restaurant: "",
-      price_fruver: "",
+      presentations: [],
     },
   ]);
   const [values, setValues] = useState({
@@ -47,20 +43,61 @@ const CreateProduct = () => {
     setVariations(updatedVariations);
   };
 
+  const handlePresentationChange = (variationIndex, field, value) => { 
+    setVariations(prevVariations => {
+      const updatedVariations = [...prevVariations];
+      const variationPresentation = updatedVariations[variationIndex].presentations;
+
+      let newValue = value;
+      if (field === "presentation") {
+        newValue = newValue.length < variationPresentation.length ? undefined : value[value.length - 1]; // Obtiene la última presentación ingresada
+      }
+  
+
+      const indexPresentation = variationPresentation.length > 0 ? variationPresentation.length - 1 : -1;
+      
+      if (field === "presentation") {
+        if (newValue === undefined) {
+          // Si newValue es undefined, eliminar la presentación si existe
+          if (indexPresentation !== -1) variationPresentation.splice(indexPresentation, 1);
+
+        } else {
+          // Verificar si la presentación ya existe
+          const index = variationPresentation.findIndex(p => p.presentation === newValue)
+          if (index !== -1) {
+            message.error("Esa presentación ya existe para esta variación.");
+            return prevVariations; // No modifica el estado
+          }
+
+          // Agregar nueva presentación
+          variationPresentation.push({
+            presentation: newValue,
+            price_fruver: 0,
+            price_home: 0,
+            price_restaurant: 0,
+            price_supermarket: 0,
+          });
+        }
+      } else {
+        // Si el campo es un precio y la presentación existe, modificarla
+        variationPresentation[indexPresentation][field] = newValue;
+      }
+  
+      return updatedVariations;
+    });
+  };
+
   const addVariation = () => {
     setVariations([
       ...variations,
       {
         active: true,
         quality: "",
-        quantity: "",
-        price_home: "",
-        price_supermarket: "",
-        price_restaurant: "",
-        price_fruver: "",
+        presentations: [],
       },
     ]);
   };
+
 
   const removeVariation = (index) => {
     const updatedVariations = [...variations];
@@ -85,32 +122,35 @@ const CreateProduct = () => {
     if (isValidPriceVariation) {
 
       const productData = {
-          name: values.name,
-          description: values.description,
-          category: values.category,
-          stock: 100,
-          active: true,
-          promocionar: false,
-          variations: variations.map((variation) => ({
-              active: variation.active,
-              quality: variation.quality || null,
-              quantity: variation.quantity || null,
-              price_home: variation.price_home === "" ? null : parseInt(variation.price_home),
-              price_supermarket: variation.price_supermarket === "" ? null : parseInt(variation.price_supermarket),
-              price_restaurant: variation.price_restaurant === "" ? null : parseInt(variation.price_restaurant),
-              price_fruver: variation.price_fruver === "" ? null : parseInt(variation.price_fruver),
+        name: values.name,
+        description: values.description,
+        category: values.category,
+        active: true,
+        promocionar: false,
+        variations: variations.map(variation => ({
+          active: variation.active,
+          quality: variation.quality || null,
+          presentations: variation.presentations.map(presentation => ({
+            presentation: presentation.presentation,
+            stock: 100,
+            price_home: parseInt(presentation.price_home),
+            price_supermarket: parseInt(presentation.price_supermarket),
+            price_restaurant: parseInt(presentation.price_restaurant),
+            price_fruver: parseInt(presentation.price_fruver),
           })),
+        })),
       };
 
       const formData = new FormData();
       imageFile && formData.append("photo_url", imageFile);
 
-      Object.keys(productData).forEach((key) => {
-          key === "variations" ? formData.append(key, JSON.stringify(productData[key])) : formData.append(key, productData[key]);
-      });
+      Object.keys(productData).forEach(key => key === "variations" ? 
+        formData.append(key, JSON.stringify(productData[key])) : 
+        formData.append(key, productData[key])
+      );
 
       try {
-          const response = await axios.post("https://don-kampo-api-5vf3.onrender.com/api/createproduct", formData, {
+          const response = await axios.post("http://localhost:8080/api/createproduct", formData, {
               headers: { "Content-Type": "multipart/form-data" },
           });
 
@@ -120,11 +160,7 @@ const CreateProduct = () => {
           setVariations([{
               active: true,
               quality: "",
-              quantity: "",
-              price_home: "",
-              price_supermarket: "",
-              price_restaurant: "",
-              price_fruver: "",
+              presentations: [],
           }]);
           setTimeout(() => window.location.reload(), 1500);
       } catch (error) {
@@ -132,8 +168,7 @@ const CreateProduct = () => {
           console.error(error);
       }
     }
-};
-
+  };
 
   return (
     <form onSubmit={handleSubmit} className="create-product">
@@ -201,76 +236,93 @@ const CreateProduct = () => {
 
       <section className="variation-data">
         <h3>Variaciones del Producto</h3>
-        {variations.map((variation, index) => (
-          <div key={index} className="variation-fields">
-            <h4>{index + 1}</h4>
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <Input
-                  placeholder="Calidad (Ej: Primera, Segunda)"
-                  value={variation.quality}
-                  onChange={(e) => handleVariationChange(index, "quality", e.target.value)}
-                />
-              </Col>
-              <Col span={12}>
-                <Input
-                  placeholder="Cantidad (Ej: 1kg, 2kg)"
-                  value={variation.quantity}
-                  onChange={(e) => handleVariationChange(index, "quantity", e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <InputNumber
-                  min={0}
-                  placeholder="Precio Hogar"
-                  value={variation.price_home}
-                  onChange={(value) => handleVariationChange(index, "price_home", value)}
-                  style={{ width: "100%" }}
-                />
-              </Col>
-              <Col span={12}>
-                <InputNumber
-                  min={0}
-                  placeholder="Precio Supermercado"
-                  value={variation.price_supermarket}
-                  onChange={(value) => handleVariationChange(index, "price_supermarket", value)}
-                  style={{ width: "100%" }}
-                />
-              </Col>
-            </Row>
-            <Row gutter={[16, 16]}>
-              <Col span={12}>
-                <InputNumber
-                  min={0}
-                  placeholder="Precio Restaurante"
-                  value={variation.price_restaurant}
-                  onChange={(value) => handleVariationChange(index, "price_restaurant", value)}
-                  style={{ width: "100%" }}
-                />
-              </Col>
-              <Col span={12}>
-                <InputNumber
-                  min={0}
-                  placeholder="Precio Fruver"
-                  value={variation.price_fruver}
-                  onChange={(value) => handleVariationChange(index, "price_fruver", value)}
-                  style={{ width: "100%" }}
-                />
-              </Col>
-            </Row>
-            {index > 0 && (
-              <Button
-                onClick={() => removeVariation(index)}
-                type="danger"
-                style={{ marginTop: 10 , color: "#ff4d4f  " }}
-              >
-                Eliminar Variación
-              </Button>
-            )}
-          </div>
-        ))}
+        {variations.map((variation, indexVariation) => {
+          const { presentations, quality } = variation
+          const actualPresentation = presentations.length ? presentations[presentations.length - 1] : null
+          return (
+            <div key={indexVariation} className="variation-fields">
+              <h4>{indexVariation + 1}</h4>
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <Input
+                    placeholder="Calidad (Ej: Primera, Segunda)"
+                    value={quality}
+                    onChange={(e) => handleVariationChange(indexVariation, "quality", e.target.value)}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Select
+                    className="tag"
+                    mode="tags"
+                    placeholder="Presentaciones (Ej: 1kg, 2kg)"
+                    value={presentations.map(p => p.presentation)} 
+                    onChange={value => handlePresentationChange(indexVariation, "presentation", value)}
+                  />
+                </Col>
+              </Row>
+
+              {presentations.length > 0 && 
+                <Row gutter={[16, 16]}>
+                  <Col span={12}>
+                    <InputNumber
+                      min={0}
+                      placeholder="Precio Hogar"
+                      value={actualPresentation.price_home}
+                      onChange={(value) =>
+                        handlePresentationChange(indexVariation, "price_home", value)
+                      }
+                      style={{ width: "100%" }}
+                    />
+                  </Col>
+                  <Col span={12}>
+                    <InputNumber
+                      min={0}
+                      placeholder="Precio Supermercado"
+                      value={actualPresentation.price_supermarket}
+                      onChange={(value) =>
+                        handlePresentationChange(indexVariation, "price_supermarket", value)
+                      }
+                      style={{ width: "100%" }}
+                    />
+                  </Col>
+                  <Col span={12}>
+                    <InputNumber
+                      min={0}
+                      placeholder="Precio Restaurante"
+                      value={actualPresentation.price_restaurant}
+                      onChange={(value) =>
+                        handlePresentationChange(indexVariation, "price_restaurant", value)
+
+                      }
+                      style={{ width: "100%" }}
+                    />
+                  </Col>
+                  <Col span={12}>
+                    <InputNumber
+                      min={0}
+                      placeholder="Precio Fruver"
+                      value={actualPresentation.price_fruver}
+                      onChange={(value) =>
+                        handlePresentationChange(indexVariation, "price_fruver", value)
+                      }
+                      style={{ width: "100%" }}
+                    />
+                  </Col>
+                </Row>
+              }
+
+              {indexVariation > 0 && (
+                <Button
+                  onClick={() => removeVariation(indexVariation)}
+                  type="danger"
+                  style={{ marginTop: 10, color: "#ff4d4f" }}
+                >
+                  Eliminar Variación
+                </Button>
+              )}
+            </div>
+          )
+      })}
       </section>
 
       <section className="submit">

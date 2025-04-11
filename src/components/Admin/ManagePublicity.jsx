@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+
+import getFetch from "utils/getFetch"
+
 import "css/ManagePublicity.css";
 
 const ManagePublicity = () => {
@@ -9,8 +12,9 @@ const ManagePublicity = () => {
     category: "",
     title: "",
     description: "",
+    related_product_id: "",
     photo_url: null,
-    related_product_id: "", // Añadir campo related_product_id
+    previewURL: null
   });
   const [isLoading, setIsLoading] = useState(false);
   const [editingAd, setEditingAd] = useState(null);
@@ -22,7 +26,7 @@ const ManagePublicity = () => {
   const fetchAdvertisements = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/publicidad");
+      const response = await axios.get("http://localhost:8080/api/publicidad");
       setAdvertisements(response.data);
       setFilteredAdvertisements(response.data);
     } catch (error) {
@@ -49,9 +53,11 @@ const ManagePublicity = () => {
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
+  
     setNewAd((prev) => ({
       ...prev,
       [name]: files ? files[0] : value,
+      previewUrl: files ? URL.createObjectURL(files[0]) : prev.previewUrl, // Agrega la vista previa
     }));
   };
 
@@ -65,17 +71,23 @@ const ManagePublicity = () => {
     try {
       setIsLoading(true);
 
+      console.log(newAd)
+      const productId = newAd.related_product_id
+
       // Obtener el producto
-      const producto = await fetchgetProduct(parseInt(newAd.related_product_id));      
+      const product = await getFetch('getproduct/' + productId, '');      
 
-      // Preparar los datos del formulario
-      const formData = new FormData();
-      Object.keys(newAd).forEach((key) => formData.append(key, newAd[key]));
+      if (product) {
+          // Preparar los datos del formulario
+        const formData = new FormData();
+        Object.keys(newAd).forEach((key) => formData.append(key, newAd[key]));
 
-      await axios.post("https://don-kampo-api-5vf3.onrender.com/api/publicidad", formData);
-      alert("Publicidad creada exitosamente.");
-      setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
-      fetchAdvertisements();
+        await axios.post("http://localhost:8080/api/publicidad", formData);
+        alert("Publicidad creada exitosamente.");
+        setNewAd({ category: "", title: "", description: "", photo_url: null, related_product_id: "" });
+        fetchAdvertisements();
+      }
+
     } catch (error) {
         console.error('Error', error)
         alert("El Id del Producto no existe")
@@ -88,7 +100,7 @@ const ManagePublicity = () => {
     if (!window.confirm("¿Está seguro de que desea eliminar esta publicidad?")) return;
 
     try {
-      await axios.delete(`https://don-kampo-api-5vf3.onrender.com/api/publicidad/${id}`);
+      await axios.delete(`http://localhost:8080/api/publicidad/${id}`);
       alert("Publicidad eliminada correctamente.");
       fetchAdvertisements();
     } catch (error) {
@@ -128,7 +140,7 @@ const ManagePublicity = () => {
       formData.append("related_product_id", newAd.related_product_id);
 
       await axios.put(
-        `https://don-kampo-api-5vf3.onrender.com/api/publicidad/${editingAd.advertisement_id}`,
+        `http://localhost:8080/api/publicidad/${editingAd.advertisement_id}`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -197,7 +209,10 @@ const ManagePublicity = () => {
             value={newAd.related_product_id}
             onChange={handleInputChange}
           />
-          <div>
+          {newAd.previewUrl && (
+            <img src={newAd.previewUrl} alt="Vista previa" style={{ width: "100%", maxWidth: '300px', maxHeight: '300px', marginTop: "10px", borderRadius: '8px' }} />
+          )}
+          <div style={{ marginTop: '20px' }}>
             <label htmlFor="fileInput" className="custom-file-upload">
               Subir imágenes
             </label>

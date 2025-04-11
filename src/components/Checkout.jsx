@@ -45,7 +45,7 @@ const Checkout = () => {
           .then(fetchedUser => {
             setActualUser(fetchedUser.user)
             
-            if (fetchedUser.orders.length) {                            
+            if (!fetchedUser.orders.length) {                            
               setIsFirstOrder(true)
               setDiscountedShippingCost(shippingCost / 2);
             } 
@@ -77,7 +77,7 @@ const Checkout = () => {
             const [productId] = key.split('-');
 
             const response = await axios.get(
-              `https://don-kampo-api-5vf3.onrender.com/api/getproduct/${productId}`
+              `http://localhost:8080/api/getproduct/${productId}`
             );
 
             return {
@@ -104,8 +104,9 @@ const Checkout = () => {
 
   const calculateSubtotal = useCallback(() => {
     return cartDetails.reduce((total, product) => {
-      const price = getPrice(product.selectedVariation);
-      return total + price * product.quantity;
+      const { selectedVariation: variation } = product
+      const { quantity } = variation
+      return total + (getPrice(variation) * quantity)
     }, 0);
   }, [cartDetails])
   
@@ -144,7 +145,7 @@ const Checkout = () => {
         };
 
         await axios.put(
-          `https://don-kampo-api-5vf3.onrender.com/api/updateusers/${userData.id}`,
+          `http://localhost:8080/api/updateusers/${userData.id}`,
           updatedData
         );
         message.success("Datos actualizados exitosamente.");
@@ -166,9 +167,7 @@ const Checkout = () => {
       "neighborhood",
     ];
   
-    if (needsElectronicInvoice) {
-      requiredFields.push("companyName", "companyNit");
-    }
+    if (needsElectronicInvoice) requiredFields.push("companyName", "companyNit")
 
     const isValid = requiredFields.every(field =>
       field === "companyName" || field === "companyNit"
@@ -190,13 +189,16 @@ const Checkout = () => {
   
         const orderData = {
           userId: userData ? userData.id : '0f8fc459-571f-4e15-b653-4eb4558c6450',
-          cartDetails: cartDetails.map((product) => ({
-            productId: product.product_id,
-            quantity: product.quantity,
-            variationId: product.selectedVariation.variation_id,
-            price: getPrice(product.selectedVariation),
-          })),
-          total: total,
+          cartDetails: cartDetails.map((product) => {
+            const { product_id: productId, selectedVariation: variation } = product
+            const { quantity, presentation, presentation_id, quality } = variation
+            const price = getPrice(variation)
+            const indexVariation = parseInt(variation.variation_id.split('-')[1])
+            const variationId = product.variations[indexVariation].variation_id
+
+            return ({ productId, quantity, variationId, presentation, presentation_id, quality, price })
+          }),
+          total,
           shippingCost: percentageShippingCost * 100,
           shippingMethod: "Overnight",
           estimatedDelivery: estimatedDelivery,
@@ -215,10 +217,10 @@ const Checkout = () => {
           companyName: needsElectronicInvoice ? companyName : "",
           companyNit: needsElectronicInvoice ? companyNit : "",
         };
-  
+
         try {
           const response = await axios.post(
-            "https://don-kampo-api-5vf3.onrender.com/api/orders/placeOrder",
+            "http://localhost:8080/api/orders/placeOrder",
             orderData
           );
           if (response.status === 201) {
@@ -316,25 +318,24 @@ const Checkout = () => {
         { header: 'Subtotal', dataKey: 'subtotal' },
     ];
 
-    const tableData = cartDetails.map((product) => ({
-        description: `${product.name} (${product.selectedVariation.quality} - ${product.selectedVariation.quantity})`,
-        unitPrice: `$${getPrice(product.selectedVariation).toLocaleString()}`,
-        quantity: product.quantity,
-        subtotal: `$${(getPrice(product.selectedVariation) * product.quantity).toLocaleString()}`,
-    }));
+    const tableData = cartDetails.map((product) => {
+      const { selectedVariation: variation, name } = product
+      const { quality, presentation, quantity } = variation
+
+      return {
+        description: `${name} (${quality} - ${presentation})`,
+        unitPrice: `$${getPrice(variation).toLocaleString()}`,
+        quantity,
+        subtotal: `$${(getPrice(variation) * quantity).toLocaleString()}`,
+      }
+    });
 
     // **Renderizar la tabla**
     doc.autoTable({
         columns: tableColumns,
         body: tableData,
         startY: 75, // Comienza justo después de la dirección
-        styles: { fontSize: 10 },
-        columnStyles: {
-            description: { cellWidth: 'auto' },
-            unitPrice: { halign: 'right' },
-            quantity: { halign: 'center' },
-            subtotal: { halign: 'right' },
-        },
+        styles: { fontSize: 10, halign: 'center'},
     });
 
     // **Calcular posición final para totales**
@@ -347,6 +348,10 @@ const Checkout = () => {
     doc.text(`Envío (${percentageShippingCost * 100}%): $${amountShippingCost.toLocaleString()}`, 10, finalY + 5);
     doc.setFontSize(14);
     doc.text(`Total: $${total.toLocaleString()}`, 10, finalY + 10);
+
+    doc.setFontSize(14);
+    doc.setTextColor(255, 0, 0);
+    doc.text(`Los pedidos pueden ser fluctuantes, por lo tanto pueden variar`, 10, finalY + 15);
 
     // **Guardar el PDF**
     doc.save(`Resumen_Pedido_${orderId}.pdf`);
@@ -454,11 +459,12 @@ const Checkout = () => {
             <h3>Resumen del Pedido</h3>
             <Divider />
             { cartDetails.map(product => {
-              const { product_id: id, name, selectedVariation: variation, quantity } = product
+              const { product_id: id, name, selectedVariation: variation } = product
+              const { presentation, quality, quantity } = variation
 
               return (
                 <div key={id} className="order-summary-item">
-                  <span>{name} ({variation.quality} -{" "} {variation.quantity}) x {quantity}</span>
+                  <span>{name} ({quality} -{" "} {presentation}) x {quantity}</span>
                   <div className="quantity-controls">
                     <Button onClick={() => removeFromCart({product})}>-</Button>
                     <span className="quantity-text">{quantity}</span>
@@ -507,6 +513,19 @@ const Checkout = () => {
 
             <Divider />
             <h4>Total: <span>${total.toLocaleString()}</span></h4>
+            <Divider />
+            
+            <h5 style={{ 
+              backgroundColor: '#ffdddd',
+              color: '#d8000c',
+              border: '1px solid #d8000c',
+              padding: '10px',
+              borderRadius: '5px',
+              fontWeight: 'bold',  
+            }}>
+              Recuerde que los precios son fluctuantes, por lo tanto pueden variar
+            </h5>
+            <Divider />
 
             <Checkbox onChange={e => setCheckTerms(e.target.checked)}>
               Acepto los <a href="/terms" target="_blank">términos y condiciones</a>
@@ -542,6 +561,16 @@ const Checkout = () => {
               ]}
             >
               <div id="order-summary-pdf">
+                <p style={{ 
+                  backgroundColor: '#ffdddd',
+                  color: '#d8000c',
+                  border: '1px solid #d8000c',
+                  padding: '10px',
+                  borderRadius: '5px',
+                  fontWeight: 'bold',  
+                 }}>
+                  Recuerde que los precios son fluctuantes, por lo tanto pueden variar
+                </p>
                 <p>
                   ¡{actualUser.user_name}, tu pedido ha sido realizado
                   exitosamente!<br />Sera despachado {new Date(new Date().setDate(new Date().getDate() + 1)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -552,11 +581,12 @@ const Checkout = () => {
                 <Divider />
                 <h4>Resumen del Pedido</h4>
                 { cartDetails.map(product => {
-                  const { product_id: id, name, selectedVariation: variation, quantity } = product
+                  const { product_id: id, name, selectedVariation: variation } = product
+                  const { quantity, presentation, quality } = variation
                   
                   return (
                     <div key={id} className="order-summary-item">
-                      <span>{name} ({variation.quality} -{" "}{variation.quantity}) x {quantity}</span>
+                      <span>{name} ({quality} -{" "}{presentation}) x {quantity}</span>
                       <span>${(getPrice(variation) * quantity).toLocaleString()}</span>
                     </div>
                   )

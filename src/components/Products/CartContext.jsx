@@ -19,7 +19,7 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
 
   const cartValue = Object.values(cart).reduce(
-    (total, item) => total + item.quantity * (item.price || 0),
+    (total, item) => total + item.selectedVariation.quantity * (item.selectedVariation.price || 0),
     0
   );
 
@@ -49,23 +49,30 @@ export const CartProvider = ({ children }) => {
           return;  // No añadir el producto al carrito
         }        
 
-        const cartKey = `${product.product_id}-${product.selectedVariation.variation_id}`;
+        const { selectedVariation: variation } = product
+        const cartKey = `${product.product_id}-${variation.variation_id}-${variation.presentation}`;
         const quantitySelected = quantities[product.product_id] || 1;
+        
         const pricePerUnit = product.selectedVariation[`price_${userType}`]
         const totalPrice = product.totalPrice;        
 
         if (newCart[cartKey]) {
           newCart[cartKey] = {
             ...newCart[cartKey],
-            quantity: newCart[cartKey].quantity + quantitySelected,
+            selectedVariation: {
+              ...newCart[cartKey].selectedVariation,
+              quantity: newCart[cartKey].selectedVariation.quantity + quantitySelected,
+            },
             totalPrice: newCart[cartKey].totalPrice + totalPrice,
           };
         } else {
           newCart[cartKey] = {
             product_id: product.product_id,
-            selectedVariation: product.selectedVariation,
-            quantity: quantitySelected,
-            price: pricePerUnit,
+            selectedVariation: {
+              ...product.selectedVariation,
+              quantity: quantitySelected,
+              price: pricePerUnit
+            },
             totalPrice,
           };
         }
@@ -82,8 +89,9 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = ({ product, deleteAll=false }) =>
     product.selectedVariation 
       ? setCart(prevCart => {
+        const { selectedVariation: variation } = product
         const newCart = { ...prevCart };
-        const cartKey = `${product.product_id}-${product.selectedVariation.variation_id}`;
+        const cartKey = `${product.product_id}-${variation.variation_id}-${variation.presentation}`;
         
         if (newCart[cartKey]) {
           if ( deleteAll || newCart[cartKey].quantity === 1) {
@@ -91,7 +99,10 @@ export const CartProvider = ({ children }) => {
           } else {   
             newCart[cartKey] = {
               ...newCart[cartKey],
-              quantity: newCart[cartKey].quantity - 1,
+              selectedVariation: {
+                ...newCart[cartKey].selectedVariation,
+                quantity: newCart[cartKey].selectedVariation.quantity - 1,
+              }
             } 
           }
         }
@@ -100,13 +111,20 @@ export const CartProvider = ({ children }) => {
       })
       : console.error("La variación seleccionada no está definida.")
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (product, quantity) => {
     setCart((prevCart) => {
+      const { selectedVariation: variation } = product
       const newCart = { ...prevCart };
-      const cartKey = `${productId}`;
+      const cartKey = `${product.product_id}-${variation.variation_id}-${variation.presentation}`;
 
       if (newCart[cartKey]) {
-        newCart[cartKey].quantity = quantity;
+        newCart[cartKey] = {
+          ...newCart[cartKey],
+          selectedVariation: {
+            ...newCart[cartKey].selectedVariation,
+            quantity,
+          }
+        }
       }
       return newCart;
     });

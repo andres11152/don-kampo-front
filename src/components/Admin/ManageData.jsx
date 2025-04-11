@@ -40,6 +40,9 @@ const ManageData = () => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedPresentations, setSelectedPresentations] = useState({});
+  const [selectedIndexPresentation, setSelectedIndexPresentation] = useState(0)
+
   const [variations, setVariations] = useState([]);
   const [form] = Form.useForm();
   const [imageFile, setImageFile] = useState(null);
@@ -84,7 +87,7 @@ const ManageData = () => {
 
   const deleteProduct = async (productId) => {
     try {
-      await axios.delete(`https://don-kampo-api-5vf3.onrender.com/api/deleteproduct/${productId.toLocaleString()}`);
+      await axios.delete(`http://localhost:8080/api/deleteproduct/${productId.toLocaleString()}`);
       fetchProducts({ success: "Producto eliminado correctamente.", error: "Error al eliminar el producto." });
     } catch (error) {
       console.error(error);
@@ -118,11 +121,11 @@ const ManageData = () => {
           } else {
             formData.append(key, product[key]);
           }
-        });
-
+        });        
+        
         // Envía la solicitud al servidor
         await axios.put(
-          `https://don-kampo-api-5vf3.onrender.com/api/updateproduct/${selectedProduct.product_id}`,
+          `http://localhost:8080/api/updateproduct/${selectedProduct.product_id}`,
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -145,7 +148,7 @@ const ManageData = () => {
 
     try {
       await axios.put(
-        `https://don-kampo-api-5vf3.onrender.com/api/updateproduct/${updatedProduct.product_id}`,
+        `http://localhost:8080/api/updateproduct/${updatedProduct.product_id}`,
         updatedProduct
       );
       setIsModalVisible(false);
@@ -159,7 +162,7 @@ const ManageData = () => {
 
   const generateExcelFromProducts = async () => {
     try {
-      const response = await axios.get("https://don-kampo-api-5vf3.onrender.com/api/products", {
+      const response = await axios.get("http://localhost:8080/api/products", {
         withCredentials: true,
       });
 
@@ -168,100 +171,76 @@ const ManageData = () => {
       }
 
       const products = response.data;
-
-      const productSheetData = [['Id', 'Nombre', 'Descripcion', 'Categoria', 'Stock']];
-      products.forEach((product) => {
+      // Hoja de Productos
+      const productSheetData = [['Id', 'Nombre', 'Descripcion', 'Categoría', 'Promocionar', 'Activo']];
+      products.forEach(product => {
         productSheetData.push([
           product.product_id,
           product.name,
           product.description,
           product.category,
-          product.stock,
+          product.promocionar,
+          product.active
         ]);
       });
-
       const productSheet = XLSX.utils.aoa_to_sheet(productSheetData);
-      productSheet['!ref'] = XLSX.utils.encode_range({
-        s: { c: 0, r: 0 },
-        e: { c: productSheetData[0].length - 1, r: productSheetData.length - 1 },
-      });
-      productSheet['!autofilter'] = {
-        ref: XLSX.utils.encode_range({
-          s: { c: 0, r: 0 },
-          e: { c: productSheetData[0].length - 1, r: 0 },
-        }),
-      };
 
-      const variations = [];
-      products.forEach((product) => {
+      // Hoja de Variaciones
+      const variationSheetData = [['Id Producto', 'Producto', 'Id Variacion', 'Calidad', 'Activo']];
+      products.forEach(product => {
         if (product.variations && product.variations.length > 0) {
-          product.variations.forEach((variation, index) => {
-            if (!variations[index]) {
-              variations[index] = [];
-            }
-
-            variations[index].push({
-              product_id: product.product_id,
-              product_name: product.name,
-              variation_id: variation.variation_id,
-              quality: variation.quality,
-              quantity: variation.quantity,
-              price_home: variation.price_home,
-              price_supermarket: variation.price_supermarket,
-              price_restaurant: variation.price_restaurant,
-              price_fruver: variation.price_fruver,
-            });
+          product.variations.forEach(variation => {
+            variationSheetData.push([
+              product.product_id,
+              product.name,
+              variation.variation_id,
+              variation.quality,
+              variation.active
+            ]);
           });
         }
       });
+      const variationSheet = XLSX.utils.aoa_to_sheet(variationSheetData);
 
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, productSheet, 'Products');
-
-      variations.forEach((variationGroup, index) => {
-        const variationSheetName = `Variation ${index + 1}`;
-        const variationSheetData = [
-          ['Id Product', 'Producto', 'Id Variation', 'Calidad', 'Cantidad', 'Hogar', 'Supermercado', 'Restaurant', 'Fruver'],
-        ];
-
-        variationGroup.forEach((variation) => {
-          variationSheetData.push([
-            variation.product_id,
-            variation.product_name,
-            variation.variation_id,
-            variation.quality,
-            variation.quantity,
-            variation.price_home,
-            variation.price_supermarket,
-            variation.price_restaurant,
-            variation.price_fruver,
-          ]);
-        });
-
-        const variationSheet = XLSX.utils.aoa_to_sheet(variationSheetData);
-        variationSheet['!ref'] = XLSX.utils.encode_range({
-          s: { c: 0, r: 0 },
-          e: { c: variationSheetData[0].length - 1, r: variationSheetData.length - 1 },
-        });
-        variationSheet['!autofilter'] = {
-          ref: XLSX.utils.encode_range({
-            s: { c: 0, r: 0 },
-            e: { c: variationSheetData[0].length - 1, r: 0 },
-          }),
-        };
-
-        XLSX.utils.book_append_sheet(workbook, variationSheet, variationSheetName);
+      // Hoja de Presentaciones
+      const presentationSheetData = [['Id Variacion', 'Presentacion', 'Precio Hogar', 'Precio Supermercado', 'Precio Restaurante', 'Precio Fruver']];
+      products.forEach(product => {
+        if (product.variations && product.variations.length > 0) {
+          product.variations.forEach(variation => {
+            if (variation.presentations && variation.presentations.length > 0) {
+              variation.presentations.forEach(presentation => {
+                presentationSheetData.push([
+                  variation.variation_id,
+                  presentation.presentation,
+                  presentation.price_home,
+                  presentation.price_supermarket,
+                  presentation.price_restaurant,
+                  presentation.price_fruver,
+                ]);
+              });
+            }
+          });
+        }
       });
+      const presentationSheet = XLSX.utils.aoa_to_sheet(presentationSheetData);
 
+      // Crear el libro de Excel y añadir las hojas
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, productSheet, 'Productos');
+      XLSX.utils.book_append_sheet(workbook, variationSheet, 'Variaciones');
+      XLSX.utils.book_append_sheet(workbook, presentationSheet, 'Presentaciones');
+
+      // Exportar el archivo
       const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-      saveAs(blob, 'Products.xlsx');
+      saveAs(blob, 'Productos.xlsx');
 
     } catch (error) {
       console.error('Error generando el archivo Excel:', error);
     }
   };
-
+  
+  console.log(selectedPresentations)
   const ManageProducts = () => {
     const columns = [
       {
@@ -455,113 +434,115 @@ const ManageData = () => {
               </Col>
             </Row>
 
-            <div>
-              <h3>Variaciones</h3>
-              {variations.map((variation, index) => (
-                <div
-                  key={index}
-                  style={{
-                    marginBottom: "16px",
-                    padding: "16px",
-                    border: "1px solid #ddd",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label="Activar/Inactivo"
-                        name={["variations", index, "active"]}
-                        valuePropName="checked"
-                      >
-                        <Switch checkedChildren="Activo" unCheckedChildren="Inactivo" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+            <Form.List name="variations">
+              {(variationFields) =>
+                variationFields.map(({ key, name: varName, ...varField }) => (
+                  <div key={key} style={{ marginBottom: 24, padding: 16, border: '1px solid #ddd' }}>
+                    {/* Hidden variation_id */}
+                    <Form.Item {...varField} name={[varName, 'variation_id']} hidden>
+                      <Input />
+                    </Form.Item>
 
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Calidad (Var ${index + 1})`}
-                        name={["variations", index, "quality"]}
-                        rules={[{ required: true, message: `Por favor ingresa la calidad de la variacion ${index + 1}` }]}
-                      >
-                        <Input placeholder="Calidad" />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Cantidad (Var ${index + 1})`}
-                        name={["variations", index, "quantity"]}
-                        rules={[{ required: true, message: `Por favor ingresa la cantidad de la variacion ${index + 1}` }]}
-                      >
-                        <Input placeholder="Cantidad" />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                    <Row gutter={16}>
+                      <Col>
+                        <Form.Item
+                          {...varField}
+                          name={[varName, 'quality']}
+                          label="Calidad"
+                          rules={[{ required: true }]}
+                        >
+                          <Input />
+                        </Form.Item>
+                      </Col>
+                      <Col>
+                        <Form.Item
+                          {...varField}
+                          name={[varName, 'active']}
+                          label="Activo"
+                          valuePropName="checked"
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
 
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Hogar (Var ${index + 1})`}
-                        name={["variations", index, "price_home"]}
-                      >
-                        <InputNumber placeholder="Precio Hogar" style={{ width: "100%" }} />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Supermercado (Var ${index + 1})`}
-                        name={["variations", index, "price_supermarket"]}
-                      >
-                        <InputNumber placeholder="Precio Supermercado" style={{ width: "100%" }} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                    {/* Lista de presentaciones */}
+                    <Form.List name={[varName, 'presentations']}>
+                      {(presFields) =>
+                        presFields.map(({ key: pKey, name: presName, ...presField }) => (
+                          <div key={pKey} style={{ padding: 16, borderBottom: '2px solid #8c8c8c' }}>
+                            <Row gutter={16}>
+                              <Col>
+                                  <Form.Item
+                                    {...presField}
+                                    name={[presName, 'presentation']}
+                                    label="Presentación"
+                                    rules={[{ required: true }]}
+                                  >
+                                    <Input disabled />
+                                  </Form.Item>
+                              </Col>
+                              <Col>
+                                <Form.Item
+                                  {...presField}
+                                  name={[presName, 'stock']}
+                                  label="Cantidad"
+                                  rules={[{ required: true }]}
+                                >
+                                  <Input />
+                                </Form.Item>
+                              </Col>
+                            </Row>
 
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Restaurante (Var ${index + 1})`}
-                        name={["variations", index, "price_restaurant"]}
-                      >
-                        <InputNumber placeholder="Precio Restaurante" style={{ width: "100%" }} />
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        label={`Precio Fruver (Var ${index + 1})`}
-                        name={["variations", index, "price_fruver"]}
-                      >
-                        <InputNumber placeholder="Precio Fruver" style={{ width: "100%" }} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                            <Row gutter={16}>
+                              <Col>
+                                <Form.Item
+                                  {...presField}
+                                  name={[presName, 'price_home']}
+                                  label="Precio Hogar"
+                                >
+                                  <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                              </Col>
+                              <Col>
+                                <Form.Item
+                                  {...presField}
+                                  name={[presName, 'price_supermarket']}
+                                  label="Precio Superm."
+                                >
+                                  <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                              </Col>
+                            </Row>
 
-                  <Button
-                    type="danger"
-                    onClick={() => removeVariation(index)}
-                    style={{
-                      marginTop: "8px",
-                      backgroundColor: "#ff4d4f", // Color rojo
-                      color: "#fff", // Texto blanco
-                      border: "none", // Elimina el borde
-                    }}
-                  >
-                    Eliminar Variación
-                  </Button>
-                </div>
-              ))}
-
-              <Button
-                type="dashed"
-                onClick={addVariation}
-                style={{ marginTop: "16px", width: "100%" }}
-              >
-                Agregar Variación
-              </Button>
-            </div>
+                            <Row gutter={16}>
+                              <Col>
+                                <Form.Item
+                                  {...presField}
+                                  name={[presName, 'price_restaurant']}
+                                  label="Precio Restaurant"
+                                >
+                                  <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                              </Col>
+                              <Col>
+                                <Form.Item
+                                  {...presField}
+                                  name={[presName, 'price_fruver']}
+                                  label="Precio Fruver"
+                                >
+                                  <InputNumber style={{ width: '100%' }} />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          </div>
+                        ))
+                      }
+                    </Form.List>
+                  </div>
+                ))
+              }
+            </Form.List>
 
             <Form.Item>
               <Button type="primary" htmlType="submit" block>

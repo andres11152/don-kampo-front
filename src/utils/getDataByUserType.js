@@ -1,8 +1,10 @@
 import { userType } from "./getUser";
 
-const getPrice = variation => {
-    const price = variation[`price_${userType === 'admin' ? 'fruver' : userType}`]
-    return parseInt(price);
+const getPrice = presentation => {
+    if (presentation) {
+        const price = presentation[`price_${userType === 'admin' ? 'fruver' : userType}`]
+        return parseInt(price);
+    } else return null
 };
 
 const getShippingCost = shippingData => {        
