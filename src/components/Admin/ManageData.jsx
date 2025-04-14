@@ -17,7 +17,7 @@ import {
   Select,
   Switch,
 } from "antd";
-import { SearchOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { SearchOutlined, EditOutlined, DeleteOutlined, ConsoleSqlOutlined } from "@ant-design/icons";
 import axios from "axios";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -123,6 +123,7 @@ const ManageData = () => {
           }
         });        
         
+        console.log(product)
         // Envía la solicitud al servidor
         await axios.put(
           `http://localhost:8080/api/updateproduct/${selectedProduct.product_id}`,
@@ -240,7 +241,6 @@ const ManageData = () => {
     }
   };
   
-  console.log(selectedPresentations)
   const ManageProducts = () => {
     const columns = [
       {
